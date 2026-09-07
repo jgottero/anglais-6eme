@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greetings — prononce la réponse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Shantell+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---- Same exercise-book tokens as the multiple-choice version ---- */
+  :root {
+    --paper: #FBFAF6;
+    --grid-fine: rgba(122, 142, 196, 0.28);
+    --grid-strong: rgba(96, 118, 180, 0.42);
+    --margin-red: #D8443F;
+    --ink: #1C2B63;
+    --ink-soft: #5B6890;
+    --card: #FFFFFF;
+    --card-edge: rgba(28, 43, 99, 0.16);
+    --right: #1F7A4D;
+    --right-bg: rgba(31, 122, 77, 0.10);
+    --wrong: #C0392B;
+    --wrong-bg: rgba(192, 57, 43, 0.09);
+    --focus: #1C2B63;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #101725;
+      --grid-fine: rgba(140, 165, 220, 0.13);
+      --grid-strong: rgba(150, 175, 230, 0.20);
+      --margin-red: #E86F63;
+      --ink: #EAEFFA;
+      --ink-soft: #9DA9C6;
+      --card: #18202F;
+      --card-edge: rgba(190, 205, 240, 0.20);
+      --right: #5FD39B;
+      --right-bg: rgba(95, 211, 155, 0.14);
+      --wrong: #FF8A7A;
+      --wrong-bg: rgba(255, 138, 122, 0.13);
+      --focus: #EAEFFA;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #101725;
+    --grid-fine: rgba(140, 165, 220, 0.13);
+    --grid-strong: rgba(150, 175, 230, 0.20);
+    --margin-red: #E86F63;
+    --ink: #EAEFFA;
+    --ink-soft: #9DA9C6;
+    --card: #18202F;
+    --card-edge: rgba(190, 205, 240, 0.20);
+    --right: #5FD39B;
+    --right-bg: rgba(95, 211, 155, 0.14);
+    --wrong: #FF8A7A;
+    --wrong-bg: rgba(255, 138, 122, 0.13);
+    --focus: #EAEFFA;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(to right, var(--grid-fine) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(to bottom, var(--grid-fine) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(to bottom, var(--grid-strong) 0 1px, transparent 1px 96px);
+    color: var(--ink);
+    font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 28px 18px 56px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sheet { width: 100%; max-width: 560px; }
+
+  h1 {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--margin-red);
+    margin: 0;
+    display: inline-block;
+    border-bottom: 2px solid var(--margin-red);
+    padding-bottom: 2px;
+  }
+  .hint { color: var(--ink-soft); font-size: 0.95rem; margin: 10px 0 0; }
+
+  .track { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 22px; }
+  .tick { width: 20px; height: 20px; border: 1px solid var(--card-edge); border-radius: 3px; }
+  .tick.right { background: var(--right); border-color: var(--right); }
+  .tick.wrong { background: var(--wrong); border-color: var(--wrong); }
+  .tick.now { border-color: var(--ink); border-width: 2px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-left: 5px solid var(--margin-red);
+    border-radius: 6px;
+    padding: 26px 22px;
+  }
+
+  .counter { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 6px; }
+
+  .prompt {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: clamp(1.9rem, 7vw, 2.6rem);
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 20px;
+  }
+
+  /* ---- Microphone ---- */
+  .mic-row { display: flex; align-items: center; gap: 14px; }
+
+  .mic {
+    width: 78px; height: 78px;
+    flex: none;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .mic svg { width: 30px; height: 30px; }
+  .mic:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .mic[disabled] { opacity: .4; cursor: default; }
+  .mic.listening { background: var(--wrong); border-color: var(--wrong); color: #fff; }
+  @media (prefers-reduced-motion: no-preference) {
+    .mic.listening { animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--wrong-bg); }
+      50% { box-shadow: 0 0 0 12px var(--wrong-bg); }
+    }
+  }
+
+  .mic-label { color: var(--ink-soft); }
+
+  .heard {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: 1.5rem;
+    margin: 22px 0 0;
+    min-height: 1.6em;
+    word-break: break-word;
+  }
+  .heard.ok { color: var(--right); }
+  .heard.ko { color: var(--wrong); }
+
+  .verdict { margin: 6px 0 0; min-height: 1.5em; }
+  .verdict .also { color: var(--ink-soft); font-size: 0.95rem; display: block; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+  button.text {
+    font: inherit;
+    border-radius: 5px;
+    padding: 11px 18px;
+    cursor: pointer;
+    border: 1.5px solid var(--card-edge);
+    background: transparent;
+    color: var(--ink);
+  }
+  button.text:hover { border-color: var(--ink); }
+  button.text:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  button.text.primary {
+    font-weight: 700;
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  button.text[hidden] { display: none; }
+
+  /* ---- Keyboard fallback ---- */
+  .fallback { margin-top: 22px; border-top: 1px solid var(--card-edge); padding-top: 16px; }
+  .fallback[hidden] { display: none; }
+  .fallback p { margin: 0 0 10px; color: var(--ink-soft); font-size: 0.95rem; }
+  .fallback form { display: flex; gap: 8px; }
+  .fallback input {
+    flex: 1;
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--card-edge);
+    border-radius: 5px;
+    padding: 11px 13px;
+  }
+  .fallback input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+
+  .notice {
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--wrong);
+  }
+  .notice[hidden] { display: none; }
+
+  .score-line {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: 2.4rem;
+    margin: 0 0 8px;
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header>
+    <h1>Say it</h1>
+    <p class="hint">Lis le mot français, puis prononce sa traduction anglaise dans le micro.</p>
+  </header>
+
+  <div class="track" id="track" aria-hidden="true"></div>
+
+  <section class="card" id="card">
+    <p class="counter" id="counter"></p>
+    <p class="prompt" id="prompt"></p>
+
+    <div class="mic-row">
+      <button class="mic" id="mic" type="button" aria-label="Parler">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+          <path d="M5 11a7 7 0 0 0 14 0"></path>
+          <line x1="12" y1="18" x2="12" y2="22"></line>
+        </svg>
+      </button>
+      <span class="mic-label" id="micLabel">Clique et prononce la réponse.</span>
+    </div>
+
+    <p class="heard" id="heard" aria-live="polite"></p>
+    <p class="verdict" id="verdict"></p>
+
+    <div class="actions">
+      <button class="text primary" id="next" type="button" hidden></button>
+      <button class="text" id="model" type="button">Écouter le modèle</button>
+      <button class="text" id="skip" type="button">Donner la réponse</button>
+    </div>
+
+    <div class="fallback" id="fallback" hidden>
+      <p id="fallbackNote">Le micro n'est pas disponible ici. Écris la réponse à la place.</p>
+      <form id="typeForm">
+        <input id="typed" type="text" autocomplete="off" autocapitalize="none"
+               spellcheck="false" placeholder="Ta réponse en anglais" aria-label="Ta réponse en anglais">
+        <button class="text" type="submit">Valider</button>
+      </form>
+    </div>
+
+    <p class="notice" id="notice" hidden></p>
+  </section>
+</main>
+
+<script>
+// ---- Lesson content, copied from the notebook page ----
+// `heard` lists the spellings the recogniser commonly returns for that answer,
+// so a correct pronunciation is not rejected over a transcription quirk.
+const WORDS = [
+  { fr: "Bonjour (le matin)",     en: ["good morning"],   heard: ["good morning", "goodmorning"] },
+  { fr: "Bonjour (l'après-midi)", en: ["good afternoon"], heard: ["good afternoon"] },
+  { fr: "Bonsoir",                en: ["good evening"],   heard: ["good evening"] },
+  { fr: "Bonne nuit",             en: ["good night"],     heard: ["good night", "goodnight"] },
+  { fr: "Au revoir",              en: ["goodbye", "bye"], heard: ["goodbye", "good bye", "bye", "by", "buy", "bye bye"] },
+  { fr: "Salut",                  en: ["hi", "hello", "hey"], heard: ["hi", "high", "hello", "hallo", "hey", "hay"] },
+  { fr: "S'il vous plaît",        en: ["please"],         heard: ["please", "pleas", "plies"] },
+  { fr: "Merci",                  en: ["thank you", "thanks"], heard: ["thank you", "thankyou", "thanks", "thank"] },
+  { fr: "Bonne journée",          en: ["have a nice day"], heard: ["have a nice day", "have nice day"] },
+  { fr: "Prenez soin de vous",    en: ["take care"],      heard: ["take care", "takecare"] },
+  { fr: "À demain",               en: ["see you tomorrow"], heard: ["see you tomorrow", "c u tomorrow", "see u tomorrow"] },
+  { fr: "À plus tard",            en: ["see you later"],  heard: ["see you later", "c u later", "see u later"] }
+];
+
+const el = {
+  track: document.getElementById("track"),
+  counter: document.getElementById("counter"),
+  prompt: document.getElementById("prompt"),
+  mic: document.getElementById("mic"),
+  micLabel: document.getElementById("micLabel"),
+  heard: document.getElementById("heard"),
+  verdict: document.getElementById("verdict"),
+  next: document.getElementById("next"),
+  model: document.getElementById("model"),
+  skip: document.getElementById("skip"),
+  fallback: document.getElementById("fallback"),
+  fallbackNote: document.getElementById("fallbackNote"),
+  typeForm: document.getElementById("typeForm"),
+  typed: document.getElementById("typed"),
+  notice: document.getElementById("notice"),
+  card: document.getElementById("card")
+};
+
+// ---- Speech synthesis, used for the model pronunciation ----
+const canSpeak = "speechSynthesis" in window;
+let englishVoice = null;
+
+function pickVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  englishVoice =
+    voices.find(v => v.lang === "en-GB") ||
+    voices.find(v => v.lang === "en-US") ||
+    voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) ||
+    null;
+}
+if (canSpeak) {
+  pickVoice();
+  window.speechSynthesis.onvoiceschanged = pickVoice;
+} else {
+  el.model.hidden = true;
+}
+
+function speak(text) {
+  if (!canSpeak) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (englishVoice) utterance.voice = englishVoice;
+  utterance.lang = englishVoice ? englishVoice.lang : "en-GB";
+  utterance.rate = 0.85;
+  window.speechSynthesis.speak(utterance);
+}
+
+// ---- Speech recognition ----
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let listening = false;
+
+if (Recognition) {
+  recognition = new Recognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 5;
+  recognition.continuous = false;
+
+  recognition.onstart = () => {
+    listening = true;
+    el.mic.classList.add("listening");
+    el.micLabel.textContent = "J'écoute…";
+    el.heard.textContent = "";
+    el.heard.className = "heard";
+  };
+
+  recognition.onresult = event => {
+    const result = event.results[event.results.length - 1];
+    const transcripts = [];
+    for (let i = 0; i < result.length; i++) transcripts.push(result[i].transcript);
+
+    el.heard.textContent = "« " + transcripts[0].trim() + " »";
+    if (result.isFinal) judgeSpoken(transcripts);
+  };
+
+  recognition.onerror = event => {
+    stopListening();
+    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      showNotice("Le micro est bloqué. Autorise-le dans le navigateur, ou ouvre la page dans un onglet à part.");
+      openFallback("Le micro est bloqué ici. Écris la réponse à la place.");
+    } else if (event.error === "no-speech") {
+      el.micLabel.textContent = "Je n'ai rien entendu. Réessaie.";
+    } else if (event.error === "network") {
+      showNotice("La reconnaissance vocale a besoin d'une connexion internet.");
+      openFallback("La reconnaissance vocale est indisponible. Écris la réponse à la place.");
+    } else {
+      el.micLabel.textContent = "Réessaie.";
+    }
+  };
+
+  recognition.onend = stopListening;
+} else {
+  el.mic.disabled = true;
+  el.micLabel.textContent = "Ce navigateur ne reconnaît pas la parole.";
+  openFallback("Ce navigateur ne reconnaît pas la parole (essaie Chrome, Edge ou Safari). Écris la réponse à la place.");
+}
+
+function stopListening() {
+  listening = false;
+  el.mic.classList.remove("listening");
+  if (!locked) el.micLabel.textContent = "Clique et prononce la réponse.";
+}
+
+function showNotice(text) {
+  el.notice.textContent = text;
+  el.notice.hidden = false;
+}
+
+function openFallback(text) {
+  el.fallbackNote.textContent = text;
+  el.fallback.hidden = false;
+}
+
+// ---- Answer matching ----
+// Strips accents, punctuation and doubled spaces so "Good morning!" matches "good morning".
+function normalise(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isAccepted(word, attempt) {
+  const said = normalise(attempt);
+  if (!said) return false;
+  const targets = [...word.en, ...(word.heard || [])].map(normalise);
+  // Exact match, or the answer sitting inside a longer sentence ("it's good morning").
+  return targets.some(target => said === target || said.includes(" " + target) || said.startsWith(target + " "));
+}
+
+// ---- Quiz state ----
+let round = [];
+let index = 0;
+let score = 0;
+let attempts = 0;
+let locked = false;
+
+function shuffle(list) {
+  const copy = list.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function startRound() {
+  round = shuffle(WORDS);
+  index = 0;
+  score = 0;
+  el.track.innerHTML = round.map(() => '<span class="tick"></span>').join("");
+  showQuestion();
+}
+
+function markTrack(result) {
+  const ticks = el.track.children;
+  for (const tick of ticks) tick.classList.remove("now");
+  if (result) ticks[index].classList.add(result);
+  else if (ticks[index]) ticks[index].classList.add("now");
+}
+
+function showQuestion() {
+  locked = false;
+  attempts = 0;
+  const word = round[index];
+  markTrack(null);
+
+  el.counter.textContent = "Mot " + (index + 1) + " sur " + round.length;
+  el.prompt.textContent = word.fr;
+  el.heard.textContent = "";
+  el.heard.className = "heard";
+  el.verdict.textContent = "";
+  el.next.hidden = true;
+  el.skip.hidden = false;
+  el.mic.disabled = !recognition;
+  el.micLabel.textContent = recognition
+    ? "Clique et prononce la réponse."
+    : "Ce navigateur ne reconnaît pas la parole.";
+  el.typed.value = "";
+}
+
+function judgeSpoken(transcripts) {
+  const word = round[index];
+  const success = transcripts.some(t => isAccepted(word, t));
+  el.heard.textContent = "« " + transcripts[0].trim() + " »";
+  if (success) {
+    settle(true);
+  } else {
+    attempts++;
+    el.heard.className = "heard ko";
+    el.verdict.textContent = attempts >= 2
+      ? "Toujours pas. Écoute le modèle, puis réessaie."
+      : "Ce n'est pas ça. Réessaie.";
+  }
+}
+
+function settle(success) {
+  locked = true;
+  const word = round[index];
+  if (success) {
+    score++;
+    el.heard.className = "heard ok";
+    el.verdict.innerHTML = "<b>Bien prononcé.</b>";
+  } else {
+    el.heard.className = "heard ko";
+    el.verdict.innerHTML = "<b>La réponse était :</b> " + escapeText(word.en[0]) + ".";
+    speak(word.en[0]);
+  }
+  if (word.en.length > 1) {
+    el.verdict.innerHTML +=
+      '<span class="also">On accepte aussi : ' + escapeText(word.en.slice(1).join(", ")) + '.</span>';
+  }
+  markTrack(success ? "right" : "wrong");
+  el.mic.disabled = true;
+  el.skip.hidden = true;
+  el.micLabel.textContent = success ? "Bravo." : "";
+  el.next.hidden = false;
+  el.next.textContent = index === round.length - 1 ? "Voir le score" : "Mot suivant";
+  el.next.focus();
+}
+
+function escapeText(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Asks for the microphone explicitly. Speech recognition alone does not always
+// raise the browser prompt, and this call reports precisely what blocks it.
+let micGranted = false;
+
+async function ensureMicPermission() {
+  if (micGranted) return true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    openFallback("Ce navigateur ne donne pas accès au micro. Écris la réponse à la place.");
+    return false;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // The stream is only needed to obtain the permission; release it at once.
+    stream.getTracks().forEach(track => track.stop());
+    micGranted = true;
+    el.notice.hidden = true;
+    return true;
+  } catch (error) {
+    if (error.name === "NotAllowedError" || error.name === "SecurityError") {
+      showNotice(embedded()
+        ? "Chrome refuse le micro parce que la page est affichée dans un cadre. Ouvre-la dans son propre onglet, ou lance le fichier depuis ton ordinateur."
+        : "Le micro est refusé. Clique sur l'icône à gauche de l'adresse, puis autorise le micro et recharge la page.");
+    } else if (error.name === "NotFoundError") {
+      showNotice("Aucun micro n'a été trouvé sur cet appareil.");
+    } else if (error.name === "NotReadableError") {
+      showNotice("Le micro est déjà utilisé par une autre application.");
+    } else {
+      showNotice("Le micro n'a pas pu démarrer.");
+    }
+    openFallback("En attendant, écris la réponse ici.");
+    return false;
+  }
+}
+
+function embedded() {
+  try { return window.self !== window.top; } catch (error) { return true; }
+}
+
+el.mic.addEventListener("click", async () => {
+  if (!recognition || locked) return;
+  if (listening) { recognition.stop(); return; }
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  el.micLabel.textContent = "Autorisation du micro…";
+  const allowed = await ensureMicPermission();
+  if (!allowed) {
+    el.micLabel.textContent = "Micro indisponible.";
+    el.typed.focus();
+    return;
+  }
+  try {
+    recognition.start();
+  } catch (error) {
+    // start() throws if the previous session has not fully ended yet.
+    el.micLabel.textContent = "Attends une seconde, puis réessaie.";
+  }
+});
+
+el.model.addEventListener("click", () => {
+  if (listening) recognition.stop();
+  speak(round[index].en[0]);
+});
+
+el.skip.addEventListener("click", () => {
+  if (listening) recognition.stop();
+  settle(false);
+});
+
+el.typeForm.addEventListener("submit", event => {
+  event.preventDefault();
+  if (locked) return;
+  const value = el.typed.value.trim();
+  if (!value) return;
+  el.heard.textContent = "« " + value + " »";
+  if (isAccepted(round[index], value)) {
+    settle(true);
+  } else {
+    attempts++;
+    el.heard.className = "heard ko";
+    el.verdict.textContent = "Ce n'est pas ça. Réessaie.";
+  }
+});
+
+el.next.addEventListener("click", () => {
+  if (index === round.length - 1) showScore();
+  else { index++; showQuestion(); }
+});
+
+function showScore() {
+  for (const tick of el.track.children) tick.classList.remove("now");
+  const comment =
+    score === round.length ? "Sans faute." :
+    score >= round.length - 2 ? "Presque parfait." :
+    score >= round.length / 2 ? "C'est en bonne voie." :
+    "Réécoute les modèles et recommence.";
+
+  el.card.innerHTML =
+    '<p class="score-line">' + score + " / " + round.length + '</p>' +
+    '<p>' + comment + '</p>' +
+    '<button class="text primary" id="again" type="button">Recommencer</button>';
+  document.getElementById("again").addEventListener("click", () => location.reload());
+  document.getElementById("again").focus();
+}
+
+// A frame that was not granted the microphone by its host blocks the request
+// before any prompt appears, so warn about it rather than letting it fail silently.
+if (recognition && document.featurePolicy &&
+    typeof document.featurePolicy.allowsFeature === "function" &&
+    !document.featurePolicy.allowsFeature("microphone")) {
+  showNotice("Cette page est affichée dans un cadre qui n'autorise pas le micro. Ouvre-la dans son propre onglet pour parler, ou écris la réponse ci-dessous.");
+  openFallback("Écris la réponse en attendant.");
+}
+
+startRound();
+</script>
+</body>
+</html>
