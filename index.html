@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anglais — révisions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Shantell+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---- Design tokens: a French school exercise book (papier Seyès) ---- */
+  :root {
+    --paper: #FBFAF6;
+    --grid-fine: rgba(122, 142, 196, 0.28);
+    --grid-strong: rgba(96, 118, 180, 0.42);
+    --margin-red: #D8443F;
+    --ink: #1C2B63;
+    --ink-soft: #5B6890;
+    --card: #FFFFFF;
+    --card-edge: rgba(28, 43, 99, 0.16);
+    --right: #1F7A4D;
+    --right-bg: rgba(31, 122, 77, 0.10);
+    --wrong: #C0392B;
+    --wrong-bg: rgba(192, 57, 43, 0.09);
+    --focus: #1C2B63;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #101725;
+      --grid-fine: rgba(140, 165, 220, 0.13);
+      --grid-strong: rgba(150, 175, 230, 0.20);
+      --margin-red: #E86F63;
+      --ink: #EAEFFA;
+      --ink-soft: #9DA9C6;
+      --card: #18202F;
+      --card-edge: rgba(190, 205, 240, 0.20);
+      --right: #5FD39B;
+      --right-bg: rgba(95, 211, 155, 0.14);
+      --wrong: #FF8A7A;
+      --wrong-bg: rgba(255, 138, 122, 0.13);
+      --focus: #EAEFFA;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #101725;
+    --grid-fine: rgba(140, 165, 220, 0.13);
+    --grid-strong: rgba(150, 175, 230, 0.20);
+    --margin-red: #E86F63;
+    --ink: #EAEFFA;
+    --ink-soft: #9DA9C6;
+    --card: #18202F;
+    --card-edge: rgba(190, 205, 240, 0.20);
+    --right: #5FD39B;
+    --right-bg: rgba(95, 211, 155, 0.14);
+    --wrong: #FF8A7A;
+    --wrong-bg: rgba(255, 138, 122, 0.13);
+    --focus: #EAEFFA;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(to right, var(--grid-fine) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(to bottom, var(--grid-fine) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(to bottom, var(--grid-strong) 0 1px, transparent 1px 96px);
+    color: var(--ink);
+    font-family: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 26px 16px 56px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sheet { width: 100%; max-width: 560px; }
+
+  h1 {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--margin-red);
+    margin: 0 0 20px;
+    display: inline-block;
+    border-bottom: 2px solid var(--margin-red);
+    padding-bottom: 2px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    border-left: 5px solid var(--margin-red);
+    border-radius: 6px;
+    padding: 24px 20px;
+  }
+
+  .label { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 10px; }
+  .label + .label, .stack + .label { margin-top: 24px; }
+
+  .stack { display: grid; gap: 10px; }
+
+  /* ---- Buttons ---- */
+  button { font: inherit; cursor: pointer; }
+
+  .choice {
+    display: block;
+    width: 100%;
+    text-align: left;
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--card-edge);
+    border-radius: 5px;
+    padding: 13px 15px;
+  }
+  .choice:hover { border-color: var(--ink); }
+  .choice:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .choice .sub { display: block; color: var(--ink-soft); font-size: 0.85rem; }
+  .choice[aria-pressed="true"] { border-color: var(--ink); background: var(--right-bg); }
+
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modes .choice { text-align: center; }
+
+  .text {
+    border-radius: 5px;
+    padding: 11px 18px;
+    border: 1.5px solid var(--card-edge);
+    background: transparent;
+    color: var(--ink);
+  }
+  .text:hover { border-color: var(--ink); }
+  .text:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .text.primary { font-weight: 700; background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  [hidden] { display: none !important; }
+
+  .link {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .link:hover { color: var(--ink); }
+
+  /* ---- Quiz shell ---- */
+  .topbar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+  .topbar .counter { color: var(--ink-soft); font-size: 0.9rem; }
+
+  .track { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 18px; }
+  .tick { width: 18px; height: 18px; border: 1px solid var(--card-edge); border-radius: 3px; }
+  .tick.right { background: var(--right); border-color: var(--right); }
+  .tick.wrong { background: var(--wrong); border-color: var(--wrong); }
+  .tick.now { border-color: var(--ink); border-width: 2px; }
+
+  .prompt {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: clamp(1.8rem, 6.5vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 22px;
+  }
+
+  .option { display: flex; align-items: center; gap: 12px; }
+  .option .key { font-size: 0.8rem; color: var(--ink-soft); min-width: 1.1em; }
+  .option.picked-right { border-color: var(--right); background: var(--right-bg); }
+  .option.picked-wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+  .option.reveal { border-color: var(--right); border-style: dashed; }
+  .option.speaking .word { text-decoration: underline; text-underline-offset: 4px; }
+
+  .verdict { margin: 18px 0 0; min-height: 1.5em; }
+  .verdict .also { color: var(--ink-soft); font-size: 0.95rem; display: block; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+  /* ---- Speaking mode ---- */
+  .mic-row { display: flex; align-items: center; gap: 14px; }
+  .mic {
+    width: 74px; height: 74px; flex: none;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+  }
+  .mic svg { width: 28px; height: 28px; }
+  .mic:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .mic[disabled] { opacity: .4; cursor: default; }
+  .mic.listening { background: var(--wrong); border-color: var(--wrong); color: #fff; }
+  @media (prefers-reduced-motion: no-preference) {
+    .mic.listening { animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--wrong-bg); }
+      50% { box-shadow: 0 0 0 12px var(--wrong-bg); }
+    }
+  }
+  .mic-label { color: var(--ink-soft); }
+
+  .heard {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: 1.4rem;
+    margin: 20px 0 0;
+    min-height: 1.6em;
+    word-break: break-word;
+  }
+  .heard.ok { color: var(--right); }
+  .heard.ko { color: var(--wrong); }
+
+  .fallback { margin-top: 20px; border-top: 1px solid var(--card-edge); padding-top: 16px; }
+  .fallback p { margin: 0 0 10px; color: var(--ink-soft); font-size: 0.95rem; }
+  .fallback form { display: flex; gap: 8px; }
+  .fallback input {
+    flex: 1; font: inherit; color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--card-edge);
+    border-radius: 5px;
+    padding: 11px 13px;
+  }
+  .fallback input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+
+  .notice { margin-top: 14px; font-size: 0.9rem; color: var(--wrong); }
+
+  .score-line {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: 2.4rem;
+    margin: 0 0 8px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .choice, .text { transition: border-color .15s, background-color .15s; }
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <h1 id="heading">My English</h1>
+  <div id="screen"></div>
+</main>
+
+<script>
+/* =====================================================================
+   VOCABULARY — this is the only part to edit when adding new words.
+
+   Add a word to an existing list:
+     { fr: "Mot français", en: ["english word"] }
+
+   Add a whole new list: copy one of the blocks below and change
+   `title` and `words`. It appears in the menu automatically.
+
+   Optional keys on a word:
+     en:    every accepted answer. The first one is the model
+            pronunciation; the others are treated as synonyms.
+     heard: extra spellings the voice recogniser tends to return for
+            that word ("high" for hi). Only useful in speaking mode.
+     avoid: answers that must never be offered as a wrong choice here
+            because they would in fact be correct too.
+   ===================================================================== */
+const LESSONS = [
+  {
+    id: "greetings",
+    title: "Greetings",
+    subtitle: "Saluer et remercier",
+    words: [
+      { fr: "Bonjour (le matin)",     en: ["good morning"],   heard: ["goodmorning"], avoid: ["hi", "hello", "hey"] },
+      { fr: "Bonjour (l'après-midi)", en: ["good afternoon"], avoid: ["hi", "hello", "hey"] },
+      { fr: "Bonsoir",                en: ["good evening"] },
+      { fr: "Bonne nuit",             en: ["good night"],     heard: ["goodnight"] },
+      { fr: "Au revoir",              en: ["goodbye", "bye"], heard: ["good bye", "by", "buy", "bye bye"] },
+      { fr: "Salut",                  en: ["hi", "hello", "hey"], heard: ["high", "hallo", "hay"] },
+      { fr: "S'il vous plaît",        en: ["please"],         heard: ["pleas", "plies"] },
+      { fr: "Merci",                  en: ["thank you", "thanks"], heard: ["thankyou", "thank"] },
+      { fr: "Bonne journée",          en: ["have a nice day"], heard: ["have nice day"] },
+      { fr: "Prenez soin de vous",    en: ["take care"],      heard: ["takecare"] },
+      { fr: "À demain",               en: ["see you tomorrow"], heard: ["c u tomorrow", "see u tomorrow"] },
+      { fr: "À plus tard",            en: ["see you later"],  heard: ["c u later", "see u later"] }
+    ]
+  },
+  {
+    id: "classroom",
+    title: "Classroom instructions",
+    subtitle: "Les consignes du professeur",
+    words: [
+      { fr: "Écoutez-moi",         en: ["listen to me"] },
+      { fr: "Lisez",               en: ["read"],              heard: ["red", "reed"] },
+      { fr: "Levez la main",       en: ["raise your hand"],   heard: ["raise you're hand", "raise hand"] },
+      { fr: "Levez-vous",          en: ["stand up"],          heard: ["standup"] },
+      { fr: "Fermez",              en: ["close"],             heard: ["clothes", "cloze"] },
+      { fr: "Écrivez",             en: ["write"],             heard: ["right", "rite"] },
+      { fr: "Ouvrez",              en: ["open"],              heard: ["opened"] },
+      { fr: "Asseyez-vous",        en: ["sit down"],          heard: ["sitdown", "sat down"] },
+      { fr: "Prenez votre crayon", en: ["take your pencil"],  heard: ["take you're pencil"] },
+      { fr: "Taisez-vous",         en: ["be quiet"],          heard: ["be quite", "bequiet"] }
+    ]
+  }
+];
+
+// Longest round allowed. Beyond this the words are drawn at random,
+// so "tous les mots" stays a reasonable length as the lists grow.
+const ROUND_LENGTH = 15;
+
+// ---- Helpers ----
+const screen = document.getElementById("screen");
+
+function shuffle(list) {
+  const copy = list.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function esc(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Strips accents, punctuation and doubled spaces before comparing answers.
+function normalise(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isAccepted(word, attempt) {
+  const said = normalise(attempt);
+  if (!said) return false;
+  const targets = [...word.en, ...(word.heard || [])].map(normalise);
+  return targets.some(t => said === t || said.includes(" " + t) || said.startsWith(t + " "));
+}
+
+// ---- Speech synthesis ----
+const canSpeak = "speechSynthesis" in window;
+let englishVoice = null;
+
+function pickVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  englishVoice =
+    voices.find(v => v.lang === "en-GB") ||
+    voices.find(v => v.lang === "en-US") ||
+    voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) || null;
+}
+if (canSpeak) {
+  pickVoice();
+  window.speechSynthesis.onvoiceschanged = pickVoice;
+}
+
+function speak(text, button) {
+  if (!canSpeak) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (englishVoice) utterance.voice = englishVoice;
+  utterance.lang = englishVoice ? englishVoice.lang : "en-GB";
+  utterance.rate = 0.85;
+  if (button) {
+    button.classList.add("speaking");
+    const clear = () => button.classList.remove("speaking");
+    utterance.onend = clear;
+    utterance.onerror = clear;
+  }
+  window.speechSynthesis.speak(utterance);
+}
+
+// ---- Speech recognition ----
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let listening = false;
+let micGranted = false;
+
+if (Recognition) {
+  recognition = new Recognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 5;
+  recognition.continuous = false;
+}
+
+function embedded() {
+  try { return window.self !== window.top; } catch (error) { return true; }
+}
+
+// Speech recognition alone does not always raise the browser prompt, so the
+// microphone is requested explicitly and the exact blocker is reported.
+async function ensureMicPermission() {
+  if (micGranted) return true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(track => track.stop());
+    micGranted = true;
+    return true;
+  } catch (error) {
+    if (error.name === "NotAllowedError" || error.name === "SecurityError") {
+      say.notice(embedded()
+        ? "Le micro est bloqué parce que la page est dans un cadre. Ouvre-la dans son propre onglet, ou dicte la réponse ci-dessous."
+        : "Le micro est refusé. Autorise-le via l'icône à gauche de l'adresse, puis recharge la page.");
+    } else if (error.name === "NotFoundError") {
+      say.notice("Aucun micro n'a été trouvé sur cet appareil.");
+    } else if (error.name === "NotReadableError") {
+      say.notice("Le micro est déjà utilisé par une autre application.");
+    } else {
+      say.notice("Le micro n'a pas pu démarrer.");
+    }
+    return false;
+  }
+}
+
+// ---- Quiz state ----
+const state = { mode: "mcq", lesson: null, round: [], index: 0, score: 0, locked: false, attempts: 0 };
+
+function poolFor(lessonId) {
+  if (lessonId === "*") return LESSONS.flatMap(lesson => lesson.words);
+  const lesson = LESSONS.find(l => l.id === lessonId);
+  return lesson ? lesson.words : [];
+}
+
+function lessonTitle(lessonId) {
+  if (lessonId === "*") return "Tous les mots";
+  const lesson = LESSONS.find(l => l.id === lessonId);
+  return lesson ? lesson.title : "";
+}
+
+// ---- Menu ----
+function renderMenu() {
+  if (listening) recognition.stop();
+  const lessons = LESSONS.map(lesson =>
+    '<button class="choice" data-lesson="' + esc(lesson.id) + '">' +
+      esc(lesson.title) +
+      '<span class="sub">' + esc(lesson.subtitle || "") +
+      (lesson.subtitle ? " — " : "") + lesson.words.length + ' mots</span>' +
+    '</button>'
+  ).join("");
+
+  const total = LESSONS.reduce((sum, lesson) => sum + lesson.words.length, 0);
+
+  screen.innerHTML =
+    '<section class="card">' +
+      '<p class="label">Choisis l\'exercice</p>' +
+      '<div class="modes">' +
+        '<button class="choice" data-mode="mcq" aria-pressed="' + (state.mode === "mcq") + '">Écouter et choisir</button>' +
+        '<button class="choice" data-mode="say" aria-pressed="' + (state.mode === "say") + '">Prononcer</button>' +
+      '</div>' +
+      '<p class="label">Choisis la liste</p>' +
+      '<div class="stack">' + lessons +
+        '<button class="choice" data-lesson="*">Tous les mots<span class="sub">Les ' +
+          LESSONS.length + ' listes mélangées — ' + total + ' mots</span></button>' +
+      '</div>' +
+    '</section>';
+
+  screen.querySelectorAll("[data-mode]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.mode = button.dataset.mode;
+      renderMenu();
+    });
+  });
+  screen.querySelectorAll("[data-lesson]").forEach(button => {
+    button.addEventListener("click", () => startRound(button.dataset.lesson));
+  });
+}
+
+// ---- Round setup ----
+function startRound(lessonId) {
+  state.lesson = lessonId;
+  const pool = poolFor(lessonId);
+  const picked = shuffle(pool).slice(0, ROUND_LENGTH);
+  state.round = state.mode === "mcq"
+    ? picked.map(word => buildQuestion(word, pool))
+    : picked.map(word => ({ word }));
+  state.index = 0;
+  state.score = 0;
+  renderShell();
+  showQuestion();
+}
+
+// Builds one multiple-choice question: the answer plus three distractors
+// taken from the same pool, never a synonym of the current word.
+function buildQuestion(word, pool) {
+  const answer = shuffle(word.en)[0];
+  const banned = new Set([...word.en, ...(word.avoid || [])]);
+  let others = pool.flatMap(w => w.en).filter(a => !banned.has(a));
+  // A very short list would not offer enough wrong answers on its own.
+  if (others.length < 3) {
+    others = LESSONS.flatMap(l => l.words).flatMap(w => w.en).filter(a => !banned.has(a));
+  }
+  const distractors = shuffle([...new Set(others)]).slice(0, 3);
+  return { word, answer, options: shuffle([answer, ...distractors]) };
+}
+
+// ---- Quiz shell, shared by both modes ----
+function renderShell() {
+  screen.innerHTML =
+    '<section class="card">' +
+      '<div class="topbar">' +
+        '<button class="link" id="back">← Changer de liste</button>' +
+        '<span class="counter" id="counter"></span>' +
+      '</div>' +
+      '<div class="track" id="track" aria-hidden="true"></div>' +
+      '<p class="prompt" id="prompt"></p>' +
+      '<div id="body"></div>' +
+    '</section>';
+  document.getElementById("track").innerHTML =
+    state.round.map(() => '<span class="tick"></span>').join("");
+  document.getElementById("back").addEventListener("click", renderMenu);
+}
+
+function markTrack(result) {
+  const ticks = document.getElementById("track").children;
+  for (const tick of ticks) tick.classList.remove("now");
+  if (result) ticks[state.index].classList.add(result);
+  else if (ticks[state.index]) ticks[state.index].classList.add("now");
+}
+
+function showQuestion() {
+  state.locked = false;
+  state.attempts = 0;
+  markTrack(null);
+  document.getElementById("counter").textContent =
+    lessonTitle(state.lesson) + " · " + (state.index + 1) + "/" + state.round.length;
+  document.getElementById("prompt").textContent = state.round[state.index].word.fr;
+  if (state.mode === "mcq") mcq.render(); else say.render();
+}
+
+function nextLabel() {
+  return state.index === state.round.length - 1 ? "Voir le score" : "Mot suivant";
+}
+
+function goNext() {
+  if (state.index === state.round.length - 1) showScore();
+  else { state.index++; showQuestion(); }
+}
+
+function synonymNote(word, shown) {
+  const others = word.en.filter(answer => answer !== shown);
+  return others.length
+    ? '<span class="also">On accepte aussi : ' + esc(others.join(", ")) + '.</span>'
+    : "";
+}
+
+// ---- Mode 1: listen and choose ----
+const mcq = {
+  render() {
+    const question = state.round[state.index];
+    document.getElementById("body").innerHTML =
+      '<div class="stack" id="options"></div>' +
+      '<p class="verdict" id="verdict"></p>' +
+      '<div class="actions"><button class="text primary" id="next" hidden></button></div>';
+
+    const options = document.getElementById("options");
+    question.options.forEach((option, i) => {
+      const button = document.createElement("button");
+      button.className = "choice option";
+      button.type = "button";
+      button.innerHTML = '<span class="key">' + (i + 1) + '</span><span class="word"></span>';
+      button.querySelector(".word").textContent = option;
+      button.addEventListener("click", () => mcq.choose(option, button));
+      options.appendChild(button);
+    });
+    document.getElementById("next").addEventListener("click", goNext);
+  },
+
+  choose(option, button) {
+    const question = state.round[state.index];
+    // The chosen answer is always read aloud, including once the question is
+    // settled, so the pupil can compare the pronunciations.
+    speak(option, button);
+    if (state.locked) return;
+    state.locked = true;
+
+    const success = option === question.answer;
+    if (success) state.score++;
+    button.classList.add(success ? "picked-right" : "picked-wrong");
+    markTrack(success ? "right" : "wrong");
+
+    if (!success) {
+      for (const other of document.getElementById("options").children) {
+        if (other.querySelector(".word").textContent === question.answer) {
+          other.classList.add("reveal");
+        }
+      }
+    }
+
+    const verdict = document.getElementById("verdict");
+    verdict.innerHTML =
+      (success ? "<b>Bravo.</b> " : "<b>Raté.</b> ") +
+      esc(question.word.fr) + " = " + esc(question.answer) + "." +
+      synonymNote(question.word, question.answer) +
+      '<span class="also">Clique sur un mot pour l\'entendre à nouveau.</span>';
+
+    const next = document.getElementById("next");
+    next.textContent = nextLabel();
+    next.hidden = false;
+    next.focus();
+  }
+};
+
+// ---- Mode 2: say the answer ----
+const say = {
+  render() {
+    document.getElementById("body").innerHTML =
+      '<div class="mic-row">' +
+        '<button class="mic" id="mic" type="button" aria-label="Parler">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+               'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<rect x="9" y="2" width="6" height="12" rx="3"></rect>' +
+            '<path d="M5 11a7 7 0 0 0 14 0"></path>' +
+            '<line x1="12" y1="18" x2="12" y2="22"></line>' +
+          '</svg>' +
+        '</button>' +
+        '<span class="mic-label" id="micLabel"></span>' +
+      '</div>' +
+      '<p class="heard" id="heard" aria-live="polite"></p>' +
+      '<p class="verdict" id="verdict"></p>' +
+      '<div class="actions">' +
+        '<button class="text primary" id="next" hidden></button>' +
+        '<button class="text" id="model">Écouter le modèle</button>' +
+        '<button class="text" id="skip">Donner la réponse</button>' +
+      '</div>' +
+      '<div class="fallback" id="fallback" hidden>' +
+        '<p id="fallbackNote"></p>' +
+        '<form id="typeForm">' +
+          '<input id="typed" type="text" lang="en" autocomplete="off" autocapitalize="none" ' +
+                 'autocorrect="off" spellcheck="false" placeholder="Ta réponse en anglais" ' +
+                 'aria-label="Ta réponse en anglais">' +
+          '<button class="text" type="submit">Valider</button>' +
+        '</form>' +
+        '<p id="dictate" hidden>Appuie sur le champ, puis sur le micro de ton clavier et prononce ' +
+          'le mot. Pense à mettre le clavier en anglais, sinon il écrira du français.</p>' +
+      '</div>' +
+      '<p class="notice" id="notice" hidden></p>';
+
+    const mic = document.getElementById("mic");
+    mic.disabled = !recognition;
+    document.getElementById("micLabel").textContent = recognition
+      ? "Appuie et prononce la réponse."
+      : "Ce navigateur ne reconnaît pas la parole.";
+
+    mic.addEventListener("click", say.listen);
+    document.getElementById("model").addEventListener("click", () => {
+      if (listening) recognition.stop();
+      speak(state.round[state.index].word.en[0]);
+    });
+    document.getElementById("skip").addEventListener("click", () => {
+      if (listening) recognition.stop();
+      say.settle(false);
+    });
+    document.getElementById("next").addEventListener("click", goNext);
+    document.getElementById("typeForm").addEventListener("submit", event => {
+      event.preventDefault();
+      if (state.locked) return;
+      const value = document.getElementById("typed").value.trim();
+      if (value) say.judge([value]);
+    });
+
+    // The on-screen keyboard has its own dictation button, which works even
+    // where the browser microphone is blocked, so phones get it straight away.
+    if (!recognition) {
+      say.fallback("Ce navigateur ne reconnaît pas la parole. Écris la réponse ici.");
+    } else if (matchMedia("(pointer: coarse)").matches) {
+      say.fallback("Dicte ou écris la réponse ici.");
+    }
+  },
+
+  fallback(text) {
+    document.getElementById("fallbackNote").textContent = text;
+    document.getElementById("fallback").hidden = false;
+    if (matchMedia("(pointer: coarse)").matches) {
+      document.getElementById("dictate").hidden = false;
+    }
+  },
+
+  notice(text) {
+    const notice = document.getElementById("notice");
+    if (!notice) return;
+    notice.textContent = text;
+    notice.hidden = false;
+    say.fallback("Dicte ou écris la réponse ici.");
+  },
+
+  async listen() {
+    if (!recognition || state.locked) return;
+    if (listening) { recognition.stop(); return; }
+    if (canSpeak) window.speechSynthesis.cancel();
+
+    const label = document.getElementById("micLabel");
+    label.textContent = "Autorisation du micro…";
+    const allowed = await ensureMicPermission();
+    if (!allowed) { label.textContent = "Micro indisponible."; return; }
+
+    try {
+      recognition.start();
+    } catch (error) {
+      // start() throws if the previous session has not fully ended yet.
+      label.textContent = "Attends une seconde, puis réessaie.";
+    }
+  },
+
+  judge(transcripts) {
+    const word = state.round[state.index].word;
+    const heard = document.getElementById("heard");
+    heard.textContent = "« " + transcripts[0].trim() + " »";
+    if (transcripts.some(t => isAccepted(word, t))) {
+      say.settle(true);
+    } else {
+      state.attempts++;
+      heard.className = "heard ko";
+      document.getElementById("verdict").textContent = state.attempts >= 2
+        ? "Toujours pas. Écoute le modèle, puis réessaie."
+        : "Ce n'est pas ça. Réessaie.";
+    }
+  },
+
+  settle(success) {
+    state.locked = true;
+    const word = state.round[state.index].word;
+    const heard = document.getElementById("heard");
+    const verdict = document.getElementById("verdict");
+
+    if (success) {
+      state.score++;
+      heard.className = "heard ok";
+      verdict.innerHTML = "<b>Bien prononcé.</b>" + synonymNote(word, word.en[0]);
+    } else {
+      heard.className = "heard ko";
+      verdict.innerHTML = "<b>La réponse était :</b> " + esc(word.en[0]) + "." +
+        synonymNote(word, word.en[0]);
+      speak(word.en[0]);
+    }
+
+    markTrack(success ? "right" : "wrong");
+    document.getElementById("mic").disabled = true;
+    document.getElementById("skip").hidden = true;
+    document.getElementById("micLabel").textContent = success ? "Bravo." : "";
+    const next = document.getElementById("next");
+    next.textContent = nextLabel();
+    next.hidden = false;
+    next.focus();
+  }
+};
+
+if (recognition) {
+  recognition.onstart = () => {
+    listening = true;
+    const mic = document.getElementById("mic");
+    if (mic) mic.classList.add("listening");
+    const label = document.getElementById("micLabel");
+    if (label) label.textContent = "J'écoute…";
+    const heard = document.getElementById("heard");
+    if (heard) { heard.textContent = ""; heard.className = "heard"; }
+  };
+
+  recognition.onresult = event => {
+    const result = event.results[event.results.length - 1];
+    const transcripts = [];
+    for (let i = 0; i < result.length; i++) transcripts.push(result[i].transcript);
+    const heard = document.getElementById("heard");
+    if (heard) heard.textContent = "« " + transcripts[0].trim() + " »";
+    if (result.isFinal) say.judge(transcripts);
+  };
+
+  recognition.onerror = event => {
+    stopListening();
+    const label = document.getElementById("micLabel");
+    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      say.notice(embedded()
+        ? "Le micro est bloqué parce que la page est dans un cadre. Ouvre-la dans son propre onglet, ou dicte la réponse ci-dessous."
+        : "Le micro est bloqué. Autorise-le dans le navigateur, puis recharge la page.");
+    } else if (event.error === "network") {
+      say.notice("La reconnaissance vocale a besoin d'une connexion internet.");
+    } else if (label) {
+      label.textContent = event.error === "no-speech" ? "Je n'ai rien entendu. Réessaie." : "Réessaie.";
+    }
+  };
+
+  recognition.onend = stopListening;
+}
+
+function stopListening() {
+  listening = false;
+  const mic = document.getElementById("mic");
+  if (mic) mic.classList.remove("listening");
+  const label = document.getElementById("micLabel");
+  if (label && !state.locked && state.mode === "say") label.textContent = "Appuie et prononce la réponse.";
+}
+
+// ---- Score ----
+function showScore() {
+  const total = state.round.length;
+  const comment =
+    state.score === total ? "Sans faute." :
+    state.score >= total - 2 ? "Presque parfait." :
+    state.score >= total / 2 ? "C'est en bonne voie." :
+    "Réécoute les mots et recommence.";
+
+  screen.innerHTML =
+    '<section class="card">' +
+      '<p class="score-line">' + state.score + " / " + total + '</p>' +
+      '<p>' + comment + '</p>' +
+      '<div class="actions">' +
+        '<button class="text primary" id="again">Recommencer</button>' +
+        '<button class="text" id="menu">Changer de liste</button>' +
+      '</div>' +
+    '</section>';
+  document.getElementById("again").addEventListener("click", () => startRound(state.lesson));
+  document.getElementById("menu").addEventListener("click", renderMenu);
+  document.getElementById("again").focus();
+}
+
+// Keys 1 to 4 answer in multiple-choice mode.
+document.addEventListener("keydown", event => {
+  if (state.mode !== "mcq") return;
+  if (event.key >= "1" && event.key <= "4") {
+    const options = document.getElementById("options");
+    const button = options && options.children[Number(event.key) - 1];
+    if (button) button.click();
+  }
+});
+
+renderMenu();
+</script>
+</body>
+</html>
