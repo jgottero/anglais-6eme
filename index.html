@@ -120,8 +120,7 @@
   .choice .sub { display: block; color: var(--ink-soft); font-size: 0.85rem; }
   .choice[aria-pressed="true"] { border-color: var(--ink); background: var(--right-bg); }
 
-  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .modes .choice { text-align: center; }
+  .modes { display: grid; gap: 10px; }
 
   .text {
     border-radius: 5px;
@@ -294,6 +293,23 @@ const LESSONS = [
       { fr: "Prenez votre crayon", en: ["take your pencil"],  heard: ["take you're pencil"] },
       { fr: "Taisez-vous",         en: ["be quiet"],          heard: ["be quite", "bequiet"] }
     ]
+  },
+  {
+    id: "rules",
+    title: "School rules",
+    subtitle: "Ce qui est interdit",
+    words: [
+      { fr: "Ne cours pas !",                        en: ["don't run"] },
+      { fr: "Ne mange pas en dehors de la cantine !", en: ["don't eat outside the cafeteria"] },
+      { fr: "Ne bois pas !",                         en: ["don't drink"] },
+      { fr: "Ne joue pas avec tes stylos !",         en: ["don't play with your pens"],       heard: ["don't play with you're pens"] },
+      { fr: "Ne dessine pas sur ton bureau !",       en: ["don't draw on your desk"],         heard: ["don't draw on you're desk"] },
+      { fr: "Ne te bats pas avec tes camarades !",   en: ["don't fight with your classmates"], heard: ["don't fight with you're classmates", "don't fight with your class mates"] },
+      { fr: "Ne mâche pas de chewing-gum !",         en: ["don't chew gum"],                  heard: ["don't chewing gum", "don't shoe gum"] },
+      { fr: "Ne sois pas en retard !",               en: ["don't be late"] },
+      { fr: "N'utilise pas ton téléphone !",         en: ["don't use your smartphone"],       heard: ["don't use you're smartphone", "don't use your smart phone"] },
+      { fr: "Ne jette pas de détritus !",            en: ["don't litter"],                    heard: ["don't liter", "don't little"] }
+    ]
   }
 ];
 
@@ -320,10 +336,13 @@ function esc(text) {
 }
 
 // Strips accents, punctuation and doubled spaces before comparing answers.
+// Apostrophes are removed rather than turned into spaces, so a transcription
+// like "dont run" still matches "don't run".
 function normalise(text) {
   return text
     .toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/['\u2019\u02bc]/g, "")
     .replace(/[^a-z ]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -440,13 +459,20 @@ function renderMenu() {
 
   const total = LESSONS.reduce((sum, lesson) => sum + lesson.words.length, 0);
 
+  const modes = [
+    { id: "mcq",   title: "Français → anglais", sub: "Choisis le mot anglais, il est lu à voix haute" },
+    { id: "mcqfr", title: "Anglais → français", sub: "Écoute la phrase anglaise et choisis sa traduction" },
+    { id: "say",   title: "Prononcer",          sub: "Dis la réponse en anglais au micro" }
+  ].map(mode =>
+    '<button class="choice" data-mode="' + mode.id + '" aria-pressed="' + (state.mode === mode.id) + '">' +
+      mode.title + '<span class="sub">' + mode.sub + '</span>' +
+    '</button>'
+  ).join("");
+
   screen.innerHTML =
     '<section class="card">' +
       '<p class="label">Choisis l\'exercice</p>' +
-      '<div class="modes">' +
-        '<button class="choice" data-mode="mcq" aria-pressed="' + (state.mode === "mcq") + '">Écouter et choisir</button>' +
-        '<button class="choice" data-mode="say" aria-pressed="' + (state.mode === "say") + '">Prononcer</button>' +
-      '</div>' +
+      '<div class="modes">' + modes + '</div>' +
       '<p class="label">Choisis la liste</p>' +
       '<div class="stack">' + lessons +
         '<button class="choice" data-lesson="*">Tous les mots<span class="sub">Les ' +
@@ -470,18 +496,20 @@ function startRound(lessonId) {
   state.lesson = lessonId;
   const pool = poolFor(lessonId);
   const picked = shuffle(pool).slice(0, ROUND_LENGTH);
-  state.round = state.mode === "mcq"
-    ? picked.map(word => buildQuestion(word, pool))
-    : picked.map(word => ({ word }));
+  state.round = picked.map(word => {
+    if (state.mode === "mcq") return buildForward(word, pool);
+    if (state.mode === "mcqfr") return buildReverse(word, pool);
+    return { word, prompt: word.fr };
+  });
   state.index = 0;
   state.score = 0;
   renderShell();
   showQuestion();
 }
 
-// Builds one multiple-choice question: the answer plus three distractors
-// taken from the same pool, never a synonym of the current word.
-function buildQuestion(word, pool) {
+// French prompt, English answers. Distractors come from the same pool and are
+// never a synonym of the current word.
+function buildForward(word, pool) {
   const answer = shuffle(word.en)[0];
   const banned = new Set([...word.en, ...(word.avoid || [])]);
   let others = pool.flatMap(w => w.en).filter(a => !banned.has(a));
@@ -490,7 +518,22 @@ function buildQuestion(word, pool) {
     others = LESSONS.flatMap(l => l.words).flatMap(w => w.en).filter(a => !banned.has(a));
   }
   const distractors = shuffle([...new Set(others)]).slice(0, 3);
-  return { word, answer, options: shuffle([answer, ...distractors]) };
+  return { word, prompt: word.fr, answer, options: shuffle([answer, ...distractors]) };
+}
+
+// English prompt, French answers. A word whose `avoid` list mentions the
+// prompt would also be a correct translation, so it is left out.
+function buildReverse(word, pool) {
+  const prompt = shuffle(word.en)[0];
+  const usable = candidates => candidates.filter(other =>
+    other.fr !== word.fr &&
+    !(other.avoid || []).includes(prompt) &&
+    !other.en.includes(prompt)
+  );
+  let others = usable(pool);
+  if (others.length < 3) others = usable(LESSONS.flatMap(l => l.words));
+  const distractors = shuffle(others).slice(0, 3).map(other => other.fr);
+  return { word, prompt, answer: word.fr, options: shuffle([word.fr, ...distractors]) };
 }
 
 // ---- Quiz shell, shared by both modes ----
@@ -523,8 +566,8 @@ function showQuestion() {
   markTrack(null);
   document.getElementById("counter").textContent =
     lessonTitle(state.lesson) + " · " + (state.index + 1) + "/" + state.round.length;
-  document.getElementById("prompt").textContent = state.round[state.index].word.fr;
-  if (state.mode === "mcq") mcq.render(); else say.render();
+  document.getElementById("prompt").textContent = state.round[state.index].prompt;
+  if (state.mode === "say") say.render(); else mcq.render();
 }
 
 function nextLabel() {
@@ -543,11 +586,15 @@ function synonymNote(word, shown) {
     : "";
 }
 
-// ---- Mode 1: listen and choose ----
+// ---- Modes 1 and 2: multiple choice, in either direction ----
 const mcq = {
+  reverse() { return state.mode === "mcqfr"; },
+
   render() {
     const question = state.round[state.index];
     document.getElementById("body").innerHTML =
+      (mcq.reverse() ? '<div class="actions" style="margin-top:0;margin-bottom:18px">' +
+        '<button class="text" id="hear">Réécouter la phrase</button></div>' : "") +
       '<div class="stack" id="options"></div>' +
       '<p class="verdict" id="verdict"></p>' +
       '<div class="actions"><button class="text primary" id="next" hidden></button></div>';
@@ -563,13 +610,19 @@ const mcq = {
       options.appendChild(button);
     });
     document.getElementById("next").addEventListener("click", goNext);
+
+    if (mcq.reverse()) {
+      // The prompt is English here, so it is spoken on arrival and on demand.
+      document.getElementById("hear").addEventListener("click", () => speak(question.prompt));
+      speak(question.prompt);
+    }
   },
 
   choose(option, button) {
     const question = state.round[state.index];
-    // The chosen answer is always read aloud, including once the question is
-    // settled, so the pupil can compare the pronunciations.
-    speak(option, button);
+    // Going French to English, the chosen answer is read aloud every time,
+    // including once the question is settled, so pronunciations can be compared.
+    if (!mcq.reverse()) speak(option, button);
     if (state.locked) return;
     state.locked = true;
 
@@ -587,11 +640,22 @@ const mcq = {
     }
 
     const verdict = document.getElementById("verdict");
-    verdict.innerHTML =
-      (success ? "<b>Bravo.</b> " : "<b>Raté.</b> ") +
-      esc(question.word.fr) + " = " + esc(question.answer) + "." +
-      synonymNote(question.word, question.answer) +
-      '<span class="also">Clique sur un mot pour l\'entendre à nouveau.</span>';
+    if (mcq.reverse()) {
+      speak(question.prompt);
+      const synonyms = question.word.en.filter(answer => answer !== question.prompt);
+      verdict.innerHTML =
+        (success ? "<b>Bravo.</b> " : "<b>Raté.</b> ") +
+        esc(question.prompt) + " = " + esc(question.answer) + "." +
+        (synonyms.length
+          ? '<span class="also">Se dit aussi : ' + esc(synonyms.join(", ")) + '.</span>'
+          : "");
+    } else {
+      verdict.innerHTML =
+        (success ? "<b>Bravo.</b> " : "<b>Raté.</b> ") +
+        esc(question.word.fr) + " = " + esc(question.answer) + "." +
+        synonymNote(question.word, question.answer) +
+        '<span class="also">Clique sur un mot pour l\'entendre à nouveau.</span>';
+    }
 
     const next = document.getElementById("next");
     next.textContent = nextLabel();
@@ -812,9 +876,9 @@ function showScore() {
   document.getElementById("again").focus();
 }
 
-// Keys 1 to 4 answer in multiple-choice mode.
+// Keys 1 to 4 answer in both multiple-choice modes.
 document.addEventListener("keydown", event => {
-  if (state.mode !== "mcq") return;
+  if (state.mode === "say") return;
   if (event.key >= "1" && event.key <= "4") {
     const options = document.getElementById("options");
     const button = options && options.children[Number(event.key) - 1];
