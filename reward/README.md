@@ -16,21 +16,32 @@ python3 -m http.server 8000     # puis http://localhost:8000/reward/
 ```
 
 Le bouton ⚙ ouvre un **panneau parent** qui remplace l'application
-d'apprentissage le temps du prototype : accorder le palier suivant,
-ajouter 100 pièces, tout remettre à zéro.
+d'apprentissage le temps du prototype : accorder le palier suivant, tout
+remettre à zéro.
 
 ## Ce que fait le module
 
+La propriété occupe tout l'écran ; le reste flotte par-dessus.
+
 * Une maison et un terrain de 14 × 10 cases, vus de dessus.
-* Un onglet **Magasin** : 30 objets rangés en quatre familles (animaux,
-  nature, jardin, bâtiments). Chaque fiche affiche le nom français et le
-  nom anglais.
-* Un achat tombe directement sur la première case libre du terrain, ou
-  dans le **coffre** si le terrain est plein.
-* Sur le terrain : glisser un objet pour le déplacer, cliquer dessus pour
-  le ranger dans le coffre ou le **revendre à son prix d'achat**.
+* **Caméra** : glisser le terrain le déplace, deux doigts (ou la molette)
+  zooment. On ne peut pas dézoomer au-delà du terrain entier, ni le faire
+  sortir de l'écran.
+* **Overlay permanent** : les pièces en haut à droite, un bouton retour en
+  haut à gauche (il préviendra l'application d'apprentissage), et en bas
+  les boutons **Magasin** et **Coffre** avec le nombre d'objets en attente.
+  Toucher les pièces en ajoute 100 — raccourci de prototype.
+* **Magasin** : 30 objets en quatre familles (animaux, nature, jardin,
+  bâtiments). Chaque fiche affiche le nom français et le nom anglais.
+* Un achat va **toujours dans le coffre**.
+* **Coffre** : un panneau qui recouvre le bas de la propriété. On glisse
+  un objet du coffre jusqu'à l'endroit voulu — le panneau s'efface pendant
+  le geste. Un simple appui garde l'objet en main : on touche ensuite le
+  terrain pour le poser.
+* Sur le terrain : glisser un objet pour le déplacer, le toucher pour le
+  ranger dans le coffre ou le **revendre à son prix d'achat**.
 * Les emplacements occupés (autres objets, maison) sont refusés : la
-  silhouette passe au rouge pendant le déplacement.
+  silhouette passe au rouge pendant le geste.
 * Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`.
 
 ## Brancher l'application d'apprentissage
@@ -53,6 +64,10 @@ iframe.contentWindow.postMessage({ type: "reward:tier", tier: rank }, "*");
 // réponse : { type: "reward:state", coins: 1234 }
 ```
 
+Le bouton retour prévient la page parente avec
+`{ type: "reward:back" }` ; c'est là que l'application d'apprentissage
+reprendra la main.
+
 Un palier déjà payé est ignoré (`grantTier` renvoie `null`), donc
 l'application principale peut rejouer ses paliers sans risque de double
 récompense. Le barème est dans `js/app.js` (`rewardForTier`) : 50 pièces
@@ -66,9 +81,9 @@ reward/
   css/style.css       toute la mise en forme
   js/catalog.js       la liste des objets (données seules)
   js/state.js         pièces, objets posés, coffre, sauvegarde, règles
-  js/world.js         dessin du terrain, glisser-déposer, sélection
-  js/shop.js          l'onglet magasin
-  js/app.js           assemblage, panneau parent, pont avec l'app principale
+  js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
+  js/shop.js          le panneau magasin
+  js/app.js           overlay, coffre, panneau parent, pont avec l'app
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
     items/            un fichier par objet du magasin

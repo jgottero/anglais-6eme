@@ -98,17 +98,6 @@ const PropertyState = (function () {
     });
   }
 
-  // First free spot, scanned in reading order. Used when an object is
-  // bought and dropped straight onto the property.
-  function freeSpot(w, h) {
-    for (let y = 0; y <= data.land.rows - h; y++) {
-      for (let x = 0; x <= data.land.cols - w; x++) {
-        if (canPlace(x, y, w, h, null)) return { x, y };
-      }
-    }
-    return null;
-  }
-
   /* ---- Coins ---- */
 
   function addCoins(amount) {
@@ -129,19 +118,16 @@ const PropertyState = (function () {
 
   /* ---- Buying, placing, selling ---- */
 
+  // A purchase always lands in the chest; the child then drags it out
+  // onto the spot they want.
   function buy(id) {
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
     data.coins -= item.price;
-    const entry = { uid: data.nextUid++, id };
-    const spot = freeSpot(item.w, item.h);
-    if (spot) {
-      data.placed.push({ uid: entry.uid, id, x: spot.x, y: spot.y });
-    } else {
-      data.storage.push(entry);
-    }
+    const uid = data.nextUid++;
+    data.storage.push({ uid, id });
     changed();
-    return { uid: entry.uid, placed: !!spot };
+    return { uid };
   }
 
   function place(uid, x, y) {
@@ -207,7 +193,7 @@ const PropertyState = (function () {
 
   return {
     get, subscribe,
-    canPlace, placedAt, freeSpot,
+    canPlace, placedAt,
     addCoins, grantTier,
     buy, place, move, store, sell, reset
   };

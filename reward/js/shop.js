@@ -36,10 +36,10 @@ const Shop = (function () {
       const item = CATALOG.item(button.dataset.buy);
       const result = PropertyState.buy(item.id);
       if (!result) {
-        if (hooks.onRefused) hooks.onRefused("Il te manque des pièces pour « " + item.fr + " ».");
+        if (hooks.onRefused) hooks.onRefused("Il te manque des pièces pour «\u00A0" + item.fr + "\u00A0».");
         return;
       }
-      if (hooks.onBought) hooks.onBought(item, result.placed);
+      if (hooks.onBought) hooks.onBought(item);
     });
 
     render();
