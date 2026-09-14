@@ -41,9 +41,9 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 * **Magasin** : il s'ouvre en plein écran, les familles restent visibles
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
   place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
-  nature, jardin, bâtiments), 16 dedans (meubles, carrelage, tapis, et le
-  chat et le chien qui vont des deux côtés). Chaque fiche porte son nom
-  français, son nom anglais et son prix.
+  nature, jardin, bâtiments), 17 dedans (meubles, porte, carrelage, tapis,
+  et le chat et le chien qui vont des deux côtés). Chaque fiche porte son
+  nom français, son nom anglais et son prix.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
   Un appui sur une case le pose et débite les pièces. Il **reste en main**
@@ -52,6 +52,12 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   assez de pièces pour le suivant.
 * Rien n'est débité si la case est prise. Un glisser garde son sens
   habituel même avec un objet en main : il déplace la caméra.
+* **Tourner** : ce qui a une direction (lit, canapé, table, chaise,
+  armoire, cheminée, porte, barrière, banc, panneau, poulailler, serre…)
+  porte un bouton ↻ — dans le coin, pour orienter l'objet avant de le
+  poser, et dans sa barre une fois posé. Un quart de tour à la fois ;
+  l'emprise tourne avec le dessin, et un objet qui ne rentrerait plus en
+  travers reste comme il était.
 * **Deux couches** : le *terrain* (chemin, champ) se pose sur le sol, tout
   le reste se pose dessus. Une case ne peut porter qu'un seul terrain et
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
@@ -63,8 +69,10 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   une place prise.
 * Il n'y a pas de réserve : un objet est payé là où il se pose, et revendu
   de là où il est.
-* Les murs et la maison sont *bâtis* : on ne peut ni les acheter, ni les
-  déplacer, ni les vendre, et rien ne se pose dessus.
+* Les murs, la maison et la porte d'entrée sont *bâtis* : on ne peut ni
+  les acheter, ni les déplacer, ni les vendre, et rien ne se pose dessus.
+  La porte du magasin, elle, est un objet comme un autre : on l'achète,
+  on la pose dans une embrasure, on la tourne, on la revend.
 * Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. Les
   sauvegardes des versions précédentes sont reprises au chargement : les
   objets déjà posés deviennent ceux de la propriété, et ce qui attendait
@@ -125,8 +133,9 @@ reward/
    cadre bord à bord.
 2. Ajouter une ligne dans `js/catalog.js` (`id`, `fr`, `en`, `price`,
    `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un terrain,
-   et `where: "in"` ou `"both"` pour ce qui se vend dans la maison).
-   L'objet apparaît aussitôt en magasin, du bon côté des murs.
+   `where: "in"` ou `"both"` pour ce qui se vend dans la maison, et
+   `turns: true` pour ce qui peut être orienté). L'objet apparaît aussitôt
+   en magasin, du bon côté des murs.
 
 Ne jamais renommer un `id` déjà utilisé : c'est lui qui est écrit dans la
 sauvegarde.

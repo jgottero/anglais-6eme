@@ -95,6 +95,14 @@ button { font: inherit; cursor: pointer; }
   -webkit-user-drag: none;
 }
 
+/* A turned drawing keeps its own size and spins around the middle of the
+   tiles it covers, which is why it is placed rather than stretched. */
+.ob img.is-turned, .ghost img.is-turned {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+
 /* Inside, the grass gives way to a plank floor. */
 .world.is-indoor {
   background-color: #c8a06a;
@@ -253,9 +261,8 @@ button { font: inherit; cursor: pointer; }
 }
 .hand-price img { width: 17px; height: 17px; }
 .hand-hint { color: var(--ink-soft); font-size: 0.78rem; }
-.hand-cancel {
+.hand-cancel, .hand-turn {
   position: absolute;
-  top: 6px;
   right: 6px;
   width: 28px;
   height: 28px;
@@ -265,6 +272,9 @@ button { font: inherit; cursor: pointer; }
   color: var(--ink);
   line-height: 1;
 }
+.hand-cancel { top: 6px; }
+.hand-turn { bottom: 6px; border-color: var(--leaf); font-size: 1.05rem; }
+.hand img { transition: transform 0.12s ease; }
 
 /* ---- Floating bars ---- */
 
@@ -302,6 +312,15 @@ button { font: inherit; cursor: pointer; }
 .bar-id img { width: 40px; height: 40px; }
 .bar-id .en { display: block; color: var(--ink-soft); font-size: 0.85rem; font-style: italic; }
 .action-bar .hint { margin: 0; color: var(--ink-soft); font-size: 0.85rem; }
+
+.turn-btn {
+  border-radius: 9px;
+  padding: 8px 12px;
+  border: 2px solid var(--edge);
+  background: var(--panel);
+  color: var(--ink);
+  font-weight: 700;
+}
 
 .sell-btn, .enter-btn {
   border-radius: 9px;

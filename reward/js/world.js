@@ -34,7 +34,7 @@ const World = (function () {
   const cam = { x: 0, y: 0, scale: 1 };
   const pointers = new Map(); // live pointers, by id
   let gesture = null;         // pan / object / pinch
-  let placing = null;         // catalogue id chosen in the shop, in hand
+  let placing = null;         // { id, r } chosen in the shop, in hand
   let selected = null;        // { kind: "object", uid } | { kind: "block", index }
   let drawnScene = null;      // which scene the elements belong to
 
@@ -184,13 +184,14 @@ const World = (function () {
     place.placed.slice().sort((a, b) => rank(a) - rank(b) || a.y - b.y).forEach(entry => {
       const item = CATALOG.item(entry.id);
       if (!item) return;
+      const size = CATALOG.footprint(item, entry.r);
       const node = document.createElement("div");
       node.className = "ob" +
         (CATALOG.layerOf(item) === "ground" ? " is-ground" : "") +
         (isSelected("object", entry.uid) ? " is-selected" : "");
       node.dataset.uid = entry.uid;
-      node.style.cssText = box(entry.x, entry.y, item.w, item.h);
-      node.innerHTML = '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">';
+      node.style.cssText = box(entry.x, entry.y, size.w, size.h);
+      node.innerHTML = art(item, entry.r);
       world.appendChild(node);
     });
 
@@ -203,11 +204,24 @@ const World = (function () {
            "width:" + w * TILE + "px;height:" + h * TILE + "px;";
   }
 
-  function showGhost(x, y, item, valid, art) {
+  /* The drawing keeps its own width and height and is spun inside the
+     tiles it takes: a bench turned sideways is the same bench. */
+  function art(item, turn) {
+    const quarter = (turn || 0) % 4;
+    const style = quarter
+      ? ' style="width:' + item.w * TILE + 'px;height:' + item.h * TILE + 'px;' +
+        'transform:translate(-50%,-50%) rotate(' + quarter * 90 + 'deg)"'
+      : "";
+    return '<img class="' + (quarter ? "is-turned" : "") + '" src="' + CATALOG.assetUrl(item.id) +
+      '" alt="' + item.fr + '" draggable="false"' + style + '>';
+  }
+
+  function showGhost(x, y, item, turn, valid, withArt) {
+    const size = CATALOG.footprint(item, turn);
     ghost.hidden = false;
-    ghost.style.cssText = box(x, y, item.w, item.h);
+    ghost.style.cssText = box(x, y, size.w, size.h);
     ghost.classList.toggle("is-bad", !valid);
-    ghost.innerHTML = art ? '<img src="' + CATALOG.assetUrl(item.id) + '" alt="">' : "";
+    ghost.innerHTML = withArt ? art(item, turn) : "";
   }
 
   function hideGhost() {
@@ -226,13 +240,19 @@ const World = (function () {
     };
   }
 
-  // Top-left tile for an item held by its middle, kept inside the scene.
-  function centredTarget(clientX, clientY, item) {
+  /* Where an object held in hand would land. The tile under the finger
+     is always one of the tiles it covers — rounding around the middle
+     would make a two-tile object flip from one row to the next on a
+     boundary the child cannot see. */
+  function centredTarget(clientX, clientY, item, turn) {
     const land = PropertyState.scene().land;
+    const size = CATALOG.footprint(item, turn);
     const point = pointerTile(clientX, clientY);
+    const anchor = (along, tiles, limit) =>
+      Math.max(0, Math.min(limit - tiles, Math.floor(along) - Math.floor((tiles - 1) / 2)));
     return {
-      x: Math.round(Math.max(0, Math.min(land.cols - item.w, point.x - item.w / 2))),
-      y: Math.round(Math.max(0, Math.min(land.rows - item.h, point.y - item.h / 2)))
+      x: anchor(point.x, size.w, land.cols),
+      y: anchor(point.y, size.h, land.rows)
     };
   }
 
@@ -276,6 +296,7 @@ const World = (function () {
       type: "object",
       id: event.pointerId,
       uid, item, node,
+      turn: entry.r || 0,
       // Where inside the object it was grabbed, so it does not jump.
       offsetX: point.x - entry.x,
       offsetY: point.y - entry.y,
@@ -351,12 +372,13 @@ const World = (function () {
 
     if (gesture.type === "object") {
       const land = PropertyState.scene().land;
+      const size = CATALOG.footprint(gesture.item, gesture.turn);
       const point = pointerTile(event.clientX, event.clientY);
-      const x = Math.round(Math.max(0, Math.min(land.cols - gesture.item.w, point.x - gesture.offsetX)));
-      const y = Math.round(Math.max(0, Math.min(land.rows - gesture.item.h, point.y - gesture.offsetY)));
+      const x = Math.round(Math.max(0, Math.min(land.cols - size.w, point.x - gesture.offsetX)));
+      const y = Math.round(Math.max(0, Math.min(land.rows - size.h, point.y - gesture.offsetY)));
       gesture.target = { x, y };
-      gesture.ok = PropertyState.canPlace(gesture.item, x, y, gesture.uid);
-      showGhost(x, y, gesture.item, gesture.ok, false);
+      gesture.ok = PropertyState.canPlace(gesture.item, x, y, gesture.uid, gesture.turn);
+      showGhost(x, y, gesture.item, gesture.turn, gesture.ok, false);
       // The object follows the finger; the ghost shows where it lands.
       gesture.node.style.transform =
         "translate(" + (event.clientX - gesture.startX) / cam.scale + "px," +
@@ -415,9 +437,27 @@ const World = (function () {
 
   function startPlacing(id) {
     if (!CATALOG.item(id)) return;
-    placing = id;
+    placing = { id, r: 0 };
     clearSelection();
-    if (hooks.onPlacingChange) hooks.onPlacingChange(id);
+    if (hooks.onPlacingChange) hooks.onPlacingChange(placing);
+  }
+
+  // A quarter turn of what is in hand, before it is put down.
+  function turnHeld() {
+    const item = heldItem();
+    if (!item || !item.turns) return false;
+    placing.r = (placing.r + 1) % 4;
+    hideGhost();
+    if (hooks.onPlacingChange) hooks.onPlacingChange(placing);
+    return true;
+  }
+
+  // A quarter turn of what is selected, where it stands.
+  function turnSelected() {
+    if (!selected || selected.kind !== "object") return false;
+    if (PropertyState.turn(selected.uid)) return true;
+    if (hooks.onRefused) hooks.onRefused("Pas la place de la tourner ici.");
+    return false;
   }
 
   function cancelPlacing() {
@@ -428,25 +468,25 @@ const World = (function () {
   }
 
   function heldItem() {
-    return CATALOG.item(placing);
+    return placing ? CATALOG.item(placing.id) : null;
   }
 
   // Follows the pointer on a computer, and the press itself on a screen.
   function hoverPlacing(event) {
     const item = heldItem();
     if (!item) return;
-    const target = centredTarget(event.clientX, event.clientY, item);
-    showGhost(target.x, target.y, item,
-      PropertyState.canPlace(item, target.x, target.y, null), true);
+    const target = centredTarget(event.clientX, event.clientY, item, placing.r);
+    showGhost(target.x, target.y, item, placing.r,
+      PropertyState.canPlace(item, target.x, target.y, null, placing.r), true);
   }
 
   function tapOnGround(event) {
     if (!placing) { clearSelection(); return; }
     const item = heldItem();
     if (!item) { cancelPlacing(); return; }
-    const target = centredTarget(event.clientX, event.clientY, item);
+    const target = centredTarget(event.clientX, event.clientY, item, placing.r);
     hideGhost();
-    if (PropertyState.buyAt(item.id, target.x, target.y)) {
+    if (PropertyState.buyAt(item.id, target.x, target.y, placing.r)) {
       if (hooks.onPlaced) hooks.onPlaced(item);
     } else if (PropertyState.get().coins < item.price) {
       cancelPlacing();
@@ -492,9 +532,10 @@ const World = (function () {
 
   return {
     init, render, fitCamera,
-    startPlacing, cancelPlacing,
+    startPlacing, cancelPlacing, turnHeld, turnSelected,
     select, clearSelection,
     isPlacing() { return placing; },
+    held() { return placing; },
     selected() { return selected; }
   };
 })();

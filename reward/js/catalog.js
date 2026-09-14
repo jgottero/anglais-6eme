@@ -58,35 +58,36 @@ const CATALOG = (function () {
     { id: "pond",       fr: "Mare",       en: "a pond",         price: 260, w: 2, h: 2, category: "nature", asset: "pond.svg" },
 
     // ---------- garden ----------
-    { id: "fence",        fr: "Barrière",           en: "a fence",         price: 20,  w: 1, h: 1, category: "garden", asset: "fence.svg" },
-    { id: "sign",         fr: "Panneau",            en: "a sign",          price: 40,  w: 1, h: 1, category: "garden", asset: "sign.svg" },
+    { id: "fence",        fr: "Barrière",           en: "a fence",         price: 20,  w: 1, h: 1, turns: true, category: "garden", asset: "fence.svg" },
+    { id: "sign",         fr: "Panneau",            en: "a sign",          price: 40,  w: 1, h: 1, turns: true, category: "garden", asset: "sign.svg" },
     { id: "barrel",       fr: "Tonneau",            en: "a barrel",        price: 50,  w: 1, h: 1, category: "garden", asset: "barrel.svg" },
     { id: "mailbox",      fr: "Boîte aux lettres",  en: "a mailbox",       price: 60,  w: 1, h: 1, category: "garden", asset: "mailbox.svg" },
     { id: "birdhouse",    fr: "Nichoir",            en: "a birdhouse",     price: 70,  w: 1, h: 1, category: "garden", asset: "birdhouse.svg" },
     { id: "lamp",         fr: "Lampadaire",         en: "a street lamp",   price: 85,  w: 1, h: 1, category: "garden", asset: "lamp.svg" },
     { id: "scarecrow",    fr: "Épouvantail",        en: "a scarecrow",     price: 95,  w: 1, h: 1, category: "garden", asset: "scarecrow.svg" },
     { id: "campfire",     fr: "Feu de camp",        en: "a campfire",      price: 120, w: 1, h: 1, category: "garden", asset: "campfire.svg" },
-    { id: "bench",        fr: "Banc",               en: "a bench",         price: 130, w: 2, h: 1, category: "garden", asset: "bench.svg" },
+    { id: "bench",        fr: "Banc",               en: "a bench",         price: 130, w: 2, h: 1, turns: true, category: "garden", asset: "bench.svg" },
     { id: "picnic_table", fr: "Table de pique-nique", en: "a picnic table", price: 210, w: 2, h: 2, category: "garden", asset: "picnic-table.svg" },
     { id: "well",         fr: "Puits",              en: "a well",          price: 240, w: 2, h: 2, category: "garden", asset: "well.svg" },
 
     // ---------- furniture: inside the house ----------
-    { id: "chair",     fr: "Chaise",         en: "a chair",      price: 60,  w: 1, h: 1, category: "furniture", where: "in", asset: "chair.svg" },
+    { id: "chair",     fr: "Chaise",         en: "a chair",      price: 60,  w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "chair.svg" },
     { id: "plant",     fr: "Plante",         en: "a plant",      price: 70,  w: 1, h: 1, category: "furniture", where: "in", asset: "plant.svg" },
-    { id: "table",     fr: "Table",          en: "a table",      price: 140, w: 2, h: 1, category: "furniture", where: "in", asset: "table.svg" },
-    { id: "bookshelf", fr: "Bibliothèque",   en: "a bookcase",   price: 150, w: 1, h: 1, category: "furniture", where: "in", asset: "bookshelf.svg" },
-    { id: "wardrobe",  fr: "Armoire",        en: "a wardrobe",   price: 170, w: 1, h: 1, category: "furniture", where: "in", asset: "wardrobe.svg" },
-    { id: "sink",      fr: "Évier",          en: "a sink",       price: 180, w: 1, h: 1, category: "furniture", where: "in", asset: "sink.svg" },
-    { id: "stove",     fr: "Cuisinière",     en: "a cooker",     price: 200, w: 1, h: 1, category: "furniture", where: "in", asset: "stove.svg" },
-    { id: "fridge",    fr: "Réfrigérateur",  en: "a fridge",     price: 220, w: 1, h: 1, category: "furniture", where: "in", asset: "fridge.svg" },
-    { id: "sofa",      fr: "Canapé",         en: "a sofa",       price: 220, w: 2, h: 1, category: "furniture", where: "in", asset: "sofa.svg" },
-    { id: "tv",        fr: "Télévision",     en: "a television", price: 240, w: 1, h: 1, category: "furniture", where: "in", asset: "tv.svg" },
-    { id: "bed",       fr: "Lit",            en: "a bed",        price: 280, w: 2, h: 2, category: "furniture", where: "in", asset: "bed.svg" },
-    { id: "fireplace", fr: "Cheminée",       en: "a fireplace",  price: 320, w: 2, h: 1, category: "furniture", where: "in", asset: "fireplace.svg" },
+    { id: "table",     fr: "Table",          en: "a table",      price: 140, w: 2, h: 1, turns: true, category: "furniture", where: "in", asset: "table.svg" },
+    { id: "bookshelf", fr: "Bibliothèque",   en: "a bookcase",   price: 150, w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "bookshelf.svg" },
+    { id: "wardrobe",  fr: "Armoire",        en: "a wardrobe",   price: 170, w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "wardrobe.svg" },
+    { id: "sink",      fr: "Évier",          en: "a sink",       price: 180, w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "sink.svg" },
+    { id: "stove",     fr: "Cuisinière",     en: "a cooker",     price: 200, w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "stove.svg" },
+    { id: "fridge",    fr: "Réfrigérateur",  en: "a fridge",     price: 220, w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "fridge.svg" },
+    { id: "sofa",      fr: "Canapé",         en: "a sofa",       price: 220, w: 2, h: 1, turns: true, category: "furniture", where: "in", asset: "sofa.svg" },
+    { id: "tv",        fr: "Télévision",     en: "a television", price: 240, w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "tv.svg" },
+    { id: "bed",       fr: "Lit",            en: "a bed",        price: 280, w: 2, h: 2, turns: true, category: "furniture", where: "in", asset: "bed.svg" },
+    { id: "fireplace", fr: "Cheminée",       en: "a fireplace",  price: 320, w: 2, h: 1, turns: true, category: "furniture", where: "in", asset: "fireplace.svg" },
+    { id: "inner_door", fr: "Porte",          en: "a door",       price: 90,  w: 1, h: 1, turns: true, category: "furniture", where: "in", asset: "inner-door.svg" },
 
     // ---------- buildings ----------
-    { id: "coop",       fr: "Poulailler", en: "a chicken coop", price: 450, w: 3, h: 2, category: "buildings", asset: "coop.svg" },
-    { id: "greenhouse", fr: "Serre",      en: "a greenhouse",   price: 600, w: 3, h: 2, category: "buildings", asset: "greenhouse.svg" }
+    { id: "coop",       fr: "Poulailler", en: "a chicken coop", price: 450, w: 3, h: 2, turns: true, category: "buildings", asset: "coop.svg" },
+    { id: "greenhouse", fr: "Serre",      en: "a greenhouse",   price: 600, w: 3, h: 2, turns: true, category: "buildings", asset: "greenhouse.svg" }
   ];
 
   const BY_ID = {};
@@ -98,6 +99,11 @@ const CATALOG = (function () {
     item(id) { return BY_ID[id] || null; },
     // Everything is an object unless it says otherwise.
     layerOf(item) { return item && item.layer === "ground" ? "ground" : "object"; },
+    // How many tiles it takes once turned: a quarter turn swaps them.
+    footprint(item, turn) {
+      if (!item) return { w: 1, h: 1 };
+      return (turn || 0) % 2 ? { w: item.h, h: item.w } : { w: item.w, h: item.h };
+    },
     // Is this sold in the scene the child is standing in?
     fitsScene(item, indoor) {
       if (!item) return false;

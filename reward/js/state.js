@@ -108,24 +108,26 @@ const PropertyState = (function () {
       y < block.y + block.h && y + h > block.y);
   }
 
-  /* Can this item sit with its top-left corner on x,y? Two things only
-     get in each other's way when they belong to the same layer: a path
-     and a field fight over a tile, a hen and a path do not. What is
-     built in — the house, a wall — takes both layers. ignoreUid lets
-     something be tested against its own current spot while it is being
-     moved. */
-  function canPlace(item, x, y, ignoreUid) {
+  /* Can this item sit with its top-left corner on x,y, turned this way?
+     Two things only get in each other's way when they belong to the same
+     layer: a path and a field fight over a tile, a hen and a path do
+     not. What is built in — the house, a wall — takes both layers.
+     ignoreUid lets something be tested against its own current spot
+     while it is being moved or turned. */
+  function canPlace(item, x, y, ignoreUid, turn) {
     if (!item) return false;
+    const size = CATALOG.footprint(item, turn);
     const land = scene().land;
-    if (x < 0 || y < 0 || x + item.w > land.cols || y + item.h > land.rows) return false;
-    if (overlapsBlock(x, y, item.w, item.h)) return false;
+    if (x < 0 || y < 0 || x + size.w > land.cols || y + size.h > land.rows) return false;
+    if (overlapsBlock(x, y, size.w, size.h)) return false;
     const layer = CATALOG.layerOf(item);
     return !scene().placed.some(entry => {
       if (entry.uid === ignoreUid) return false;
       const other = CATALOG.item(entry.id);
       if (!other || CATALOG.layerOf(other) !== layer) return false;
-      return x < entry.x + other.w && x + item.w > entry.x &&
-             y < entry.y + other.h && y + item.h > entry.y;
+      const theirs = CATALOG.footprint(other, entry.r);
+      return x < entry.x + theirs.w && x + size.w > entry.x &&
+             y < entry.y + theirs.h && y + size.h > entry.y;
     });
   }
 
@@ -152,13 +154,16 @@ const PropertyState = (function () {
   /* An object is bought where it lands: one call takes the coins and
      puts it down, so the payment and the placement cannot come apart.
      Nothing is paid when the purse is short or the spot is taken. */
-  function buyAt(id, x, y) {
+  function buyAt(id, x, y, turn) {
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
-    if (!canPlace(item, x, y, null)) return null;
+    if (!canPlace(item, x, y, null, turn)) return null;
     data.coins -= item.price;
     const uid = data.nextUid++;
-    scene().placed.push({ uid, id, x, y });
+    const entry = { uid, id, x, y };
+    // Only what has been turned carries a turn, so saves stay readable.
+    if (turn) entry.r = turn;
+    scene().placed.push(entry);
     changed();
     return { uid };
   }
@@ -167,9 +172,22 @@ const PropertyState = (function () {
     const entry = scene().placed.find(one => one.uid === uid);
     if (!entry) return false;
     const item = CATALOG.item(entry.id);
-    if (!item || !canPlace(item, x, y, uid)) return false;
+    if (!item || !canPlace(item, x, y, uid, entry.r)) return false;
     entry.x = x;
     entry.y = y;
+    changed();
+    return true;
+  }
+
+  /* A quarter turn clockwise, on the spot. A bed that would no longer
+     fit sideways stays as it was. */
+  function turn(uid) {
+    const entry = scene().placed.find(one => one.uid === uid);
+    const item = entry && CATALOG.item(entry.id);
+    if (!item || !item.turns) return false;
+    const next = ((entry.r || 0) + 1) % 4;
+    if (!canPlace(item, entry.x, entry.y, uid, next)) return false;
+    entry.r = next;
     changed();
     return true;
   }
@@ -214,6 +232,6 @@ const PropertyState = (function () {
     scene, sceneId, enter,
     canPlace, blockAt,
     addCoins, grantTier,
-    buyAt, move, sell, reset
+    buyAt, move, turn, sell, reset
   };
 })();

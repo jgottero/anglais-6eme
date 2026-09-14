@@ -92,6 +92,9 @@
     document.getElementById("cancel-placing")
       .addEventListener("click", () => World.cancelPlacing());
 
+    document.getElementById("turn-held")
+      .addEventListener("click", () => World.turnHeld());
+
     exitEl.addEventListener("click", () => leaveScene());
 
     barEl.addEventListener("click", onActionBarClick);
@@ -156,15 +159,19 @@
 
   /* The object in hand sits in the corner. The shop button steps aside
      while it is there: the child is placing, not shopping. */
-  function renderHand(id) {
-    const item = id ? CATALOG.item(id) : null;
+  function renderHand(held) {
+    const item = held ? CATALOG.item(held.id) : null;
     handEl.hidden = !item;
     bottomEl.hidden = !!item;
     if (!item) return;
-    document.getElementById("hand-art").src = CATALOG.assetUrl(item.id);
-    document.getElementById("hand-art").alt = item.fr;
+    const art = document.getElementById("hand-art");
+    art.src = CATALOG.assetUrl(item.id);
+    art.alt = item.fr;
+    // The drawing in the corner turns with the object it stands for.
+    art.style.transform = held.r ? "rotate(" + held.r * 90 + "deg)" : "";
     document.getElementById("hand-name").textContent = item.fr;
     document.getElementById("hand-price").textContent = item.price;
+    document.getElementById("turn-held").hidden = !item.turns;
   }
 
   function onPlaced(item) {
@@ -196,6 +203,7 @@
     if (!item) return null;
     return nameCard(CATALOG.assetUrl(item.id), item.fr, item.en) +
       '<p class="hint">Glisse pour déplacer</p>' +
+      (item.turns ? '<button class="turn-btn" data-action="turn" title="Tourner">↻ Tourner</button>' : "") +
       '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>';
   }
 
@@ -214,6 +222,10 @@
     if (!button) return;
     if (button.dataset.action === "enter") {
       PropertyState.enter(button.dataset.to);
+      return;
+    }
+    if (button.dataset.action === "turn") {
+      World.turnSelected();
       return;
     }
     const refund = PropertyState.sell(Number(button.dataset.uid));
