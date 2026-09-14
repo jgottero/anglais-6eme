@@ -1,0 +1,96 @@
+/* =====================================================================
+   VOCABULARY — this file holds every word. The code lives in
+   index.html and rarely changes; this one grows all year.
+
+   Add a word to an existing list:
+     { fr: "Mot français", en: ["english word"] },
+
+   Add a whole new list: copy one of the blocks below and change
+   Add a whole new list: copy one of the blocks below and change its
+   id, title and words. It shows up in the menu on its own.
+
+   Optional keys on a word:
+     en:    every accepted answer. The first one is the model
+            pronunciation; the others count as synonyms.
+     heard: extra spellings the voice recogniser tends to return
+            for that word ("high" for hi). Speaking mode only.
+     avoid: answers that must never be offered as a wrong choice
+            here, because they would in fact be correct too.
+            Applies to both quiz directions.
+   ===================================================================== */
+const VOCABULARY = {
+  version: 1,
+  lessons: [
+    {
+      id: "greetings",
+      title: "Greetings",
+      subtitle: "Saluer et remercier",
+      words: [
+        { fr: "Bonjour (le matin)", en: ["good morning"], heard: ["goodmorning"], avoid: ["hi", "hello", "hey"] },
+        { fr: "Bonjour (l'après-midi)", en: ["good afternoon"], avoid: ["hi", "hello", "hey"] },
+        { fr: "Bonsoir", en: ["good evening"] },
+        { fr: "Bonne nuit", en: ["good night"], heard: ["goodnight"] },
+        { fr: "Au revoir", en: ["goodbye", "bye"], heard: ["good bye", "by", "buy", "bye bye"] },
+        { fr: "Salut", en: ["hi", "hello", "hey"], heard: ["high", "hallo", "hay"] },
+        { fr: "S'il vous plaît", en: ["please"], heard: ["pleas", "plies"] },
+        { fr: "Merci", en: ["thank you", "thanks"], heard: ["thankyou", "thank"] },
+        { fr: "Bonne journée", en: ["have a nice day"], heard: ["have nice day"] },
+        { fr: "Prenez soin de vous", en: ["take care"], heard: ["takecare"] },
+        { fr: "À demain", en: ["see you tomorrow"], heard: ["c u tomorrow", "see u tomorrow"] },
+        { fr: "À plus tard", en: ["see you later"], heard: ["c u later", "see u later"] }
+      ]
+    },
+    {
+      id: "classroom",
+      title: "Classroom instructions",
+      subtitle: "Les consignes du professeur",
+      words: [
+        { fr: "Écoutez-moi", en: ["listen to me"] },
+        { fr: "Lisez", en: ["read"], heard: ["red", "reed"] },
+        { fr: "Levez la main", en: ["raise your hand"], heard: ["raise you're hand", "raise hand"] },
+        { fr: "Levez-vous", en: ["stand up"], heard: ["standup"] },
+        { fr: "Fermez", en: ["close"], heard: ["clothes", "cloze"] },
+        { fr: "Écrivez", en: ["write"], heard: ["right", "rite"] },
+        { fr: "Ouvrez", en: ["open"], heard: ["opened"] },
+        { fr: "Asseyez-vous", en: ["sit down"], heard: ["sitdown", "sat down"] },
+        { fr: "Prenez votre crayon", en: ["take your pencil"], heard: ["take you're pencil"] },
+        { fr: "Taisez-vous", en: ["be quiet"], heard: ["be quite", "bequiet"] }
+      ]
+    },
+    {
+      id: "rules",
+      title: "School rules",
+      subtitle: "Ce qui est interdit",
+      words: [
+        { fr: "Ne cours pas !", en: ["don't run"] },
+        { fr: "Ne mange pas en dehors de la cantine !", en: ["don't eat outside the cafeteria"] },
+        { fr: "Ne bois pas !", en: ["don't drink"] },
+        { fr: "Ne joue pas avec tes stylos !", en: ["don't play with your pens"], heard: ["don't play with you're pens"] },
+        { fr: "Ne dessine pas sur ton bureau !", en: ["don't draw on your desk"], heard: ["don't draw on you're desk"] },
+        { fr: "Ne te bats pas avec tes camarades !", en: ["don't fight with your classmates"], heard: ["don't fight with you're classmates", "don't fight with your class mates"] },
+        { fr: "Ne mâche pas de chewing-gum !", en: ["don't chew gum"], heard: ["don't chewing gum", "don't shoe gum"] },
+        { fr: "Ne sois pas en retard !", en: ["don't be late"] },
+        { fr: "N'utilise pas ton téléphone !", en: ["don't use your smartphone"], heard: ["don't use you're smartphone", "don't use your smart phone"] },
+        { fr: "Ne jette pas de détritus !", en: ["don't litter"], heard: ["don't liter", "don't little"] }
+      ]
+    },
+    {
+      id: "feelings",
+      title: "Feelings",
+      subtitle: "Dire comment on se sent",
+      words: [
+        { fr: "Effrayé", en: ["afraid", "scared"], heard: ["a fraid", "scarred"] },
+        { fr: "Énervé", en: ["angry"], avoid: ["furious"] },
+        { fr: "Furieux", en: ["furious"], avoid: ["angry"] },
+        { fr: "Ennuyé", en: ["bored"], heard: ["board", "bord"] },
+        { fr: "Triste", en: ["sad"], heard: ["said", "sat"] },
+        { fr: "Enthousiaste", en: ["excited"], heard: ["exited"] },
+        { fr: "Jaloux", en: ["jealous"], avoid: ["envious"] },
+        { fr: "Envieux", en: ["envious"], avoid: ["jealous"] },
+        { fr: "Malpoli", en: ["rude"], heard: ["rood"] },
+        { fr: "Malade", en: ["sick"], heard: ["six", "sik"] },
+        { fr: "Fatigué", en: ["tired"], heard: ["tyred", "tire"] }
+      ]
+    }
+  ]
+};
