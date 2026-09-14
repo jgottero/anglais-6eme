@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- One wall tile, repeated over the walls of an indoor scene -->
+  <rect width="32" height="32" fill="#9b8b7a"/>
+  <g fill="#b4a493" stroke="#7d6e5e" stroke-width="1">
+    <rect x="1" y="1" width="14" height="8" rx="1.5"/>
+    <rect x="17" y="1" width="14" height="8" rx="1.5"/>
+    <rect x="-6" y="11" width="14" height="8" rx="1.5"/>
+    <rect x="10" y="11" width="14" height="8" rx="1.5"/>
+    <rect x="26" y="11" width="14" height="8" rx="1.5"/>
+    <rect x="1" y="21" width="14" height="8" rx="1.5"/>
+    <rect x="17" y="21" width="14" height="8" rx="1.5"/>
+  </g>
+</svg>

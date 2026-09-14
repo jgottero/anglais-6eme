@@ -2,7 +2,7 @@
 
 Prototype autonome : l'enfant gagne des pièces en franchissant des paliers
 dans l'application d'apprentissage, puis les dépense pour aménager sa
-propriété vue de dessus.
+propriété et sa maison, vues de dessus.
 
 Ce dossier ne dépend de rien du reste du dépôt (`index.html`, `farm.js`,
 `words.js`) et l'inverse est vrai aussi : le module se lance seul.
@@ -32,10 +32,18 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   haut à gauche (il préviendra l'application d'apprentissage), et le
   bouton **Magasin** en bas. Toucher les pièces en ajoute 100 — raccourci
   de prototype.
-* **Magasin** : il s'ouvre en plein écran, les familles (terrain, animaux,
-  nature, jardin, bâtiments) restent visibles en haut pendant que la liste
-  défile. 31 objets, chacun avec son nom français, son nom anglais et son
-  prix.
+* **Deux lieux** : la propriété, et l'intérieur de la maison. Toucher la
+  maison depuis l'extérieur propose **Entrer** ; la porte à l'intérieur
+  (ou le bouton **Sortir**) ramène dehors. L'intérieur a ses trois pièces
+  séparées par des murs et s'aménage exactement comme le terrain, mais
+  c'est un monde indépendant : ses objets lui appartiennent, seules les
+  pièces de monnaie sont communes.
+* **Magasin** : il s'ouvre en plein écran, les familles restent visibles
+  en haut pendant que la liste défile, et il ne propose que ce qui a sa
+  place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
+  nature, jardin, bâtiments), 16 dedans (meubles, carrelage, tapis, et le
+  chat et le chien qui vont des deux côtés). Chaque fiche porte son nom
+  français, son nom anglais et son prix.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
   Un appui sur une case le pose et débite les pièces. Il **reste en main**
@@ -49,15 +57,18 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
   et un chien aussi, mais la poule se pose sans problème sur le chemin.
   La maison, elle, occupe les deux couches.
-* Sur le terrain : toucher un objet le **sélectionne** ; sa barre propose
+* Dans les deux lieux : toucher un objet le **sélectionne** ; sa barre propose
   de le **revendre à son prix d'achat**, et une fois sélectionné on le
   glisse pour le déplacer. L'objet reste sélectionné si on le lâche sur
   une place prise.
 * Il n'y a pas de réserve : un objet est payé là où il se pose, et revendu
   de là où il est.
-* Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. Une
-  sauvegarde de la version précédente est reprise au chargement : ce qui
-  attendait dans l'ancien coffre est remboursé en pièces.
+* Les murs et la maison sont *bâtis* : on ne peut ni les acheter, ni les
+  déplacer, ni les vendre, et rien ne se pose dessus.
+* Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. Les
+  sauvegardes des versions précédentes sont reprises au chargement : les
+  objets déjà posés deviennent ceux de la propriété, et ce qui attendait
+  dans l'ancien coffre est remboursé en pièces.
 
 ## Brancher l'application d'apprentissage
 
@@ -95,12 +106,14 @@ reward/
   index.html          structure de la page, les deux onglets
   css/style.css       toute la mise en forme
   js/catalog.js       la liste des objets (données seules)
-  js/state.js         pièces, objets posés, sauvegarde, règles de pose
+  js/scenes.js        les lieux : taille, murs, portes, plan de la maison
+  js/state.js         pièces, objets posés par lieu, sauvegarde, règles
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
   js/shop.js          l'écran magasin
   js/app.js           overlay, objet en main, panneau parent, pont avec l'app
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
+    floor.svg wall.svg door.svg   (l'intérieur)
     items/            un fichier par objet du magasin
 ```
 
@@ -111,17 +124,21 @@ reward/
    `0 0 64 32`, posé sur le bas du cadre. Un terrain, lui, remplit son
    cadre bord à bord.
 2. Ajouter une ligne dans `js/catalog.js` (`id`, `fr`, `en`, `price`,
-   `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un
-   terrain). L'objet apparaît aussitôt en magasin.
+   `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un terrain,
+   et `where: "in"` ou `"both"` pour ce qui se vend dans la maison).
+   L'objet apparaît aussitôt en magasin, du bon côté des murs.
 
 Ne jamais renommer un `id` déjà utilisé : c'est lui qui est écrit dans la
 sauvegarde.
 
 ## Prévu pour plus tard
 
-* Agrandir le terrain et la maison (étages) contre des pièces : la taille
-  du terrain et celle de la maison sont déjà des données de la sauvegarde
-  (`land`, `house`), il reste à les faire acheter.
+* **Acheter des parcelles** pour agrandir la propriété, certaines avec un
+  immeuble dessus. Un immeuble proposera plusieurs étages, chacun étant un
+  monde indépendant : c'est exactement ce que fait déjà l'intérieur de la
+  maison. Concrètement, il suffira d'ajouter une scène par étage dans
+  `js/scenes.js`, avec un bloc qui mène à la suivante ; l'état, le monde et
+  le magasin travaillent déjà scène par scène.
 * Faire travailler le vocabulaire à partir des objets posés : le nom
   anglais de chaque objet est déjà dans le catalogue, prêt à être lu à
   voix haute ou demandé sous forme de question.

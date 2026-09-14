@@ -1,7 +1,7 @@
 /* =====================================================================
-   APP — the overlay on top of the property: coins, the shop, the object
-   held in hand, the bar of the selected object, and the bridge the
-   learning app uses to pay for a new rank.
+   APP — the overlay on top of the scene: coins, the shop, the object
+   held in hand, the bar of what is selected, the way in and out of the
+   house, and the bridge the learning app uses to pay for a new rank.
 
    Buying is one flow now: the shop hands an object over, the shop
    closes, and the object is paid for on the tile where the child puts it
@@ -24,6 +24,7 @@
   const COINS_PER_TAP = 100; // prototype only: tapping the purse pays
 
   let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, bottomEl, barEl, toastEl;
+  let sceneEl, exitEl;
   let shopOpen = false;
   let shownCoins = null;
 
@@ -36,11 +37,14 @@
     bottomEl = document.getElementById("hud-bottom");
     barEl = document.getElementById("action-bar");
     toastEl = document.getElementById("toast");
+    sceneEl = document.getElementById("scene-name");
+    exitEl = document.getElementById("exit");
 
     World.init({
       onSelect: renderActionBar,
       onPlacingChange: renderHand,
       onPlaced: onPlaced,
+      onScene: onScene,
       onRefused: toast
     });
 
@@ -57,7 +61,9 @@
 
     PropertyState.subscribe(refresh);
     refresh();
-    toast("Glisse le terrain pour te déplacer, pince pour zoomer.");
+    sceneEl.textContent = PropertyState.scene().name;
+    exitEl.hidden = !wayOut(PropertyState.scene());
+    toast("Glisse pour te déplacer, pince pour zoomer.");
   }
 
   /* ---- Overlay buttons ---- */
@@ -86,6 +92,8 @@
     document.getElementById("cancel-placing")
       .addEventListener("click", () => World.cancelPlacing());
 
+    exitEl.addEventListener("click", () => leaveScene());
+
     barEl.addEventListener("click", onActionBarClick);
   }
 
@@ -111,6 +119,28 @@
     World.render();
     renderActionBar(World.selected());
     renderHand(World.isPlacing());
+  }
+
+  /* ---- Going from one scene to another ----
+     The house from outside, the door from inside: both are blocks of the
+     scene that name where they lead. */
+
+  function onScene(place) {
+    World.fitCamera();
+    sceneEl.textContent = place.name;
+    // Only a scene one can walk out of shows the way out in the overlay.
+    exitEl.hidden = !wayOut(place);
+    openShop(false);
+    toast(place.indoor ? "Te voilà chez toi." : "Te voilà dehors.");
+  }
+
+  function wayOut(place) {
+    return place.indoor ? place.blocks.find(block => block.to) : null;
+  }
+
+  function leaveScene() {
+    const out = wayOut(PropertyState.scene());
+    if (out) PropertyState.enter(out.to);
   }
 
   function renderCoins(coins) {
@@ -145,25 +175,47 @@
       (short ? " — il ne t'en reste plus assez" : ""));
   }
 
-  function renderActionBar(uid) {
-    if (!uid) { barEl.hidden = true; return; }
-    const entry = PropertyState.get().placed.find(one => one.uid === uid);
-    const item = entry && CATALOG.item(entry.id);
-    if (!item) { barEl.hidden = true; return; }
+  /* The bar of what is selected: an object one can move and sell, or
+     something built in that leads somewhere — the house, the door. */
+  function renderActionBar(what) {
+    const card = what && (what.kind === "object" ? objectBar(what.uid) : blockBar(what.index));
+    barEl.hidden = !card;
+    if (card) barEl.innerHTML = card;
+  }
 
-    barEl.hidden = false;
-    barEl.innerHTML =
-      '<div class="bar-id">' +
-        '<img src="' + CATALOG.assetUrl(item.id) + '" alt="">' +
-        '<div><b>' + item.fr + '</b><span class="en">' + item.en + '</span></div>' +
-      '</div>' +
+  function nameCard(art, fr, en) {
+    return '<div class="bar-id">' +
+      '<img src="' + art + '" alt="">' +
+      '<div><b>' + fr + '</b><span class="en">' + en + '</span></div>' +
+    '</div>';
+  }
+
+  function objectBar(uid) {
+    const entry = PropertyState.scene().placed.find(one => one.uid === uid);
+    const item = entry && CATALOG.item(entry.id);
+    if (!item) return null;
+    return nameCard(CATALOG.assetUrl(item.id), item.fr, item.en) +
       '<p class="hint">Glisse pour déplacer</p>' +
       '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>';
+  }
+
+  function blockBar(index) {
+    const block = PropertyState.scene().blocks[index];
+    const kind = block && SCENES.kind(block.kind);
+    if (!kind || !block.to) return null;
+    return nameCard(kind.sprite || kind.tile, kind.fr, kind.en) +
+      '<button class="enter-btn" data-action="enter" data-to="' + block.to + '">' +
+        (kind.action || "Entrer") +
+      '</button>';
   }
 
   function onActionBarClick(event) {
     const button = event.target.closest("[data-action]");
     if (!button) return;
+    if (button.dataset.action === "enter") {
+      PropertyState.enter(button.dataset.to);
+      return;
+    }
     const refund = PropertyState.sell(Number(button.dataset.uid));
     World.clearSelection();
     if (refund !== null) toast("Vendu. +" + refund + " pièces.");
@@ -199,6 +251,7 @@
       World.cancelPlacing();
       World.clearSelection();
       World.fitCamera();
+      onScene(PropertyState.scene());
       toast("Propriété remise à zéro.");
     });
   }

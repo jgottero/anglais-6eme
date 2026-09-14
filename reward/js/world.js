@@ -1,15 +1,17 @@
 /* =====================================================================
-   WORLD — the property, full screen, seen from above.
+   WORLD — the scene the child is standing in, full screen, seen from
+   above: the property, or the inside of the house.
 
-   The plot is drawn once at a fixed tile size and the whole thing is
-   moved under a camera: dragging the ground pans, two fingers pinch to
-   zoom, the wheel zooms on a computer.
+   The scene is drawn once at a fixed tile size and the whole thing is
+   moved under a camera: dragging pans, two fingers pinch to zoom, the
+   wheel zooms on a computer. Changing scene redraws everything and
+   frames the new one.
 
    Gestures, in order of priority:
      two pointers                 -> pinch zoom and pan
      press on the selected object -> move that object
      press on anything else       -> pan the camera; a press that does
-                                     not travel either picks the object
+                                     not travel either picks what is
                                      under it, or puts down whatever the
                                      shop handed over — and pays for it
 
@@ -22,7 +24,7 @@ const World = (function () {
   const TILE = 64;            // world pixels per tile, before zoom
   const MAX_SCALE = 2.4;
   const DRAG_THRESHOLD = 6;   // screen pixels before a press becomes a drag
-  const EDGE_PAD = 28;        // how far the plot may travel off screen
+  const EDGE_PAD = 28;        // how far the scene may travel off screen
 
   let viewport = null;
   let world = null;
@@ -33,7 +35,8 @@ const World = (function () {
   const pointers = new Map(); // live pointers, by id
   let gesture = null;         // pan / object / pinch
   let placing = null;         // catalogue id chosen in the shop, in hand
-  let selectedUid = null;
+  let selected = null;        // { kind: "object", uid } | { kind: "block", index }
+  let drawnScene = null;      // which scene the elements belong to
 
   function init(options) {
     hooks = options || {};
@@ -73,23 +76,23 @@ const World = (function () {
   }
 
   function clampCamera() {
-    const land = PropertyState.get().land;
+    const land = PropertyState.scene().land;
     const vw = viewport.clientWidth;
     const vh = viewport.clientHeight;
     const ww = land.cols * TILE * cam.scale;
     const wh = land.rows * TILE * cam.scale;
     // Smaller than the screen: centred. Bigger: kept under the screen,
-    // so the plot can never be dragged away out of sight.
+    // so the scene can never be dragged away out of sight.
     cam.x = ww + 2 * EDGE_PAD <= vw ? (vw - ww) / 2
       : Math.max(vw - ww - EDGE_PAD, Math.min(EDGE_PAD, cam.x));
     cam.y = wh + 2 * EDGE_PAD <= vh ? (vh - wh) / 2
       : Math.max(vh - wh - EDGE_PAD, Math.min(EDGE_PAD, cam.y));
   }
 
-  // Scale at which the whole plot just fits the screen. Zooming out any
+  // Scale at which the whole scene just fits the screen. Zooming out any
   // further would only add empty ground around it, so it is the floor.
   function fitScale() {
-    const land = PropertyState.get().land;
+    const land = PropertyState.scene().land;
     return Math.min(
       viewport.clientWidth / (land.cols * TILE + 60),
       viewport.clientHeight / (land.rows * TILE + 60)
@@ -114,11 +117,11 @@ const World = (function () {
     applyCamera();
   }
 
-  /* Opening view: between "the whole plot fits" and "the plot fills the
-     screen". Fitting alone leaves the objects tiny on a phone, filling
-     alone shows only a corner of the property. */
+  /* Opening view: between "the whole scene fits" and "the scene fills
+     the screen". Fitting alone leaves the objects tiny on a phone,
+     filling alone shows only a corner. */
   function fitCamera() {
-    const land = PropertyState.get().land;
+    const land = PropertyState.scene().land;
     const vw = viewport.clientWidth;
     const vh = viewport.clientHeight;
     const cover = Math.max(vw / (land.cols * TILE), vh / (land.rows * TILE));
@@ -137,32 +140,54 @@ const World = (function () {
   /* ---- Drawing ---- */
 
   function render() {
-    const data = PropertyState.get();
-    world.style.width = data.land.cols * TILE + "px";
-    world.style.height = data.land.rows * TILE + "px";
+    const place = PropertyState.scene();
+
+    // Coming from another scene: nothing that was in hand or picked
+    // there means anything here.
+    if (drawnScene !== place.id) {
+      placing = null;
+      selected = null;
+      drawnScene = place.id;
+      if (hooks.onPlacingChange) hooks.onPlacingChange(null);
+      if (hooks.onSelect) hooks.onSelect(null);
+      if (hooks.onScene) hooks.onScene(place);
+    }
+
+    world.style.width = place.land.cols * TILE + "px";
+    world.style.height = place.land.rows * TILE + "px";
     world.style.setProperty("--tile", TILE + "px");
+    world.classList.toggle("is-indoor", !!place.indoor);
     world.innerHTML = "";
 
-    const house = document.createElement("div");
-    house.className = "house";
-    house.style.cssText = box(data.house.x, data.house.y, data.house.w, data.house.h);
-    house.innerHTML = '<img src="assets/house.svg" alt="La maison" draggable="false">';
-    world.appendChild(house);
+    place.blocks.forEach((block, index) => {
+      const kind = SCENES.kind(block.kind);
+      if (!kind) return;
+      const node = document.createElement("div");
+      node.className = "blk blk-" + block.kind +
+        (isSelected("block", index) ? " is-selected" : "");
+      node.dataset.block = index;
+      node.style.cssText = box(block.x, block.y, block.w, block.h);
+      if (kind.sprite) {
+        node.innerHTML = '<img src="' + kind.sprite + '" alt="' + kind.fr + '" draggable="false">';
+      } else {
+        node.style.backgroundImage = 'url("' + kind.tile + '")';
+        node.style.backgroundSize = TILE + "px " + TILE + "px";
+      }
+      world.appendChild(node);
+    });
 
-    /* The ground (paths, fields) is laid down first, then everything that
-       stands on it, each layer from the back of the plot to the front so
-       that what is lower overlaps what is behind it. */
-    const rank = entry => {
-      const item = CATALOG.item(entry.id);
-      return CATALOG.layerOf(item) === "ground" ? 0 : 1;
-    };
-    data.placed.slice().sort((a, b) => rank(a) - rank(b) || a.y - b.y).forEach(entry => {
+    /* The ground (paths, fields, rugs) is laid down first, then
+       everything that stands on it, each layer from the back of the
+       scene to the front so that what is lower overlaps what is
+       behind it. */
+    const rank = entry => CATALOG.layerOf(CATALOG.item(entry.id)) === "ground" ? 0 : 1;
+    place.placed.slice().sort((a, b) => rank(a) - rank(b) || a.y - b.y).forEach(entry => {
       const item = CATALOG.item(entry.id);
       if (!item) return;
       const node = document.createElement("div");
       node.className = "ob" +
         (CATALOG.layerOf(item) === "ground" ? " is-ground" : "") +
-        (entry.uid === selectedUid ? " is-selected" : "");
+        (isSelected("object", entry.uid) ? " is-selected" : "");
       node.dataset.uid = entry.uid;
       node.style.cssText = box(entry.x, entry.y, item.w, item.h);
       node.innerHTML = '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">';
@@ -192,7 +217,7 @@ const World = (function () {
 
   /* ---- Coordinates ---- */
 
-  // Pointer position in tile units (fractional) on the plot.
+  // Pointer position in tile units (fractional) in the scene.
   function pointerTile(clientX, clientY) {
     const rect = viewport.getBoundingClientRect();
     return {
@@ -201,9 +226,9 @@ const World = (function () {
     };
   }
 
-  // Top-left tile for an item held by its middle, kept inside the plot.
+  // Top-left tile for an item held by its middle, kept inside the scene.
   function centredTarget(clientX, clientY, item) {
-    const land = PropertyState.get().land;
+    const land = PropertyState.scene().land;
     const point = pointerTile(clientX, clientY);
     return {
       x: Math.round(Math.max(0, Math.min(land.cols - item.w, point.x - item.w / 2))),
@@ -226,9 +251,9 @@ const World = (function () {
     /* Only the object already picked can be dragged. Everything else
        pans the camera, which is what a finger on the ground means far
        more often than "move this hen". */
-    const node = placing ? null : event.target.closest(".ob");
-    const uid = node ? Number(node.dataset.uid) : null;
-    if (uid === null || uid !== selectedUid) {
+    const node = placing ? null : event.target.closest(".ob, .blk");
+    const uid = node && node.dataset.uid !== undefined ? Number(node.dataset.uid) : null;
+    if (uid === null || !isSelected("object", uid)) {
       gesture = {
         type: "pan",
         id: event.pointerId,
@@ -237,21 +262,20 @@ const World = (function () {
         camX: cam.x,
         camY: cam.y,
         moved: false,
-        // A press that never travels picks this object instead of panning.
-        tapUid: uid
+        // A press that never travels picks whatever is under it.
+        tapNode: node
       };
       return;
     }
 
-    const entry = PropertyState.get().placed.find(one => one.uid === uid);
+    const entry = PropertyState.scene().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) return;
     const point = pointerTile(event.clientX, event.clientY);
     gesture = {
       type: "object",
       id: event.pointerId,
-      uid: entry.uid,
-      item, node,
+      uid, item, node,
       // Where inside the object it was grabbed, so it does not jump.
       offsetX: point.x - entry.x,
       offsetY: point.y - entry.y,
@@ -310,11 +334,9 @@ const World = (function () {
                   Math.abs(event.clientY - gesture.startY) > DRAG_THRESHOLD;
       if (!far) return;
       gesture.moved = true;
-      if (gesture.type === "object") {
-        // It stays selected while travelling, so a refused drop leaves it
-        // in hand rather than making the child pick it again.
-        gesture.node.classList.add("is-dragging");
-      }
+      // It stays selected while travelling, so a refused drop leaves it
+      // in hand rather than making the child pick it again.
+      if (gesture.type === "object") gesture.node.classList.add("is-dragging");
     }
 
     if (gesture.type === "pan") {
@@ -328,7 +350,7 @@ const World = (function () {
     }
 
     if (gesture.type === "object") {
-      const land = PropertyState.get().land;
+      const land = PropertyState.scene().land;
       const point = pointerTile(event.clientX, event.clientY);
       const x = Math.round(Math.max(0, Math.min(land.cols - gesture.item.w, point.x - gesture.offsetX)));
       const y = Math.round(Math.max(0, Math.min(land.rows - gesture.item.h, point.y - gesture.offsetY)));
@@ -339,9 +361,7 @@ const World = (function () {
       gesture.node.style.transform =
         "translate(" + (event.clientX - gesture.startX) / cam.scale + "px," +
                        (event.clientY - gesture.startY) / cam.scale + "px)";
-      return;
     }
-
   }
 
   function onPointerUp(event) {
@@ -358,7 +378,7 @@ const World = (function () {
 
     if (finished.type === "pan") {
       if (finished.moved) return;
-      if (finished.tapUid !== null) select(finished.tapUid);
+      if (finished.tapNode) pick(finished.tapNode);
       else tapOnGround(event);
       return;
     }
@@ -370,14 +390,11 @@ const World = (function () {
       if (!finished.moved) return;
       if (finished.ok) {
         PropertyState.move(finished.uid, finished.target.x, finished.target.y);
-        select(finished.uid);
       } else {
         render();
         refuse();
       }
-      return;
     }
-
   }
 
   function revertObject() {
@@ -392,9 +409,9 @@ const World = (function () {
   }
 
   /* ---- The object held in hand ----
-     The shop hands over a catalogue id; it stays in hand so that a row of
-     fields can be laid one tap after another, and is paid for each time
-     it lands. */
+     The shop hands over a catalogue id; it stays in hand so that a row
+     of fields can be laid one tap after another, and is paid for each
+     time it lands. */
 
   function startPlacing(id) {
     if (!CATALOG.item(id)) return;
@@ -439,17 +456,36 @@ const World = (function () {
     }
   }
 
-  /* ---- Selection ---- */
+  /* ---- Selection ----
+     Objects can be moved and sold; what is built in can only be looked
+     at, and sometimes walked through. */
 
-  function select(uid) {
-    selectedUid = uid;
+  function isSelected(kind, key) {
+    return !!selected && selected.kind === kind &&
+      (kind === "object" ? selected.uid === key : selected.index === key);
+  }
+
+  function pick(node) {
+    if (node.dataset.uid !== undefined) {
+      select({ kind: "object", uid: Number(node.dataset.uid) });
+      return;
+    }
+    // A wall is scenery: only what leads somewhere is worth picking.
+    const index = Number(node.dataset.block);
+    const block = PropertyState.scene().blocks[index];
+    if (block && block.to) select({ kind: "block", index });
+    else clearSelection();
+  }
+
+  function select(what) {
+    selected = what;
     render();
-    if (hooks.onSelect) hooks.onSelect(uid);
+    if (hooks.onSelect) hooks.onSelect(selected);
   }
 
   function clearSelection() {
-    if (selectedUid === null) return;
-    selectedUid = null;
+    if (!selected) return;
+    selected = null;
     render();
     if (hooks.onSelect) hooks.onSelect(null);
   }
@@ -459,6 +495,6 @@ const World = (function () {
     startPlacing, cancelPlacing,
     select, clearSelection,
     isPlacing() { return placing; },
-    selected() { return selectedUid; }
+    selected() { return selected; }
   };
 })();

@@ -23,6 +23,7 @@ const CATALOG = (function () {
 
   const CATEGORIES = [
     { id: "ground",    label: "Terrain",   icon: "🟫" },
+    { id: "furniture", label: "Meubles",   icon: "🛋️" },
     { id: "animals",   label: "Animaux",   icon: "🐔" },
     { id: "nature",    label: "Nature",    icon: "🌳" },
     { id: "garden",    label: "Jardin",    icon: "🪑" },
@@ -33,13 +34,15 @@ const CATALOG = (function () {
     // ---------- ground: laid on the soil, other things stand on it ----------
     { id: "path",  fr: "Chemin", en: "a path",  price: 15, w: 1, h: 1, layer: "ground", category: "ground", asset: "path.svg" },
     { id: "field", fr: "Champ",  en: "a field", price: 25, w: 1, h: 1, layer: "ground", category: "ground", asset: "field.svg" },
+    { id: "tiles", fr: "Carrelage", en: "tiles", price: 20, w: 1, h: 1, layer: "ground", category: "ground", where: "in", asset: "tiles.svg" },
+    { id: "rug",   fr: "Tapis",     en: "a rug", price: 120, w: 2, h: 2, layer: "ground", category: "ground", where: "in", asset: "rug.svg" },
 
     // ---------- animals ----------
     { id: "chicken", fr: "Poule",  en: "a hen",    price: 60,  w: 1, h: 1, category: "animals", asset: "chicken.svg" },
     { id: "duck",    fr: "Canard", en: "a duck",   price: 70,  w: 1, h: 1, category: "animals", asset: "duck.svg" },
     { id: "rabbit",  fr: "Lapin",  en: "a rabbit", price: 80,  w: 1, h: 1, category: "animals", asset: "rabbit.svg" },
-    { id: "cat",     fr: "Chat",   en: "a cat",    price: 90,  w: 1, h: 1, category: "animals", asset: "cat.svg" },
-    { id: "dog",     fr: "Chien",  en: "a dog",    price: 110, w: 1, h: 1, category: "animals", asset: "dog.svg" },
+    { id: "cat",     fr: "Chat",   en: "a cat",    price: 90,  w: 1, h: 1, category: "animals", where: "both", asset: "cat.svg" },
+    { id: "dog",     fr: "Chien",  en: "a dog",    price: 110, w: 1, h: 1, category: "animals", where: "both", asset: "dog.svg" },
     { id: "sheep",   fr: "Mouton", en: "a sheep",  price: 150, w: 1, h: 1, category: "animals", asset: "sheep.svg" },
     { id: "cow",     fr: "Vache",  en: "a cow",    price: 220, w: 2, h: 1, category: "animals", asset: "cow.svg" },
     { id: "horse",   fr: "Cheval", en: "a horse",  price: 300, w: 2, h: 1, category: "animals", asset: "horse.svg" },
@@ -67,6 +70,20 @@ const CATALOG = (function () {
     { id: "picnic_table", fr: "Table de pique-nique", en: "a picnic table", price: 210, w: 2, h: 2, category: "garden", asset: "picnic-table.svg" },
     { id: "well",         fr: "Puits",              en: "a well",          price: 240, w: 2, h: 2, category: "garden", asset: "well.svg" },
 
+    // ---------- furniture: inside the house ----------
+    { id: "chair",     fr: "Chaise",         en: "a chair",      price: 60,  w: 1, h: 1, category: "furniture", where: "in", asset: "chair.svg" },
+    { id: "plant",     fr: "Plante",         en: "a plant",      price: 70,  w: 1, h: 1, category: "furniture", where: "in", asset: "plant.svg" },
+    { id: "table",     fr: "Table",          en: "a table",      price: 140, w: 2, h: 1, category: "furniture", where: "in", asset: "table.svg" },
+    { id: "bookshelf", fr: "Bibliothèque",   en: "a bookcase",   price: 150, w: 1, h: 1, category: "furniture", where: "in", asset: "bookshelf.svg" },
+    { id: "wardrobe",  fr: "Armoire",        en: "a wardrobe",   price: 170, w: 1, h: 1, category: "furniture", where: "in", asset: "wardrobe.svg" },
+    { id: "sink",      fr: "Évier",          en: "a sink",       price: 180, w: 1, h: 1, category: "furniture", where: "in", asset: "sink.svg" },
+    { id: "stove",     fr: "Cuisinière",     en: "a cooker",     price: 200, w: 1, h: 1, category: "furniture", where: "in", asset: "stove.svg" },
+    { id: "fridge",    fr: "Réfrigérateur",  en: "a fridge",     price: 220, w: 1, h: 1, category: "furniture", where: "in", asset: "fridge.svg" },
+    { id: "sofa",      fr: "Canapé",         en: "a sofa",       price: 220, w: 2, h: 1, category: "furniture", where: "in", asset: "sofa.svg" },
+    { id: "tv",        fr: "Télévision",     en: "a television", price: 240, w: 1, h: 1, category: "furniture", where: "in", asset: "tv.svg" },
+    { id: "bed",       fr: "Lit",            en: "a bed",        price: 280, w: 2, h: 2, category: "furniture", where: "in", asset: "bed.svg" },
+    { id: "fireplace", fr: "Cheminée",       en: "a fireplace",  price: 320, w: 2, h: 1, category: "furniture", where: "in", asset: "fireplace.svg" },
+
     // ---------- buildings ----------
     { id: "coop",       fr: "Poulailler", en: "a chicken coop", price: 450, w: 3, h: 2, category: "buildings", asset: "coop.svg" },
     { id: "greenhouse", fr: "Serre",      en: "a greenhouse",   price: 600, w: 3, h: 2, category: "buildings", asset: "greenhouse.svg" }
@@ -81,6 +98,12 @@ const CATALOG = (function () {
     item(id) { return BY_ID[id] || null; },
     // Everything is an object unless it says otherwise.
     layerOf(item) { return item && item.layer === "ground" ? "ground" : "object"; },
+    // Is this sold in the scene the child is standing in?
+    fitsScene(item, indoor) {
+      if (!item) return false;
+      if (item.where === "both") return true;
+      return item.where === "in" ? !!indoor : !indoor;
+    },
     assetUrl(id) {
       const item = BY_ID[id];
       return item ? "assets/items/" + item.asset : "";
