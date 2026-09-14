@@ -33,11 +33,16 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Toucher les pièces en ajoute 100 — raccourci de prototype.
 * **Magasin** : 30 objets en quatre familles (animaux, nature, jardin,
   bâtiments). Chaque fiche affiche le nom français et le nom anglais.
-* Un achat va **toujours dans le coffre**.
-* **Coffre** : un panneau qui recouvre le bas de la propriété. On glisse
-  un objet du coffre jusqu'à l'endroit voulu — le panneau s'efface pendant
-  le geste. Un simple appui garde l'objet en main : on touche ensuite le
-  terrain pour le poser.
+* Deux façons d'acheter : le bouton prix met l'objet **dans le coffre**,
+  ou bien on glisse le dessin de l'objet directement sur le terrain —
+  l'achat est alors réglé à l'endroit où il se pose. Rien n'est débité si
+  la place est prise, et un objet trop cher ne peut pas être glissé.
+* **Coffre** : un panneau qui recouvre le bas de la propriété. Les objets
+  identiques y sont empilés sur une seule fiche, avec le nombre en
+  pastille (trois poules = une poule et un ×3) ; chaque geste ne prend
+  qu'un objet de la pile. On glisse un objet du coffre jusqu'à l'endroit
+  voulu — le panneau s'efface pendant le geste. Un simple appui garde
+  l'objet en main : on touche ensuite le terrain pour le poser.
 * Sur le terrain : glisser un objet pour le déplacer, le toucher pour le
   ranger dans le coffre ou le **revendre à son prix d'achat**.
 * Les emplacements occupés (autres objets, maison) sont refusés : la

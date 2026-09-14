@@ -9,7 +9,8 @@
      two pointers        -> pinch zoom and pan
      press on an object  -> move that object
      press on the ground -> pan the camera
-     an object dragged out of the chest -> drop it on a free tile
+     an object dragged out of the chest or the shop -> drop it on a free
+     tile (a shop object is paid for as it lands)
 
    Rules (what fits where) live in state.js; this file only turns the
    state into elements, and pointer events back into state calls.
@@ -244,25 +245,38 @@ const World = (function () {
     };
   }
 
-  // An object dragged straight out of the chest panel. The pointer press
-  // happened outside the viewport, so the chest hands it over to us.
+  // An object dragged straight out of a panel. The pointer press happened
+  // outside the viewport, so the panel hands the gesture over to us.
   function dragFromChest(uid, event) {
     const entry = PropertyState.get().storage.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) return;
+    startPanelDrag({ type: "chest", uid, item }, event);
+  }
+
+  // Same gesture from the shop, except the object is paid for on landing.
+  function dragFromShop(id, event) {
+    const item = CATALOG.item(id);
+    if (!item) return;
+    startPanelDrag({ type: "shop", itemId: id, item }, event);
+  }
+
+  function startPanelDrag(base, event) {
     cancelPlacing();
     clearSelection();
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    gesture = {
-      type: "chest",
+    gesture = Object.assign(base, {
       id: event.pointerId,
-      uid, item,
       startX: event.clientX,
       startY: event.clientY,
       moved: false,
       target: null,
       ok: false
-    };
+    });
+  }
+
+  function fromPanel(one) {
+    return one && (one.type === "chest" || one.type === "shop");
   }
 
   function startPinch() {
@@ -321,8 +335,8 @@ const World = (function () {
           selectedUid = null;
           if (hooks.onSelect) hooks.onSelect(null);
         }
-      } else if (gesture.type === "chest" && hooks.onChestDragStart) {
-        hooks.onChestDragStart();
+      } else if (fromPanel(gesture) && hooks.onPanelDragStart) {
+        hooks.onPanelDragStart();
       }
     }
 
@@ -349,7 +363,7 @@ const World = (function () {
       return;
     }
 
-    if (gesture.type === "chest") {
+    if (fromPanel(gesture)) {
       const target = centredTarget(event.clientX, event.clientY, gesture.item);
       gesture.target = target;
       gesture.ok = PropertyState.canPlace(target.x, target.y, gesture.item.w, gesture.item.h, null);
@@ -389,18 +403,21 @@ const World = (function () {
       return;
     }
 
-    if (finished.type === "chest") {
+    if (fromPanel(finished)) {
       hideGhost();
       if (!finished.moved) {
         // A simple tap on a chest object: keep it in hand and let the
-        // child tap the spot they want.
-        startPlacing(finished.uid);
+        // child tap the spot they want. A tap in the shop does nothing:
+        // the price button right below is how one buys without dragging.
+        if (finished.type === "chest") startPlacing(finished.uid);
         return;
       }
-      if (!finished.ok || !PropertyState.place(finished.uid, finished.target.x, finished.target.y)) {
-        refuse();
-      }
-      if (hooks.onChestDragEnd) hooks.onChestDragEnd();
+      const landed = finished.ok && (finished.type === "chest"
+        ? PropertyState.place(finished.uid, finished.target.x, finished.target.y)
+        : PropertyState.buyAt(finished.itemId, finished.target.x, finished.target.y));
+      if (!landed) refuse();
+      else if (finished.type === "shop" && hooks.onBought) hooks.onBought(finished.item);
+      if (hooks.onPanelDragEnd) hooks.onPanelDragEnd();
     }
   }
 
@@ -476,7 +493,7 @@ const World = (function () {
 
   return {
     init, render, fitCamera,
-    dragFromChest, startPlacing, cancelPlacing,
+    dragFromChest, dragFromShop, startPlacing, cancelPlacing,
     select, clearSelection,
     isPlacing() { return placing; },
     selected() { return selectedUid; }

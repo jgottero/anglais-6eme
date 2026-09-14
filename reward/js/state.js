@@ -130,6 +130,19 @@ const PropertyState = (function () {
     return { uid };
   }
 
+  /* Bought and dropped in one gesture, straight from the shop: the object
+     never passes through the chest. Nothing is paid if the spot is taken. */
+  function buyAt(id, x, y) {
+    const item = CATALOG.item(id);
+    if (!item || data.coins < item.price) return null;
+    if (!canPlace(x, y, item.w, item.h, null)) return null;
+    data.coins -= item.price;
+    const uid = data.nextUid++;
+    data.placed.push({ uid, id, x, y });
+    changed();
+    return { uid };
+  }
+
   function place(uid, x, y) {
     const index = data.storage.findIndex(entry => entry.uid === uid);
     if (index === -1) return false;
@@ -195,6 +208,6 @@ const PropertyState = (function () {
     get, subscribe,
     canPlace, placedAt,
     addCoins, grantTier,
-    buy, place, move, store, sell, reset
+    buy, buyAt, place, move, store, sell, reset
   };
 })();

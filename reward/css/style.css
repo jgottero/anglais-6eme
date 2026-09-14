@@ -298,7 +298,7 @@ button { font: inherit; cursor: pointer; }
 }
 
 /* Out of the way while an object is being dragged onto the property. */
-body.is-chest-drag .sheet { opacity: 0.15; pointer-events: none; }
+body.is-panel-drag .sheet { opacity: 0.15; pointer-events: none; }
 
 .sheet-head {
   /* Stays in reach while a long list scrolls under it. */
@@ -362,8 +362,8 @@ body.is-chest-drag .sheet { opacity: 0.15; pointer-events: none; }
   margin-bottom: 6px;
 }
 .card-art img { max-width: 70px; max-height: 64px; }
-.card-art[data-drag] { cursor: grab; touch-action: none; }
-.card-art .owned {
+.card-art[data-drag], .card-art[data-shop] { cursor: grab; touch-action: none; }
+.card-art .owned, .card-art .count {
   position: absolute;
   right: 5px;
   bottom: 4px;
@@ -372,6 +372,13 @@ body.is-chest-drag .sheet { opacity: 0.15; pointer-events: none; }
   border-radius: 999px;
   font-size: 0.74rem;
   padding: 1px 7px;
+}
+/* How many of that object are waiting in the chest. */
+.card-art .count {
+  background: var(--danger);
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 1px 9px;
 }
 
 .card h3 { margin: 0; font-size: 0.95rem; }
