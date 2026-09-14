@@ -291,6 +291,28 @@
 
   .notice { margin-top: 14px; font-size: 0.9rem; color: var(--wrong); }
 
+  /* ---- Dictation ---- */
+  .spell { display: flex; gap: 8px; margin-top: 4px; }
+  .spell input {
+    flex: 1;
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: 1.3rem;
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--card-edge);
+    border-radius: 5px;
+    padding: 10px 13px;
+    min-width: 0;
+  }
+  .spell input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+  .spell input:disabled { opacity: 0.7; }
+  .diff {
+    font-family: "Shantell Sans", "Comic Sans MS", cursive;
+    font-size: 1.2rem;
+    letter-spacing: 0.04em;
+  }
+  .diff .miss { color: var(--wrong); text-decoration: underline; text-underline-offset: 3px; }
+
   .score-line {
     font-family: "Shantell Sans", "Comic Sans MS", cursive;
     font-size: 2.4rem;
@@ -599,7 +621,8 @@ function recordResult(word, success) {
 
   const note = noteReview(word);
   let gained = note.first
-    ? POINTS.word + (success ? POINTS.correct : 0) + (state.mode === "say" ? POINTS.speaking : 0)
+    ? POINTS.word + (success ? POINTS.correct : 0) +
+      (state.mode === "say" || state.mode === "spell" ? POINTS.speaking : 0)
     : (success ? POINTS.again : 0);
   if (note.completed) {
     gained += POINTS.goal;
@@ -839,7 +862,8 @@ function renderMenu() {
   const modes = [
     { id: "mcq",   title: "Français → anglais", sub: "Choisis le mot anglais, il est lu à voix haute" },
     { id: "mcqfr", title: "Anglais → français", sub: "Écoute la phrase anglaise et choisis sa traduction" },
-    { id: "say",   title: "Prononcer",          sub: "Dis la réponse en anglais au micro" }
+    { id: "say",   title: "Prononcer",          sub: "Dis la réponse en anglais au micro" },
+    { id: "spell", title: "Écouter et écrire",   sub: "Le mot est dit en anglais, écris-le sans faute" }
   ].map(mode =>
     '<button class="choice" data-mode="' + mode.id + '" aria-pressed="' + (state.mode === mode.id) + '">' +
       mode.title + '<span class="sub">' + mode.sub + '</span>' +
@@ -1187,7 +1211,9 @@ function showQuestion() {
   document.getElementById("counter").textContent =
     lessonTitle(state.lesson) + " · " + (state.index + 1) + "/" + state.round.length;
   document.getElementById("prompt").textContent = state.round[state.index].prompt;
-  if (state.mode === "say") say.render(); else mcq.render();
+  if (state.mode === "say") say.render();
+  else if (state.mode === "spell") spell.render();
+  else mcq.render();
 }
 
 function nextLabel() {
@@ -1288,6 +1314,130 @@ const mcq = {
 };
 
 // ---- Mode 2: say the answer ----
+/* ---- Mode 4: hear it, write it ----
+   Spelling is judged exactly: accents and case are ignored, letters are
+   not. The `heard` variants used by the speaking mode are deliberately
+   left out here, since "said" for sad is a microphone artefact, not an
+   acceptable spelling. A wrong answer has to be copied out correctly
+   before moving on, because writing the word once is what fixes it. */
+const spell = {
+  correctFor(word) { return word.en[0]; },
+
+  matches(word, attempt) {
+    const said = normalise(attempt);
+    return word.en.some(answer => normalise(answer) === said);
+  },
+
+  // Marks, letter by letter, where the attempt parts from the answer.
+  diff(answer, attempt) {
+    const a = normalise(answer);
+    const b = normalise(attempt);
+    let out = "";
+    for (let i = 0; i < answer.length; i++) {
+      const same = b[i] === a[i];
+      out += (same ? '<span>' : '<span class="miss">') + esc(answer[i]) + '</span>';
+    }
+    return '<span class="diff">' + out + '</span>';
+  },
+
+  render() {
+    const word = state.round[state.index].word;
+    document.getElementById("body").innerHTML =
+      '<div class="actions" style="margin-top:0">' +
+        '<button class="text" id="hear">Réécouter le mot</button>' +
+      '</div>' +
+      '<form id="spellForm" class="spell">' +
+        '<input id="typed" type="text" lang="en" autocomplete="off" autocapitalize="none" ' +
+               'autocorrect="off" spellcheck="false" placeholder="Écris le mot en anglais" ' +
+               'aria-label="Écris le mot en anglais">' +
+        '<button class="text primary" type="submit" id="check">Valider</button>' +
+      '</form>' +
+      '<p class="verdict" id="verdict"></p>' +
+      '<div class="actions">' +
+        '<button class="text primary" id="next" hidden></button>' +
+        '<button class="text" id="skip">Voir la réponse</button>' +
+      '</div>';
+
+    const input = document.getElementById("typed");
+    document.getElementById("hear").addEventListener("click", () => speak(spell.correctFor(word)));
+    document.getElementById("skip").addEventListener("click", () => spell.settle(false, ""));
+    document.getElementById("next").addEventListener("click", goNext);
+    document.getElementById("spellForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const attempt = input.value.trim();
+      if (!attempt) return;
+      if (state.locked) spell.checkCopy(attempt);
+      else if (spell.matches(word, attempt)) spell.settle(true, attempt);
+      else spell.settle(false, attempt);
+    });
+
+    input.focus();
+    // The word is read on arrival: this mode is a dictation.
+    speak(spell.correctFor(word));
+  },
+
+  settle(success, attempt) {
+    if (state.locked) return;
+    state.locked = true;
+    const word = state.round[state.index].word;
+    const answer = spell.correctFor(word);
+    const change = recordResult(word, success);
+    const verdict = document.getElementById("verdict");
+    const input = document.getElementById("typed");
+
+    if (success) {
+      verdict.innerHTML = "<b>Sans faute.</b> " + esc(word.fr) + " = " + esc(attempt) + "." +
+        synonymNote(word, attempt) + levelNote(change);
+      input.disabled = true;
+      document.getElementById("check").disabled = true;
+      document.getElementById("skip").hidden = true;
+      spell.showNext();
+    } else {
+      verdict.innerHTML =
+        (attempt ? "<b>Pas tout à fait.</b> Tu as écrit " + esc(attempt) + "." : "<b>La réponse :</b>") +
+        '<span class="also">Le mot s\'écrit ' + spell.diff(answer, attempt || "") + '.</span>' +
+        levelNote(change);
+      document.getElementById("skip").hidden = true;
+      // Copying it out correctly is what unlocks the next word.
+      input.value = "";
+      input.placeholder = "Recopie : " + answer;
+      input.focus();
+      document.getElementById("check").textContent = "Recopier";
+      const pass = document.createElement("button");
+      pass.className = "link";
+      pass.type = "button";
+      pass.id = "pass";
+      pass.textContent = "passer";
+      pass.addEventListener("click", spell.showNext);
+      document.querySelector(".actions").appendChild(pass);
+    }
+    markTrack(success ? "right" : "wrong");
+  },
+
+  checkCopy(attempt) {
+    const word = state.round[state.index].word;
+    if (spell.matches(word, attempt)) {
+      document.getElementById("typed").disabled = true;
+      document.getElementById("check").disabled = true;
+      const pass = document.getElementById("pass");
+      if (pass) pass.remove();
+      spell.showNext();
+    } else {
+      document.getElementById("typed").value = "";
+      document.getElementById("typed").focus();
+    }
+  },
+
+  showNext() {
+    const pass = document.getElementById("pass");
+    if (pass) pass.remove();
+    const next = document.getElementById("next");
+    next.textContent = nextLabel();
+    next.hidden = false;
+    next.focus();
+  }
+};
+
 const say = {
   render() {
     document.getElementById("body").innerHTML =
@@ -1542,7 +1692,7 @@ function showScore() {
 
 // Keys 1 to 4 answer in both multiple-choice modes.
 document.addEventListener("keydown", event => {
-  if (state.mode === "say") return;
+  if (state.mode === "say" || state.mode === "spell") return;
   if (event.key >= "1" && event.key <= "4") {
     const options = document.getElementById("options");
     const button = options && options.children[Number(event.key) - 1];
