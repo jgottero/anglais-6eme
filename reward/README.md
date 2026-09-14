@@ -24,8 +24,9 @@ remettre à zéro.
 La propriété occupe tout l'écran ; le reste flotte par-dessus.
 
 * Une maison et un terrain de 14 × 10 cases, vus de dessus.
-* **Caméra** : glisser le terrain le déplace, deux doigts (ou la molette)
-  zooment. On ne peut pas dézoomer au-delà du terrain entier, ni le faire
+* **Caméra** : glisser n'importe où sur le terrain la déplace (sauf sur
+  l'objet sélectionné, qui suit alors le doigt), deux doigts (ou la
+  molette) zooment. On ne peut pas dézoomer au-delà du terrain entier, ni le faire
   sortir de l'écran.
 * **Overlay permanent** : les pièces en haut à droite, un bouton retour en
   haut à gauche (il préviendra l'application d'apprentissage), et en bas
@@ -49,8 +50,12 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   qu'un objet de la pile. On glisse un objet du coffre jusqu'à l'endroit
   voulu — le panneau s'efface pendant le geste. Un simple appui garde
   l'objet en main : on touche ensuite le terrain pour le poser.
-* Sur le terrain : glisser un objet pour le déplacer, le toucher pour le
-  ranger dans le coffre ou le **revendre à son prix d'achat**.
+* Sur le terrain : toucher un objet le **sélectionne** (sa barre propose
+  de le ranger dans le coffre ou de le **revendre à son prix d'achat**) ;
+  une fois sélectionné, on le glisse pour le déplacer. Un glisser qui part
+  d'ailleurs — sol nu ou objet non sélectionné — déplace la caméra, pour
+  que le geste de déplacement n'entre jamais en conflit avec elle. L'objet
+  reste sélectionné si on le lâche sur une place prise.
 * Les emplacements occupés (autres objets, maison) sont refusés : la
   silhouette passe au rouge pendant le geste.
 * Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`.

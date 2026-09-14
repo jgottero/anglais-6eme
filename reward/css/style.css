@@ -94,7 +94,9 @@ button { font: inherit; cursor: pointer; }
   -webkit-user-drag: none;
 }
 
-.ob { cursor: grab; touch-action: none; }
+/* Only the picked object can be dragged; the rest of the plot pans. */
+.ob { cursor: pointer; touch-action: none; }
+.ob.is-selected { cursor: grab; }
 /* Ground tiles cover their square edge to edge, with no drop shadow. */
 .ob.is-ground img { object-fit: fill; }
 .ob.is-selected {
@@ -260,6 +262,7 @@ button { font: inherit; cursor: pointer; }
 .bar-id { display: flex; align-items: center; gap: 10px; }
 .bar-id img { width: 40px; height: 40px; }
 .bar-id .en { display: block; color: var(--ink-soft); font-size: 0.85rem; font-style: italic; }
+.action-bar .hint { margin: 0; color: var(--ink-soft); font-size: 0.85rem; }
 .bar-actions { display: flex; gap: 8px; }
 
 .ghost-btn, .sell-btn, .mini-btn {

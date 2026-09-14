@@ -225,6 +225,7 @@
         '<img src="' + CATALOG.assetUrl(item.id) + '" alt="">' +
         '<div><b>' + item.fr + '</b><span class="en">' + item.en + '</span></div>' +
       '</div>' +
+      '<p class="hint">Glisse pour déplacer</p>' +
       '<div class="bar-actions">' +
         '<button class="ghost-btn" data-action="store" data-uid="' + uid + '">Ranger</button>' +
         '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>' +

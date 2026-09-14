@@ -6,9 +6,10 @@
    zoom, the wheel zooms on a computer.
 
    Gestures, in order of priority:
-     two pointers        -> pinch zoom and pan
-     press on an object  -> move that object
-     press on the ground -> pan the camera
+     two pointers                 -> pinch zoom and pan
+     press on the selected object -> move that object
+     press on anything else       -> pan the camera; a press that does
+                                     not travel picks the object under it
      an object dragged out of the chest or the shop -> drop it on a free
      tile (a shop object is paid for as it lands)
 
@@ -218,8 +219,12 @@ const World = (function () {
     if (pointers.size === 2) { startPinch(); return; }
     if (pointers.size > 2 || (gesture && gesture.type === "pinch")) return;
 
-    const node = event.target.closest(".ob");
-    if (placing || !node) {
+    /* Only the object already picked can be dragged. Everything else
+       pans the camera, which is what a finger on the ground means far
+       more often than "move this hen". */
+    const node = placing ? null : event.target.closest(".ob");
+    const uid = node ? Number(node.dataset.uid) : null;
+    if (uid === null || uid !== selectedUid) {
       gesture = {
         type: "pan",
         id: event.pointerId,
@@ -227,12 +232,14 @@ const World = (function () {
         startY: event.clientY,
         camX: cam.x,
         camY: cam.y,
-        moved: false
+        moved: false,
+        // A press that never travels picks this object instead of panning.
+        tapUid: uid
       };
       return;
     }
 
-    const entry = PropertyState.get().placed.find(one => one.uid === Number(node.dataset.uid));
+    const entry = PropertyState.get().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) return;
     const point = pointerTile(event.clientX, event.clientY);
@@ -334,14 +341,9 @@ const World = (function () {
       if (!far) return;
       gesture.moved = true;
       if (gesture.type === "object") {
+        // It stays selected while travelling, so a refused drop leaves it
+        // in hand rather than making the child pick it again.
         gesture.node.classList.add("is-dragging");
-        // Dropping the selection without redrawing: a redraw would throw
-        // away the very element the pointer is holding.
-        if (selectedUid !== null) {
-          gesture.node.classList.remove("is-selected");
-          selectedUid = null;
-          if (hooks.onSelect) hooks.onSelect(null);
-        }
       } else if (fromPanel(gesture) && hooks.onPanelDragStart) {
         hooks.onPanelDragStart();
       }
@@ -391,7 +393,9 @@ const World = (function () {
     gesture = null;
 
     if (finished.type === "pan") {
-      if (!finished.moved) tapOnGround(event);
+      if (finished.moved) return;
+      if (finished.tapUid !== null) select(finished.tapUid);
+      else tapOnGround(event);
       return;
     }
 
@@ -399,7 +403,7 @@ const World = (function () {
       finished.node.classList.remove("is-dragging");
       finished.node.style.transform = "";
       hideGhost();
-      if (!finished.moved) { select(finished.uid); return; }
+      if (!finished.moved) return;
       if (finished.ok) {
         PropertyState.move(finished.uid, finished.target.x, finished.target.y);
         select(finished.uid);
