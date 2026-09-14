@@ -127,6 +127,24 @@
     if (!PropertyState.get().storage.length) openPanel(null);
   }
 
+  /* Objects of the same kind share one card: three hens show as one hen
+     and a ×3. A card acts on the first of its pile, so dragging one out
+     or selling one leaves the others in the chest. */
+  function pileUp(storage) {
+    const piles = [];
+    const byId = new Map();
+    storage.forEach(entry => {
+      let pile = byId.get(entry.id);
+      if (!pile) {
+        pile = { id: entry.id, uids: [] };
+        byId.set(entry.id, pile);
+        piles.push(pile);
+      }
+      pile.uids.push(entry.uid);
+    });
+    return piles;
+  }
+
   function renderChest(data) {
     badgeEl.hidden = !data.storage.length;
     badgeEl.textContent = data.storage.length;
@@ -135,16 +153,18 @@
       chestGridEl.innerHTML = '<p class="empty">Ton coffre est vide. Va faire un tour au magasin !</p>';
       return;
     }
-    chestGridEl.innerHTML = data.storage.map(entry => {
-      const item = CATALOG.item(entry.id);
+    chestGridEl.innerHTML = pileUp(data.storage).map(pile => {
+      const item = CATALOG.item(pile.id);
       if (!item) return "";
+      const next = pile.uids[0];
       return '<article class="card">' +
-        '<div class="card-art" data-drag="' + entry.uid + '" title="Glisse-moi sur le terrain">' +
+        '<div class="card-art" data-drag="' + next + '" title="Glisse-moi sur le terrain">' +
           '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
+          (pile.uids.length > 1 ? '<span class="count">×' + pile.uids.length + '</span>' : '') +
         '</div>' +
         '<h3>' + item.fr + '</h3>' +
         '<p class="en">' + item.en + '</p>' +
-        '<button class="mini-btn" data-sell="' + entry.uid + '">Vendre +' + item.price + '</button>' +
+        '<button class="mini-btn" data-sell="' + next + '">Vendre +' + item.price + '</button>' +
       '</article>';
     }).join("");
   }
