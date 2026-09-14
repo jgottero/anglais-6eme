@@ -23,7 +23,11 @@ remettre à zéro.
 
 La propriété occupe tout l'écran ; le reste flotte par-dessus.
 
-* Une maison et un terrain de 14 × 10 cases, vus de dessus.
+* Une maison et un terrain vus de dessus, posés sur une grille fine : un
+  objet courant (poule, chaise, chemin) occupe 2 × 2 cases, une barrière
+  ou une porte seulement 2 × 1. Les murs des intérieurs font une case, et
+  chaque pièce compte un nombre pair de cases dans les deux sens, pour
+  qu'un sol puisse la couvrir entièrement.
 * **Caméra** : glisser n'importe où sur le terrain la déplace (sauf sur
   l'objet sélectionné, qui suit alors le doigt), deux doigts (ou la
   molette) zooment. On ne peut pas dézoomer au-delà du terrain entier, ni
@@ -60,7 +64,8 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
   nature, jardin, bâtiments), 17 dedans (meubles, porte, carrelage, tapis,
   et le chat et le chien qui vont des deux côtés). Chaque fiche porte son
-  nom français, son nom anglais et son prix.
+  nom français, son nom anglais et son prix — la taille se devine au
+  dessin, elle n'est pas écrite.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
   Un appui sur une case le pose et débite les pièces. Il **reste en main**
@@ -94,9 +99,9 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   sauvegarde ne contient que les pièces, les parcelles achetées et les
   objets de chaque lieu : **la carte n'est jamais sauvegardée**, elle est
   reconstruite depuis `js/scenes.js` à chaque ouverture, si bien que le
-  plan peut évoluer sans abîmer une propriété existante. Les sauvegardes
-  des versions précédentes sont reprises au chargement (les objets déjà
-  posés restent en place, l'ancien coffre est remboursé en pièces).
+  plan peut évoluer sans abîmer une propriété existante. Une sauvegarde
+  écrite par une version antérieure (`version` différente) est **effacée
+  et non convertie** : la grille sous elle n'est plus la même.
 
 ## Brancher l'application d'apprentissage
 
@@ -149,10 +154,11 @@ reward/
 
 ## Ajouter un objet
 
-1. Déposer un SVG dans `assets/items/`. L'échelle est de **32 px par
-   case** : un objet de 2 × 1 cases se dessine dans un `viewBox` de
-   `0 0 64 32`, posé sur le bas du cadre. Un terrain, lui, remplit son
-   cadre bord à bord.
+1. Déposer un SVG dans `assets/items/`. L'échelle est de **16 px par
+   case**, et le dessin doit avoir les proportions de son emprise : un
+   objet de 2 × 2 cases (la taille courante) se dessine dans un `viewBox`
+   de `0 0 32 32`, une barrière de 2 × 1 dans `0 0 32 16`, un banc de
+   4 × 2 dans `0 0 64 32`. Un terrain remplit son cadre bord à bord.
 2. Ajouter une ligne dans `js/catalog.js` (`id`, `fr`, `en`, `price`,
    `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un terrain,
    `where: "in"` ou `"both"` pour ce qui se vend dans la maison, et

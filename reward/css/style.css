@@ -83,7 +83,7 @@ button { font: inherit; cursor: pointer; }
    The seam between two plots is what makes the property readable. */
 .plot {
   position: absolute;
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile);
+  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture);
   background-image:
     repeating-linear-gradient(to right, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px var(--tile)),
     repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px var(--tile));
@@ -93,23 +93,28 @@ button { font: inherit; cursor: pointer; }
 .ground-grass  { background-color: #7cbf4a; background-image:
   repeating-linear-gradient(to right, rgba(255,255,255,.14) 0 1px, transparent 1px var(--tile)),
   repeating-linear-gradient(to bottom, rgba(255,255,255,.14) 0 1px, transparent 1px var(--tile)),
-  url("../assets/grass.svg"); }
+  url("../assets/grass.svg");
+  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
 .ground-forest { background-color: #4e7a37; background-image:
   repeating-linear-gradient(to right, rgba(255,255,255,.10) 0 1px, transparent 1px var(--tile)),
   repeating-linear-gradient(to bottom, rgba(255,255,255,.10) 0 1px, transparent 1px var(--tile)),
-  url("../assets/forest.svg"); }
+  url("../assets/forest.svg");
+  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
 .ground-sand   { background-color: #e8d5a3; background-image:
   repeating-linear-gradient(to right, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
   repeating-linear-gradient(to bottom, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
-  url("../assets/sand.svg"); }
+  url("../assets/sand.svg");
+  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
 .ground-paving { background-color: #9aa3ab; background-image:
   repeating-linear-gradient(to right, rgba(255,255,255,.12) 0 1px, transparent 1px var(--tile)),
   repeating-linear-gradient(to bottom, rgba(255,255,255,.12) 0 1px, transparent 1px var(--tile)),
-  url("../assets/paving.svg"); }
+  url("../assets/paving.svg");
+  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
 .ground-floor  { background-color: #c8a06a; background-image:
   repeating-linear-gradient(to right, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
   repeating-linear-gradient(to bottom, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
-  url("../assets/floor.svg"); }
+  url("../assets/floor.svg");
+  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
 
 /* The plot on sale: wild ground behind a fence of dashes, with its price. */
 .plot.is-forsale {
@@ -523,6 +528,8 @@ button { font: inherit; cursor: pointer; }
 .card .fr { font-weight: 700; }
 .card .en { color: var(--ink-soft); font-size: 0.82rem; font-style: italic; }
 .card .size { color: var(--ink-soft); font-size: 0.72rem; margin-bottom: 6px; }
+/* Most objects say nothing there: no line, no gap. */
+.card .size:empty { display: none; }
 .card .price {
   display: flex;
   align-items: center;

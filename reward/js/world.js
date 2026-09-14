@@ -21,7 +21,8 @@
    ===================================================================== */
 const World = (function () {
 
-  const TILE = 64;            // world pixels per tile, before zoom
+  const TILE = 32;            // world pixels per tile, before zoom
+  const TEXTURE = TILE * 2;   // ground and walls keep their own scale
   const MAX_SCALE = 2.4;
   const DRAG_THRESHOLD = 6;   // screen pixels before a press becomes a drag
   const EDGE_PAD = 28;        // how far the scene may travel off screen
@@ -171,6 +172,7 @@ const World = (function () {
     world.style.width = place.land.cols * TILE + "px";
     world.style.height = place.land.rows * TILE + "px";
     world.style.setProperty("--tile", TILE + "px");
+    world.style.setProperty("--texture", TEXTURE + "px");
     world.classList.toggle("is-indoor", !!place.indoor);
     world.innerHTML = "";
 
@@ -205,7 +207,7 @@ const World = (function () {
         node.innerHTML = '<img src="' + kind.sprite + '" alt="' + kind.fr + '" draggable="false">';
       } else {
         node.style.backgroundImage = 'url("' + kind.tile + '")';
-        node.style.backgroundSize = TILE + "px " + TILE + "px";
+        node.style.backgroundSize = TEXTURE + "px " + TEXTURE + "px";
       }
       world.appendChild(node);
     });

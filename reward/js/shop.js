@@ -94,8 +94,7 @@ const Shop = (function () {
           '</span>' +
           '<span class="fr">' + item.fr + '</span>' +
           '<span class="en">' + item.en + '</span>' +
-          '<span class="size">' + item.w + '×' + item.h + ' case' + (item.w * item.h > 1 ? "s" : "") +
-            (CATALOG.layerOf(item) === "ground" ? " · terrain" : "") + '</span>' +
+          '<span class="size">' + (CATALOG.layerOf(item) === "ground" ? "terrain" : "") + '</span>' +
           '<span class="price">' +
             '<img class="coin" src="assets/coin.svg" alt="pièces"> ' + item.price +
           '</span>' +

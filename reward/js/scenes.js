@@ -40,85 +40,130 @@ const SCENES = (function () {
 
   /* ---- Indoor plans ----
      # a wall, D the door out, U stairs up, W stairs down, . free floor.
-     Walls become as few rectangles as possible: one per run of tiles. */
+     Walls are one tile thick and every room is an even number of tiles
+     across, so a floor can be covered edge to edge with ground tiles,
+     which take two tiles each. */
 
   const HOUSE_PLAN = [
-    "##########",
-    "#...#....#",
-    "#...#....#",
-    "#........#",
-    "#...##.###",
-    "#...#....#",
-    "#...#....#",
-    "##D#######"
+    "#####################",
+    "#........#..........#",
+    "#........#..........#",
+    "#........#..........#",
+    "#...................#",
+    "#...................#",
+    "#........#..........#",
+    "#........#..........#",
+    "#........#..........#",
+    "####..########..#####",
+    "#........#..........#",
+    "#........#..........#",
+    "#........#..........#",
+    "#........#..........#",
+    "#........#..........#",
+    "#........#..........#",
+    "####DD###############"
   ];
 
   const CABIN_PLAN = [
-    "#######",
-    "#.....#",
-    "#.....#",
-    "#.....#",
-    "#.....#",
-    "###D###"
+    "############",
+    "#..........#",
+    "#..........#",
+    "#..........#",
+    "#..........#",
+    "#..........#",
+    "#..........#",
+    "#..........#",
+    "#..........#",
+    "#####DD#####"
   ];
 
   const COTTAGE_PLAN = [
-    "#########",
-    "#...#...#",
-    "#...#...#",
-    "#.......#",
-    "#...#...#",
-    "#...#...#",
-    "###D#####"
+    "###################",
+    "#........#........#",
+    "#........#........#",
+    "#........#........#",
+    "#........#........#",
+    "#........#........#",
+    "#.................#",
+    "#.................#",
+    "#........#........#",
+    "#........#........#",
+    "#........#........#",
+    "#........#........#",
+    "#........#........#",
+    "####DD#############"
   ];
 
   // Each floor of the block of flats, with its own way up and down.
   const FLOOR_PLANS = {
     ground: [
-      "##########",
-      "#....#..U#",
-      "#....#...#",
-      "#........#",
-      "#....#...#",
-      "#....#...#",
-      "##D#######"
+      "#####################",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#....UU..#",
+      "#..........#....UU..#",
+      "#..........#........#",
+      "#...................#",
+      "#...................#",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#........#",
+      "####DD###############"
     ],
     middle: [
-      "##########",
-      "#....#..U#",
-      "#....#...#",
-      "#........#",
-      "#....#...#",
-      "#....#..W#",
-      "##########"
+      "#####################",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#....UU..#",
+      "#..........#....UU..#",
+      "#..........#........#",
+      "#...................#",
+      "#...................#",
+      "#..........#........#",
+      "#..........#....WW..#",
+      "#..........#....WW..#",
+      "#..........#........#",
+      "#..........#........#",
+      "#####################"
     ],
     top: [
-      "##########",
-      "#....#...#",
-      "#....#...#",
-      "#........#",
-      "#....#...#",
-      "#....#..W#",
-      "##########"
+      "#####################",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#........#",
+      "#..........#........#",
+      "#...................#",
+      "#...................#",
+      "#..........#........#",
+      "#..........#....WW..#",
+      "#..........#....WW..#",
+      "#..........#........#",
+      "#..........#........#",
+      "#####################"
     ]
   };
 
+  /* A plan becomes as few rectangles as possible: runs of the same sign
+     on a row, then rows stacked when they line up. A doorway two tiles
+     wide is one door, a square of stairs is one staircase. */
   function blocksFromPlan(plan, ways) {
+    const signs = { "#": "wall", D: "door", U: "stairs_up", W: "stairs_down" };
     const blocks = [];
-    const signs = { D: "door", U: "stairs_up", W: "stairs_down" };
     plan.forEach((row, y) => {
       let x = 0;
       while (x < row.length) {
-        const sign = row[x];
-        if (sign === "#") {
-          let run = 1;
-          while (row[x + run] === "#") run++;
-          blocks.push({ x, y, w: run, h: 1, kind: "wall" });
-          x += run;
-        } else {
-          if (signs[sign]) blocks.push({ x, y, w: 1, h: 1, kind: signs[sign], to: ways[sign] });
-          x++;
-        }
+        const kind = signs[row[x]];
+        if (!kind) { x++; continue; }
+        let run = 1;
+        while (row[x + run] === row[x]) run++;
+        const above = blocks.find(block =>
+          block.kind === kind && block.x === x && block.w === run && block.y + block.h === y);
+        if (above) above.h += 1;
+        else blocks.push({ x, y, w: run, h: 1, kind, to: ways[row[x]] });
+        x += run;
       }
     });
     return blocks;
@@ -147,16 +192,16 @@ const SCENES = (function () {
     {
       id: "home",
       name: "Ton terrain",
-      x: 0, y: 0, w: 14, h: 10,
+      x: 0, y: 0, w: 28, h: 20,
       ground: "grass",
       price: 0,
-      blocks: [{ x: 5, y: 0, w: 4, h: 3, kind: "house", to: "house" }],
+      blocks: [{ x: 10, y: 0, w: 8, h: 6, kind: "house", to: "house" }],
       rooms: [() => room("house", "Ta maison", HOUSE_PLAN, { D: "outside" })]
     },
     {
       id: "meadow",
       name: "Le pré",
-      x: 14, y: 0, w: 10, h: 10,
+      x: 28, y: 0, w: 20, h: 20,
       ground: "grass",
       price: 300,
       blocks: []
@@ -164,35 +209,35 @@ const SCENES = (function () {
     {
       id: "grove",
       name: "Le bosquet",
-      x: 0, y: 10, w: 14, h: 8,
+      x: 0, y: 20, w: 28, h: 16,
       ground: "forest",
       price: 700,
       blocks: [
-        { x: 1, y: 1, w: 2, h: 2, kind: "cabin", to: "cabin" },
-        { x: 5, y: 0, w: 2, h: 2, kind: "tree" },
-        { x: 9, y: 1, w: 2, h: 2, kind: "tree" },
-        { x: 12, y: 4, w: 2, h: 2, kind: "tree" },
-        { x: 6, y: 5, w: 2, h: 2, kind: "tree" }
+        { x: 2, y: 2, w: 4, h: 4, kind: "cabin", to: "cabin" },
+        { x: 10, y: 0, w: 4, h: 4, kind: "tree" },
+        { x: 18, y: 2, w: 4, h: 4, kind: "tree" },
+        { x: 24, y: 8, w: 4, h: 4, kind: "tree" },
+        { x: 12, y: 10, w: 4, h: 4, kind: "tree" }
       ],
       rooms: [() => room("cabin", "La cabane", CABIN_PLAN, { D: "outside" })]
     },
     {
       id: "beach",
       name: "La plage",
-      x: 14, y: 10, w: 10, h: 8,
+      x: 28, y: 20, w: 20, h: 16,
       ground: "sand",
       price: 1500,
-      blocks: [{ x: 0, y: 6, w: 10, h: 2, kind: "water" }]
+      blocks: [{ x: 0, y: 12, w: 20, h: 4, kind: "water" }]
     },
     {
       id: "hamlet",
       name: "Le hameau",
-      x: 0, y: 18, w: 24, h: 8,
+      x: 0, y: 36, w: 48, h: 16,
       ground: "grass",
       price: 3000,
       blocks: [
-        { x: 2, y: 2, w: 3, h: 2, kind: "cottage", to: "cottage_west" },
-        { x: 15, y: 2, w: 3, h: 2, kind: "cottage", to: "cottage_east" }
+        { x: 4, y: 4, w: 6, h: 4, kind: "cottage", to: "cottage_west" },
+        { x: 30, y: 4, w: 6, h: 4, kind: "cottage", to: "cottage_east" }
       ],
       rooms: [
         () => room("cottage_west", "La maisonnette du couchant", COTTAGE_PLAN, { D: "outside" }),
@@ -202,10 +247,10 @@ const SCENES = (function () {
     {
       id: "tower",
       name: "L'immeuble",
-      x: 24, y: 0, w: 8, h: 26,
+      x: 48, y: 0, w: 16, h: 52,
       ground: "paving",
       price: 6000,
-      blocks: [{ x: 1, y: 2, w: 5, h: 4, kind: "tower", to: "flat_1" }],
+      blocks: [{ x: 2, y: 4, w: 10, h: 8, kind: "tower", to: "flat_1" }],
       rooms: [
         () => room("flat_1", "Immeuble — 1er étage", FLOOR_PLANS.ground, { D: "outside", U: "flat_2" }),
         () => room("flat_2", "Immeuble — 2e étage", FLOOR_PLANS.middle, { U: "flat_3", W: "flat_1" }),

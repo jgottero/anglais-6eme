@@ -8,7 +8,8 @@
    can this be paid for — applies to the scene the child is standing in.
 
    The save holds the plots bought and the objects of each scene, never
-   the map itself: the map is rebuilt from scenes.js on every load.
+   the map itself: the map is rebuilt from scenes.js on every load. A
+   save written by an older version is dropped rather than converted.
 
    Everything is kept in one localStorage entry. The module owns the
    rules; the views only read the state and call these functions.
@@ -24,7 +25,7 @@ const PropertyState = (function () {
 
   function blank() {
     return {
-      version: 4,
+      version: 5,
       coins: START_COINS,
       current: SCENES.first,
       owned: [SCENES.FIRST_PLOT],  // plots bought, in the order they were
@@ -34,13 +35,10 @@ const PropertyState = (function () {
     };
   }
 
-  let migrated = false; // an old save was rewritten as it was read
   let data = load();
-  let built = null;     // the scenes, rebuilt from the plots owned
+  let built = null;   // the scenes, rebuilt from the plots owned
   rebuild();
   const listeners = [];
-  // Written back at once, so the conversion never happens twice.
-  if (migrated) save();
 
   /* The map is never saved: it is rebuilt from the plots bought, and the
      objects of each scene are hung back onto it. */
@@ -53,46 +51,22 @@ const PropertyState = (function () {
     if (!built[data.current]) data.current = SCENES.first;
   }
 
+  /* Saves of an older shape are not converted: the grid under them is
+     not the one we draw any more. A property from before starts again. */
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return blank();
       const saved = JSON.parse(raw);
-      if (!saved || !saved.version || saved.version > 4) return blank();
+      if (!saved || saved.version !== 5) return blank();
       const fresh = blank();
       fresh.coins = saved.coins || 0;
       fresh.tiers = saved.tiers || [];
       fresh.nextUid = saved.nextUid || 1;
-
-      if (saved.version === 4) {
-        migrated = false;
-        fresh.owned = Array.isArray(saved.owned) && saved.owned.length
-          ? saved.owned : [SCENES.FIRST_PLOT];
-        fresh.placed = saved.placed && typeof saved.placed === "object" ? saved.placed : {};
-        fresh.current = saved.current || SCENES.first;
-        return fresh;
-      }
-
-      migrated = true;
-      if (saved.current) fresh.current = saved.current;
-      if (saved.version === 3 && saved.scenes) {
-        // Version 3 kept the whole map in the save; only its objects matter.
-        Object.keys(saved.scenes).forEach(id => {
-          const place = saved.scenes[id];
-          if (place && Array.isArray(place.placed)) fresh.placed[id] = place.placed;
-        });
-      } else {
-        /* Versions 1 and 2 knew a single place. Its objects become the
-           property, and whatever waited in the version 1 chest is paid
-           back rather than lost. */
-        if (Array.isArray(saved.placed)) fresh.placed.outside = saved.placed;
-        if (Array.isArray(saved.storage)) {
-          fresh.coins += saved.storage.reduce((sum, entry) => {
-            const item = CATALOG.item(entry.id);
-            return sum + (item ? item.price : 0);
-          }, 0);
-        }
-      }
+      fresh.owned = Array.isArray(saved.owned) && saved.owned.length
+        ? saved.owned : [SCENES.FIRST_PLOT];
+      fresh.placed = saved.placed && typeof saved.placed === "object" ? saved.placed : {};
+      fresh.current = saved.current || SCENES.first;
       return fresh;
     } catch (err) {
       return blank();

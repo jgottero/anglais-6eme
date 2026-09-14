@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <!-- A door one can buy and place; drawn open against its frame -->
-  <rect x="1" y="12" width="30" height="8" rx="1.5" fill="#8f6134" stroke="#5c3d1f" stroke-width="1.4"/>
-  <rect x="3" y="14" width="26" height="4" rx="1" fill="#6d4a28"/>
-  <path d="M4 13l22-9v10z" fill="#c8974d" stroke="#5c3d1f" stroke-width="1.4"/>
-  <path d="M9 11l14-5.6" stroke="#a9763f" stroke-width="1.2"/>
-  <circle cx="23" cy="8.5" r="1.7" fill="#e0a41f" stroke="#a97f1c" stroke-width=".9"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" width="32" height="16">
+  <!-- A door one can buy: its frame, and the leaf standing open -->
+  <rect x="0" y="5" width="32" height="6" rx="1.5" fill="#8f6134" stroke="#5c3d1f" stroke-width="1.2"/>
+  <rect x="2" y="6.6" width="28" height="2.8" rx="1" fill="#6d4a28"/>
+  <path d="M3 5.6l22-4.4v6z" fill="#c8974d" stroke="#5c3d1f" stroke-width="1.2"/>
+  <path d="M7 4.6l15-3" stroke="#a9763f" stroke-width="1"/>
+  <circle cx="22" cy="3.4" r="1.4" fill="#e0a41f" stroke="#a97f1c" stroke-width=".8"/>
 </svg>
