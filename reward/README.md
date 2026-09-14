@@ -95,7 +95,7 @@ reward/
   index.html          structure de la page, les deux onglets
   css/style.css       toute la mise en forme
   js/catalog.js       la liste des objets (données seules)
-  js/state.js         pièces, objets posés, coffre, sauvegarde, règles
+  js/state.js         pièces, objets posés, sauvegarde, règles de pose
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
   js/shop.js          l'écran magasin
   js/app.js           overlay, objet en main, panneau parent, pont avec l'app
