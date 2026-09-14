@@ -63,7 +63,10 @@
     refresh();
     sceneEl.textContent = PropertyState.scene().name;
     exitEl.hidden = !wayOut(PropertyState.scene());
-    toast("Glisse pour te déplacer, pince pour zoomer.");
+    const sale = PropertyState.plotForSale();
+    toast(sale
+      ? "Glisse pour te déplacer, pince pour zoomer. «\u00A0" + sale.name + "\u00A0» est à vendre à côté."
+      : "Glisse pour te déplacer, pince pour zoomer.");
   }
 
   /* ---- Overlay buttons ---- */
@@ -185,7 +188,10 @@
   /* The bar of what is selected: an object one can move and sell, or
      something built in that leads somewhere — the house, the door. */
   function renderActionBar(what) {
-    const card = what && (what.kind === "object" ? objectBar(what.uid) : blockBar(what.index));
+    let card = null;
+    if (what && what.kind === "object") card = objectBar(what.uid);
+    else if (what && what.kind === "block") card = blockBar(what.index);
+    else if (what && what.kind === "plot") card = plotBar();
     barEl.hidden = !card;
     if (card) barEl.innerHTML = card;
   }
@@ -217,6 +223,18 @@
       '</button>';
   }
 
+  /* The plot on sale, drawn locked next to the property: its bar says
+     what it costs, and buys it when the purse is full enough. */
+  function plotBar() {
+    const next = PropertyState.plotForSale();
+    if (!next) return null;
+    const missing = next.price - PropertyState.get().coins;
+    return nameCard("assets/coin.svg", next.name, "une parcelle à acheter") +
+      (missing > 0
+        ? '<p class="hint">Il te manque ' + missing + ' pièces</p>'
+        : '<button class="sell-btn" data-action="plot">Acheter (' + next.price + ')</button>');
+  }
+
   function onActionBarClick(event) {
     const button = event.target.closest("[data-action]");
     if (!button) return;
@@ -226,6 +244,14 @@
     }
     if (button.dataset.action === "turn") {
       World.turnSelected();
+      return;
+    }
+    if (button.dataset.action === "plot") {
+      const bought = PropertyState.buyPlot();
+      if (!bought) return;
+      World.clearSelection();
+      World.fitCamera();
+      toast("Nouvelle parcelle : «\u00A0" + bought.name + "\u00A0» (−" + bought.price + " pièces)");
       return;
     }
     const refund = PropertyState.sell(Number(button.dataset.uid));

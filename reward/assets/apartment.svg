@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 128" width="160" height="128">
+  <!-- The block of flats: three floors, each its own world -->
+  <ellipse cx="80" cy="122" rx="66" ry="6" fill="#000" opacity=".18"/>
+  <path d="M6 30L80 6l74 24z" fill="#8d969e" stroke="#6f7880" stroke-width="2.5"/>
+  <path d="M16 27L80 9l64 18z" fill="#a9b5bd"/>
+  <rect x="12" y="30" width="136" height="90" rx="3" fill="#d9b06a" stroke="#6d4a28" stroke-width="2.5"/>
+  <g stroke="#c09a56" stroke-width="2"><path d="M12 60h136M12 90h136"/></g>
+  <g fill="#9fd6f0" stroke="#5c3d1f" stroke-width="2">
+    <rect x="24" y="38" width="22" height="16" rx="2"/><rect x="60" y="38" width="22" height="16" rx="2"/>
+    <rect x="96" y="38" width="22" height="16" rx="2"/><rect x="126" y="38" width="16" height="16" rx="2"/>
+    <rect x="24" y="68" width="22" height="16" rx="2"/><rect x="60" y="68" width="22" height="16" rx="2"/>
+    <rect x="96" y="68" width="22" height="16" rx="2"/><rect x="126" y="68" width="16" height="16" rx="2"/>
+    <rect x="24" y="98" width="22" height="14" rx="2"/><rect x="114" y="98" width="28" height="14" rx="2"/>
+  </g>
+  <rect x="62" y="94" width="34" height="26" rx="2" fill="#7b5230" stroke="#4a3320" stroke-width="2"/>
+  <path d="M79 94v26" stroke="#5c3d1f" stroke-width="1.6"/>
+  <circle cx="74" cy="108" r="2" fill="#e0a41f"/><circle cx="84" cy="108" r="2" fill="#e0a41f"/>
+  <rect x="56" y="88" width="46" height="6" rx="2" fill="#9aa3ab" stroke="#6f7880" stroke-width="1.6"/>
+</svg>

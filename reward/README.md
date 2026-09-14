@@ -32,12 +32,29 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   haut à gauche (il préviendra l'application d'apprentissage), et le
   bouton **Magasin** en bas. Toucher les pièces en ajoute 100 — raccourci
   de prototype.
-* **Deux lieux** : la propriété, et l'intérieur de la maison. Toucher la
-  maison depuis l'extérieur propose **Entrer** ; la porte à l'intérieur
-  (ou le bouton **Sortir**) ramène dehors. L'intérieur a ses trois pièces
-  séparées par des murs et s'aménage exactement comme le terrain, mais
-  c'est un monde indépendant : ses objets lui appartiennent, seules les
-  pièces de monnaie sont communes.
+* **Des lieux, pas un seul** : la propriété dehors, et l'intérieur de
+  chaque bâtiment. Toucher un bâtiment propose **Entrer** ; la porte (ou
+  le bouton **Sortir**) ramène dehors, et un escalier mène à l'étage.
+  Chaque intérieur est un monde indépendant, avec ses pièces séparées par
+  des murs : ses objets lui appartiennent, seules les pièces de monnaie
+  sont communes.
+* **Acheter des parcelles** : à côté de la propriété, la parcelle
+  suivante est dessinée en friche avec son prix. On la touche, sa barre
+  dit ce qu'elle coûte (ou ce qui manque), et elle rejoint le terrain
+  d'un seul tenant. Six parcelles, de plus en plus chères et de plus en
+  plus impressionnantes :
+
+  | Parcelle | Prix | Ce qu'elle apporte |
+  | --- | --- | --- |
+  | Ton terrain | — | la maison de départ (3 pièces) |
+  | Le pré | 300 | de la place, tout simplement |
+  | Le bosquet | 700 | sol de forêt, grands sapins, une **cabane** |
+  | La plage | 1500 | du sable et la mer (où l'on ne bâtit pas) |
+  | Le hameau | 3000 | **deux maisonnettes**, chacune son intérieur |
+  | L'immeuble | 6000 | une cour pavée et **trois étages** à aménager |
+
+  On ne peut rien poser sur une parcelle qui n'est pas achetée, ni sur la
+  mer.
 * **Magasin** : il s'ouvre en plein écran, les familles restent visibles
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
   place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
@@ -73,10 +90,13 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   les acheter, ni les déplacer, ni les vendre, et rien ne se pose dessus.
   La porte du magasin, elle, est un objet comme un autre : on l'achète,
   on la pose dans une embrasure, on la tourne, on la revend.
-* Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. Les
-  sauvegardes des versions précédentes sont reprises au chargement : les
-  objets déjà posés deviennent ceux de la propriété, et ce qui attendait
-  dans l'ancien coffre est remboursé en pièces.
+* Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. La
+  sauvegarde ne contient que les pièces, les parcelles achetées et les
+  objets de chaque lieu : **la carte n'est jamais sauvegardée**, elle est
+  reconstruite depuis `js/scenes.js` à chaque ouverture, si bien que le
+  plan peut évoluer sans abîmer une propriété existante. Les sauvegardes
+  des versions précédentes sont reprises au chargement (les objets déjà
+  posés restent en place, l'ancien coffre est remboursé en pièces).
 
 ## Brancher l'application d'apprentissage
 
@@ -114,14 +134,16 @@ reward/
   index.html          structure de la page, les deux onglets
   css/style.css       toute la mise en forme
   js/catalog.js       la liste des objets (données seules)
-  js/scenes.js        les lieux : taille, murs, portes, plan de la maison
+  js/scenes.js        les parcelles et les lieux : plans, murs, portes, escaliers
   js/state.js         pièces, objets posés par lieu, sauvegarde, règles
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
   js/shop.js          l'écran magasin
   js/app.js           overlay, objet en main, panneau parent, pont avec l'app
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
-    floor.svg wall.svg door.svg   (l'intérieur)
+    floor.svg wall.svg door.svg               (les intérieurs)
+    grass.svg forest.svg sand.svg paving.svg  (les sols des parcelles)
+    water.svg cabin.svg cottage.svg apartment.svg stairs-*.svg
     items/            un fichier par objet du magasin
 ```
 
@@ -142,12 +164,12 @@ sauvegarde.
 
 ## Prévu pour plus tard
 
-* **Acheter des parcelles** pour agrandir la propriété, certaines avec un
-  immeuble dessus. Un immeuble proposera plusieurs étages, chacun étant un
-  monde indépendant : c'est exactement ce que fait déjà l'intérieur de la
-  maison. Concrètement, il suffira d'ajouter une scène par étage dans
-  `js/scenes.js`, avec un bloc qui mène à la suivante ; l'état, le monde et
-  le magasin travaillent déjà scène par scène.
+* **Agrandir la maison de départ** (étages) comme l'immeuble : un escalier
+  et une scène de plus dans `js/scenes.js`.
+* **De nouvelles parcelles** : ajouter une entrée à `PLOTS` dans
+  `js/scenes.js` suffit — position, sol, prix, décors, et les intérieurs
+  qu'elle amène. Rien d'autre à toucher, et les propriétés déjà
+  sauvegardées la voient apparaître à vendre.
 * Faire travailler le vocabulaire à partir des objets posés : le nom
   anglais de chaque objet est déjà dans le catalogue, prêt à être lu à
   voix haute ou demandé sous forme de question.

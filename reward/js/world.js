@@ -117,17 +117,32 @@ const World = (function () {
     applyCamera();
   }
 
-  /* Opening view: between "the whole scene fits" and "the scene fills
-     the screen". Fitting alone leaves the objects tiny on a phone,
-     filling alone shows only a corner. */
+  /* What the camera frames: the ground that belongs to the child. The
+     plot on sale is part of the scene, and can be panned to, but it must
+     not push the property off to one side. */
+  function ownedBox() {
+    const place = PropertyState.scene();
+    const plots = place.plots && place.plots.length
+      ? place.plots : [{ x: 0, y: 0, w: place.land.cols, h: place.land.rows }];
+    const left = Math.min.apply(null, plots.map(plot => plot.x));
+    const top = Math.min.apply(null, plots.map(plot => plot.y));
+    const right = Math.max.apply(null, plots.map(plot => plot.x + plot.w));
+    const bottom = Math.max.apply(null, plots.map(plot => plot.y + plot.h));
+    return { x: left, y: top, w: right - left, h: bottom - top };
+  }
+
+  /* Opening view: between "all of it fits" and "it fills the screen".
+     Fitting alone leaves the objects tiny on a phone, filling alone
+     shows only a corner. */
   function fitCamera() {
-    const land = PropertyState.scene().land;
+    const box = ownedBox();
     const vw = viewport.clientWidth;
     const vh = viewport.clientHeight;
-    const cover = Math.max(vw / (land.cols * TILE), vh / (land.rows * TILE));
-    cam.scale = Math.min(MAX_SCALE, Math.max(fitScale(), Math.sqrt(fitScale() * cover)));
-    cam.x = (vw - land.cols * TILE * cam.scale) / 2;
-    cam.y = (vh - land.rows * TILE * cam.scale) / 2;
+    const fit = Math.min(vw / (box.w * TILE + 60), vh / (box.h * TILE + 60));
+    const cover = Math.max(vw / (box.w * TILE), vh / (box.h * TILE));
+    cam.scale = Math.max(fitScale(), Math.min(MAX_SCALE, Math.max(fit, Math.sqrt(fit * cover))));
+    cam.x = vw / 2 - (box.x + box.w / 2) * TILE * cam.scale;
+    cam.y = vh / 2 - (box.y + box.h / 2) * TILE * cam.scale;
     clampCamera();
     applyCamera();
   }
@@ -158,6 +173,25 @@ const World = (function () {
     world.style.setProperty("--tile", TILE + "px");
     world.classList.toggle("is-indoor", !!place.indoor);
     world.innerHTML = "";
+
+    // The ground first: the plots bought, each with its own texture.
+    place.plots.forEach(plot => {
+      const node = document.createElement("div");
+      node.className = "plot ground-" + plot.ground;
+      node.style.cssText = box(plot.x, plot.y, plot.w, plot.h);
+      world.appendChild(node);
+    });
+
+    // Then the one on sale, locked, with its price on it.
+    if (place.forSale) {
+      const node = document.createElement("div");
+      node.className = "plot is-forsale" + (isSelected("plot", place.forSale.id) ? " is-selected" : "");
+      node.dataset.sale = place.forSale.id;
+      node.style.cssText = box(place.forSale.x, place.forSale.y, place.forSale.w, place.forSale.h);
+      node.innerHTML = '<span class="plot-tag">' + place.forSale.name +
+        '<b><img src="assets/coin.svg" alt="pièces">' + place.forSale.price + '</b></span>';
+      world.appendChild(node);
+    }
 
     place.blocks.forEach((block, index) => {
       const kind = SCENES.kind(block.kind);
@@ -271,7 +305,7 @@ const World = (function () {
     /* Only the object already picked can be dragged. Everything else
        pans the camera, which is what a finger on the ground means far
        more often than "move this hen". */
-    const node = placing ? null : event.target.closest(".ob, .blk");
+    const node = placing ? null : event.target.closest(".ob, .blk, .plot[data-sale]");
     const uid = node && node.dataset.uid !== undefined ? Number(node.dataset.uid) : null;
     if (uid === null || !isSelected("object", uid)) {
       gesture = {
@@ -501,13 +535,19 @@ const World = (function () {
      at, and sometimes walked through. */
 
   function isSelected(kind, key) {
-    return !!selected && selected.kind === kind &&
-      (kind === "object" ? selected.uid === key : selected.index === key);
+    if (!selected || selected.kind !== kind) return false;
+    if (kind === "object") return selected.uid === key;
+    if (kind === "plot") return selected.id === key;
+    return selected.index === key;
   }
 
   function pick(node) {
     if (node.dataset.uid !== undefined) {
       select({ kind: "object", uid: Number(node.dataset.uid) });
+      return;
+    }
+    if (node.dataset.sale !== undefined) {
+      select({ kind: "plot", id: node.dataset.sale });
       return;
     }
     // A wall is scenery: only what leads somewhere is worth picking.

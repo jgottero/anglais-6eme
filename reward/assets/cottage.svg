@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="96" height="64">
+  <!-- One of the two little houses of the hamlet -->
+  <ellipse cx="48" cy="59" rx="40" ry="4" fill="#000" opacity=".15"/>
+  <path d="M4 28L48 4l44 24z" fill="#4a7fa8" stroke="#2f5d80" stroke-width="2"/>
+  <path d="M12 25L48 7l36 18z" fill="#5f9bc7"/>
+  <rect x="10" y="28" width="76" height="30" rx="2.5" fill="#f3ead6" stroke="#8f7f63" stroke-width="1.8"/>
+  <path d="M10 44h76" stroke="#ded0b4" stroke-width="1.6"/>
+  <rect x="40" y="38" width="16" height="20" rx="1.5" fill="#8f6134" stroke="#5c3d1f" stroke-width="1.6"/>
+  <circle cx="52" cy="48" r="1.6" fill="#e0a41f"/>
+  <g fill="#9fd6f0" stroke="#5c3d1f" stroke-width="1.5">
+    <rect x="18" y="35" width="14" height="12" rx="1.5"/>
+    <rect x="64" y="35" width="14" height="12" rx="1.5"/>
+  </g>
+  <path d="M25 35v12M18 41h14M71 35v12M64 41h14" stroke="#5c3d1f" stroke-width="1.2"/>
+  <rect x="64" y="10" width="8" height="12" rx="1.5" fill="#9aa3ab" stroke="#6f7880" stroke-width="1.4"/>
+  <g fill="#c8413c"><circle cx="16" cy="54" r="3"/><circle cx="80" cy="54" r="3"/></g>
+</svg>

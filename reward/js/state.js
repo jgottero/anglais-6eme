@@ -3,9 +3,12 @@
    scene.
 
    The purse is shared; the rest belongs to a scene (see scenes.js): the
-   property outside, the inside of the house, and later a floor of a
-   building on a bought plot. Every rule below — does this fit here, can
-   this be paid for — applies to the scene the child is standing in.
+   property outside, the inside of the house, a cabin in the wood, a
+   floor of the block of flats. Every rule below — does this fit here,
+   can this be paid for — applies to the scene the child is standing in.
+
+   The save holds the plots bought and the objects of each scene, never
+   the map itself: the map is rebuilt from scenes.js on every load.
 
    Everything is kept in one localStorage entry. The module owns the
    rules; the views only read the state and call these functions.
@@ -21,52 +24,74 @@ const PropertyState = (function () {
 
   function blank() {
     return {
-      version: 3,
+      version: 4,
       coins: START_COINS,
       current: SCENES.first,
-      scenes: SCENES.initial(),
-      tiers: [],   // ranks already rewarded, so a reward is never paid twice
+      owned: [SCENES.FIRST_PLOT],  // plots bought, in the order they were
+      placed: {},                  // what stands in each scene, by scene id
+      tiers: [],                   // ranks already rewarded, never paid twice
       nextUid: 1
     };
   }
 
   let migrated = false; // an old save was rewritten as it was read
   let data = load();
+  let built = null;     // the scenes, rebuilt from the plots owned
+  rebuild();
   const listeners = [];
   // Written back at once, so the conversion never happens twice.
   if (migrated) save();
+
+  /* The map is never saved: it is rebuilt from the plots bought, and the
+     objects of each scene are hung back onto it. */
+  function rebuild() {
+    built = SCENES.build(data.owned);
+    Object.keys(built).forEach(id => {
+      if (!Array.isArray(data.placed[id])) data.placed[id] = [];
+      built[id].placed = data.placed[id];
+    });
+    if (!built[data.current]) data.current = SCENES.first;
+  }
 
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return blank();
       const saved = JSON.parse(raw);
-      if (!saved || !saved.version || saved.version > 3) return blank();
+      if (!saved || !saved.version || saved.version > 4) return blank();
       const fresh = blank();
-
-      if (saved.version === 3) {
-        migrated = false;
-        const loaded = Object.assign(fresh, saved);
-        // Scenes added by a newer plan are kept, saved ones win.
-        loaded.scenes = Object.assign(SCENES.initial(), saved.scenes);
-        if (!loaded.scenes[loaded.current]) loaded.current = SCENES.first;
-        return loaded;
-      }
-
-      /* Versions 1 and 2 knew a single place. Its objects become the
-         property outside, and whatever waited in the version 1 chest is
-         paid back rather than lost. */
-      migrated = true;
       fresh.coins = saved.coins || 0;
       fresh.tiers = saved.tiers || [];
       fresh.nextUid = saved.nextUid || 1;
-      if (Array.isArray(saved.placed)) fresh.scenes.outside.placed = saved.placed;
-      if (saved.land) Object.assign(fresh.scenes.outside.land, saved.land);
-      if (Array.isArray(saved.storage)) {
-        fresh.coins += saved.storage.reduce((sum, entry) => {
-          const item = CATALOG.item(entry.id);
-          return sum + (item ? item.price : 0);
-        }, 0);
+
+      if (saved.version === 4) {
+        migrated = false;
+        fresh.owned = Array.isArray(saved.owned) && saved.owned.length
+          ? saved.owned : [SCENES.FIRST_PLOT];
+        fresh.placed = saved.placed && typeof saved.placed === "object" ? saved.placed : {};
+        fresh.current = saved.current || SCENES.first;
+        return fresh;
+      }
+
+      migrated = true;
+      if (saved.current) fresh.current = saved.current;
+      if (saved.version === 3 && saved.scenes) {
+        // Version 3 kept the whole map in the save; only its objects matter.
+        Object.keys(saved.scenes).forEach(id => {
+          const place = saved.scenes[id];
+          if (place && Array.isArray(place.placed)) fresh.placed[id] = place.placed;
+        });
+      } else {
+        /* Versions 1 and 2 knew a single place. Its objects become the
+           property, and whatever waited in the version 1 chest is paid
+           back rather than lost. */
+        if (Array.isArray(saved.placed)) fresh.placed.outside = saved.placed;
+        if (Array.isArray(saved.storage)) {
+          fresh.coins += saved.storage.reduce((sum, entry) => {
+            const item = CATALOG.item(entry.id);
+            return sum + (item ? item.price : 0);
+          }, 0);
+        }
       }
       return fresh;
     } catch (err) {
@@ -92,9 +117,22 @@ const PropertyState = (function () {
   function get() { return data; }
 
   // The scene the child is standing in. Everything below works on it.
-  function scene() { return data.scenes[data.current]; }
+  function scene() { return built[data.current] || built[SCENES.first]; }
 
   function sceneId() { return data.current; }
+
+  // Outside, only the plots bought can be built on.
+  function onMyGround(x, y, w, h) {
+    const plots = scene().plots;
+    for (let ty = y; ty < y + h; ty++) {
+      for (let tx = x; tx < x + w; tx++) {
+        const covered = plots.some(plot =>
+          tx >= plot.x && tx < plot.x + plot.w && ty >= plot.y && ty < plot.y + plot.h);
+        if (!covered) return false;
+      }
+    }
+    return true;
+  }
 
   function blockAt(x, y) {
     return scene().blocks.find(block =>
@@ -119,6 +157,7 @@ const PropertyState = (function () {
     const size = CATALOG.footprint(item, turn);
     const land = scene().land;
     if (x < 0 || y < 0 || x + size.w > land.cols || y + size.h > land.rows) return false;
+    if (!onMyGround(x, y, size.w, size.h)) return false;
     if (overlapsBlock(x, y, size.w, size.h)) return false;
     const layer = CATALOG.layerOf(item);
     return !scene().placed.some(entry => {
@@ -208,14 +247,34 @@ const PropertyState = (function () {
   /* ---- Going from one scene to another ---- */
 
   function enter(id) {
-    if (!data.scenes[id] || id === data.current) return false;
+    if (!built[id] || id === data.current) return false;
     data.current = id;
     changed();
     return true;
   }
 
+  /* ---- Growing the property ----
+     Plots are bought in the order they are offered, each dearer than the
+     last. A new plot brings its own ground, its own scenery, and the
+     scenes its buildings lead to. */
+
+  function plotForSale() {
+    return SCENES.nextPlot(data.owned);
+  }
+
+  function buyPlot() {
+    const next = plotForSale();
+    if (!next || data.coins < next.price) return null;
+    data.coins -= next.price;
+    data.owned.push(next.id);
+    rebuild();
+    changed();
+    return next;
+  }
+
   function reset() {
     data = blank();
+    rebuild();
     changed();
   }
 
@@ -230,6 +289,7 @@ const PropertyState = (function () {
   return {
     get, subscribe,
     scene, sceneId, enter,
+    plotForSale, buyPlot,
     canPlace, blockAt,
     addCoins, grantTier,
     buyAt, move, turn, sell, reset
