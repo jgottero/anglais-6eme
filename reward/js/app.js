@@ -1,6 +1,12 @@
 /* =====================================================================
-   APP — the overlay on top of the property: coins, shop, chest, back,
-   and the bridge the learning app uses to pay for a new rank.
+   APP — the overlay on top of the property: coins, the shop, the object
+   held in hand, the bar of the selected object, and the bridge the
+   learning app uses to pay for a new rank.
+
+   Buying is one flow now: the shop hands an object over, the shop
+   closes, and the object is paid for on the tile where the child puts it
+   down. It stays in hand afterwards, so a row of fields is a row of
+   taps.
 
    The learning app never touches the state directly. It either calls
    REWARD.grantTier(rank) when the module is on the same page, or posts
@@ -17,48 +23,36 @@
 
   const COINS_PER_TAP = 100; // prototype only: tapping the purse pays
 
-  let coinsEl, purseEl, badgeEl, chestGridEl, barEl, placingBarEl, toastEl;
-  let panels = {};
-  let openPanelName = null;
+  let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, bottomEl, barEl, toastEl;
+  let shopOpen = false;
   let shownCoins = null;
 
   function ready() {
     coinsEl = document.getElementById("coins");
+    shopCoinsEl = document.getElementById("shop-coins");
     purseEl = document.getElementById("purse");
-    badgeEl = document.getElementById("chest-badge");
-    chestGridEl = document.getElementById("chest-grid");
+    shopEl = document.getElementById("panel-shop");
+    handEl = document.getElementById("hand");
+    bottomEl = document.getElementById("hud-bottom");
     barEl = document.getElementById("action-bar");
-    placingBarEl = document.getElementById("placing-bar");
     toastEl = document.getElementById("toast");
-    panels = {
-      shop: document.getElementById("panel-shop"),
-      chest: document.getElementById("panel-chest")
-    };
 
     World.init({
       onSelect: renderActionBar,
-      onPlacingChange: onPlacingChange,
-      onRefused: toast,
-      onPanelDragStart: () => document.body.classList.add("is-panel-drag"),
-      onPanelDragEnd: onPanelDragEnd,
-      onBought: item => toast("Posé sur ton terrain : «\u00A0" + item.fr + "\u00A0» (−" + item.price + " pièces)")
+      onPlacingChange: renderHand,
+      onPlaced: onPlaced,
+      onRefused: toast
     });
 
     Shop.init({
-      onBought: item => toast("Dans ton coffre : «\u00A0" + item.fr + "\u00A0» (−" + item.price + " pièces)"),
-      onRefused: toast,
-      onDragItem: (item, event) => {
-        if (!item) return;
-        if (PropertyState.get().coins < item.price) {
-          toast("Il te manque des pièces pour «\u00A0" + item.fr + "\u00A0».");
-          return;
-        }
-        World.dragFromShop(item.id, event);
-      }
+      onPick: item => {
+        World.startPlacing(item.id);
+        openShop(false);
+      },
+      onRefused: toast
     });
 
     setUpHud();
-    setUpChest();
     setUpDevPanel();
 
     PropertyState.subscribe(refresh);
@@ -70,12 +64,10 @@
 
   function setUpHud() {
     document.querySelectorAll("[data-panel]").forEach(button => {
-      button.addEventListener("click", () => {
-        openPanel(openPanelName === button.dataset.panel ? null : button.dataset.panel);
-      });
+      button.addEventListener("click", () => openShop(!shopOpen));
     });
     document.querySelectorAll("[data-close]").forEach(button => {
-      button.addEventListener("click", () => openPanel(null));
+      button.addEventListener("click", () => openShop(false));
     });
 
     // Prototype shortcut, standing in for the learning app.
@@ -97,86 +89,17 @@
     barEl.addEventListener("click", onActionBarClick);
   }
 
-  function openPanel(name) {
-    openPanelName = name;
-    Object.keys(panels).forEach(key => { panels[key].hidden = key !== name; });
+  function openShop(open) {
+    shopOpen = open;
+    shopEl.hidden = !open;
     document.querySelectorAll("[data-panel]").forEach(button => {
-      button.classList.toggle("is-on", button.dataset.panel === name);
+      button.classList.toggle("is-on", open);
     });
-    if (name) {
+    if (open) {
       World.cancelPlacing();
       World.clearSelection();
+      Shop.render();
     }
-    if (name === "shop") Shop.render();
-  }
-
-  /* ---- Chest ----
-     Its objects are dragged straight onto the property: the press is
-     caught here and handed over to the world, which follows the pointer
-     from there on. */
-
-  function setUpChest() {
-    chestGridEl.addEventListener("pointerdown", event => {
-      const handle = event.target.closest("[data-drag]");
-      if (!handle) return;
-      event.preventDefault();
-      World.dragFromChest(Number(handle.dataset.drag), event);
-    });
-
-    chestGridEl.addEventListener("click", event => {
-      const sellButton = event.target.closest("[data-sell]");
-      if (!sellButton) return;
-      const refund = PropertyState.sell(Number(sellButton.dataset.sell));
-      if (refund !== null) toast("Vendu. +" + refund + " pièces.");
-    });
-  }
-
-  function onPanelDragEnd() {
-    document.body.classList.remove("is-panel-drag");
-    // An emptied chest has nothing left to show.
-    if (openPanelName === "chest" && !PropertyState.get().storage.length) openPanel(null);
-  }
-
-  /* Objects of the same kind share one card: three hens show as one hen
-     and a ×3. A card acts on the first of its pile, so dragging one out
-     or selling one leaves the others in the chest. */
-  function pileUp(storage) {
-    const piles = [];
-    const byId = new Map();
-    storage.forEach(entry => {
-      let pile = byId.get(entry.id);
-      if (!pile) {
-        pile = { id: entry.id, uids: [] };
-        byId.set(entry.id, pile);
-        piles.push(pile);
-      }
-      pile.uids.push(entry.uid);
-    });
-    return piles;
-  }
-
-  function renderChest(data) {
-    badgeEl.hidden = !data.storage.length;
-    badgeEl.textContent = data.storage.length;
-
-    if (!data.storage.length) {
-      chestGridEl.innerHTML = '<p class="empty">Ton coffre est vide. Va faire un tour au magasin !</p>';
-      return;
-    }
-    chestGridEl.innerHTML = pileUp(data.storage).map(pile => {
-      const item = CATALOG.item(pile.id);
-      if (!item) return "";
-      const next = pile.uids[0];
-      return '<article class="card">' +
-        '<div class="card-art" data-drag="' + next + '" title="Glisse-moi sur le terrain">' +
-          '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
-          (pile.uids.length > 1 ? '<span class="count">×' + pile.uids.length + '</span>' : '') +
-        '</div>' +
-        '<h3>' + item.fr + '</h3>' +
-        '<p class="en">' + item.en + '</p>' +
-        '<button class="mini-btn" data-sell="' + next + '">Vendre +' + item.price + '</button>' +
-      '</article>';
-    }).join("");
   }
 
   /* ---- Redrawing after any change ---- */
@@ -184,14 +107,15 @@
   function refresh() {
     const data = PropertyState.get();
     renderCoins(data.coins);
-    renderChest(data);
-    if (openPanelName === "shop") Shop.render();
+    if (shopOpen) Shop.render();
     World.render();
     renderActionBar(World.selected());
+    renderHand(World.isPlacing());
   }
 
   function renderCoins(coins) {
     coinsEl.textContent = coins;
+    shopCoinsEl.textContent = coins;
     if (shownCoins !== null && coins !== shownCoins) {
       purseEl.classList.remove("is-bumped");
       void purseEl.offsetWidth; // restart the animation
@@ -200,21 +124,29 @@
     shownCoins = coins;
   }
 
-  function onPlacingChange(uid) {
-    placingBarEl.hidden = !uid;
-    if (!uid) return;
-    openPanel(null);
-    const entry = PropertyState.get().storage.find(one => one.uid === uid);
-    const item = entry && CATALOG.item(entry.id);
-    if (item) {
-      document.getElementById("placing-name").textContent =
-        "Où poser «\u00A0" + item.fr + "\u00A0»\u00A0? Touche le terrain.";
-    }
+  /* The object in hand sits in the corner. The shop button steps aside
+     while it is there: the child is placing, not shopping. */
+  function renderHand(id) {
+    const item = id ? CATALOG.item(id) : null;
+    handEl.hidden = !item;
+    bottomEl.hidden = !!item;
+    if (!item) return;
+    document.getElementById("hand-art").src = CATALOG.assetUrl(item.id);
+    document.getElementById("hand-art").alt = item.fr;
+    document.getElementById("hand-name").textContent = item.fr;
+    document.getElementById("hand-price").textContent = item.price;
+  }
+
+  function onPlaced(item) {
+    // Out of hand as soon as the next one is out of reach.
+    const short = PropertyState.get().coins < item.price;
+    if (short) World.cancelPlacing();
+    toast("Posé : « " + item.fr + " » (−" + item.price + " pièces)" +
+      (short ? " — il ne t'en reste plus assez" : ""));
   }
 
   function renderActionBar(uid) {
     if (!uid) { barEl.hidden = true; return; }
-    openPanel(null);
     const entry = PropertyState.get().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) { barEl.hidden = true; return; }
@@ -226,25 +158,15 @@
         '<div><b>' + item.fr + '</b><span class="en">' + item.en + '</span></div>' +
       '</div>' +
       '<p class="hint">Glisse pour déplacer</p>' +
-      '<div class="bar-actions">' +
-        '<button class="ghost-btn" data-action="store" data-uid="' + uid + '">Ranger</button>' +
-        '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>' +
-      '</div>';
+      '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>';
   }
 
   function onActionBarClick(event) {
     const button = event.target.closest("[data-action]");
     if (!button) return;
-    const uid = Number(button.dataset.uid);
-    if (button.dataset.action === "store") {
-      PropertyState.store(uid);
-      World.clearSelection();
-      toast("Rangé dans le coffre.");
-    } else if (button.dataset.action === "sell") {
-      const refund = PropertyState.sell(uid);
-      World.clearSelection();
-      if (refund !== null) toast("Vendu. +" + refund + " pièces.");
-    }
+    const refund = PropertyState.sell(Number(button.dataset.uid));
+    World.clearSelection();
+    if (refund !== null) toast("Vendu. +" + refund + " pièces.");
   }
 
   /* ---- Messages ---- */
@@ -274,6 +196,7 @@
     document.getElementById("dev-reset").addEventListener("click", () => {
       if (!confirm("Tout effacer et recommencer la propriété ?")) return;
       PropertyState.reset();
+      World.cancelPlacing();
       World.clearSelection();
       World.fitCamera();
       toast("Propriété remise à zéro.");

@@ -1,19 +1,22 @@
 /* =====================================================================
-   SHOP — the buying tab.
+   SHOP — the buying screen, which takes the whole display.
 
-   One card per catalogue entry, filtered by category. A card shows both
-   names of the object: the French one the child reads, and the English
-   one a later version will teach out loud.
+   The category chips stay at the top, the list of objects scrolls under
+   them. Touching an object does not buy it: it puts it in the child's
+   hand, closes the shop, and the object is paid for where it is put
+   down. Nothing here drags, so the list scrolls the way a list should.
 
-   Buying happens either with the price button, which sends the object to
-   the chest, or by dragging the artwork straight onto the property, which
-   pays for it where it lands.
+   A card shows both names of the object: the French one the child reads,
+   and the English one a later version will teach out loud.
    ===================================================================== */
 const Shop = (function () {
 
   let tabsEl = null;
   let gridEl = null;
-  let category = CATALOG.CATEGORIES[0].id;
+  // Opens on the animals: a livelier first page than the two ground tiles.
+  const OPENS_ON = "animals";
+  let category = CATALOG.CATEGORIES.some(cat => cat.id === OPENS_ON)
+    ? OPENS_ON : CATALOG.CATEGORIES[0].id;
   let hooks = {};
 
   function init(options) {
@@ -32,34 +35,26 @@ const Shop = (function () {
       if (!button) return;
       category = button.dataset.cat;
       render();
-    });
-
-    gridEl.addEventListener("pointerdown", event => {
-      const handle = event.target.closest("[data-shop]");
-      if (!handle) return;
-      event.preventDefault();
-      if (hooks.onDragItem) hooks.onDragItem(CATALOG.item(handle.dataset.shop), event);
+      gridEl.scrollTop = 0;
     });
 
     gridEl.addEventListener("click", event => {
-      const button = event.target.closest("[data-buy]");
-      if (!button) return;
-      const item = CATALOG.item(button.dataset.buy);
-      const result = PropertyState.buy(item.id);
-      if (!result) {
-        if (hooks.onRefused) hooks.onRefused("Il te manque des pièces pour «\u00A0" + item.fr + "\u00A0».");
+      const card = event.target.closest("[data-pick]");
+      if (!card) return;
+      const item = CATALOG.item(card.dataset.pick);
+      if (!item) return;
+      if (PropertyState.get().coins < item.price) {
+        if (hooks.onRefused) hooks.onRefused("Il te manque des pièces pour « " + item.fr + " ».");
         return;
       }
-      if (hooks.onBought) hooks.onBought(item);
+      if (hooks.onPick) hooks.onPick(item);
     });
 
     render();
   }
 
   function ownedCount(id) {
-    const data = PropertyState.get();
-    return data.placed.filter(entry => entry.id === id).length +
-           data.storage.filter(entry => entry.id === id).length;
+    return PropertyState.get().placed.filter(entry => entry.id === id).length;
   }
 
   function render() {
@@ -75,19 +70,19 @@ const Shop = (function () {
       .map(item => {
         const owned = ownedCount(item.id);
         const affordable = coins >= item.price;
-        return '<article class="card' + (affordable ? "" : " is-locked") + '">' +
-          '<div class="card-art"' + (affordable ? ' data-shop="' + item.id + '" title="Glisse-moi sur ton terrain"' : '') + '>' +
+        return '<button class="card' + (affordable ? "" : " is-locked") + '" data-pick="' + item.id + '">' +
+          '<span class="card-art">' +
             '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
-            (owned ? '<span class="owned" title="Déjà possédé">×' + owned + '</span>' : '') +
-          '</div>' +
-          '<h3>' + item.fr + '</h3>' +
-          '<p class="en">' + item.en + '</p>' +
-          '<p class="size">' + item.w + '×' + item.h + ' case' + (item.w * item.h > 1 ? "s" : "") +
-            (CATALOG.layerOf(item) === "ground" ? " · terrain" : "") + '</p>' +
-          '<button class="buy" data-buy="' + item.id + '"' + (affordable ? "" : " disabled") + '>' +
+            (owned ? '<span class="owned" title="Déjà sur ton terrain">×' + owned + '</span>' : '') +
+          '</span>' +
+          '<span class="fr">' + item.fr + '</span>' +
+          '<span class="en">' + item.en + '</span>' +
+          '<span class="size">' + item.w + '×' + item.h + ' case' + (item.w * item.h > 1 ? "s" : "") +
+            (CATALOG.layerOf(item) === "ground" ? " · terrain" : "") + '</span>' +
+          '<span class="price">' +
             '<img class="coin" src="assets/coin.svg" alt="pièces"> ' + item.price +
-          '</button>' +
-        '</article>';
+          '</span>' +
+        '</button>';
       }).join("");
   }
 

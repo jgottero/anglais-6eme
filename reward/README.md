@@ -26,39 +26,38 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 * Une maison et un terrain de 14 × 10 cases, vus de dessus.
 * **Caméra** : glisser n'importe où sur le terrain la déplace (sauf sur
   l'objet sélectionné, qui suit alors le doigt), deux doigts (ou la
-  molette) zooment. On ne peut pas dézoomer au-delà du terrain entier, ni le faire
-  sortir de l'écran.
+  molette) zooment. On ne peut pas dézoomer au-delà du terrain entier, ni
+  le faire sortir de l'écran.
 * **Overlay permanent** : les pièces en haut à droite, un bouton retour en
-  haut à gauche (il préviendra l'application d'apprentissage), et en bas
-  les boutons **Magasin** et **Coffre** avec le nombre d'objets en attente.
-  Toucher les pièces en ajoute 100 — raccourci de prototype.
-* **Magasin** : 31 objets en cinq familles (terrain, animaux, nature,
-  jardin, bâtiments). Chaque fiche affiche le nom français et le nom
-  anglais.
+  haut à gauche (il préviendra l'application d'apprentissage), et le
+  bouton **Magasin** en bas. Toucher les pièces en ajoute 100 — raccourci
+  de prototype.
+* **Magasin** : il s'ouvre en plein écran, les familles (terrain, animaux,
+  nature, jardin, bâtiments) restent visibles en haut pendant que la liste
+  défile. 31 objets, chacun avec son nom français, son nom anglais et son
+  prix.
+* **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
+  magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
+  Un appui sur une case le pose et débite les pièces. Il **reste en main**
+  ensuite, pour poser toute une rangée de champs sans rouvrir le magasin ;
+  la croix le repose, et il quitte la main tout seul dès qu'il n'y a plus
+  assez de pièces pour le suivant.
+* Rien n'est débité si la case est prise. Un glisser garde son sens
+  habituel même avec un objet en main : il déplace la caméra.
 * **Deux couches** : le *terrain* (chemin, champ) se pose sur le sol, tout
   le reste se pose dessus. Une case ne peut porter qu'un seul terrain et
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
   et un chien aussi, mais la poule se pose sans problème sur le chemin.
   La maison, elle, occupe les deux couches.
-* Deux façons d'acheter : le bouton prix met l'objet **dans le coffre**,
-  ou bien on glisse le dessin de l'objet directement sur le terrain —
-  l'achat est alors réglé à l'endroit où il se pose. Rien n'est débité si
-  la place est prise, et un objet trop cher ne peut pas être glissé.
-* **Coffre** : un panneau qui recouvre le bas de la propriété. Les objets
-  identiques y sont empilés sur une seule fiche, avec le nombre en
-  pastille (trois poules = une poule et un ×3) ; chaque geste ne prend
-  qu'un objet de la pile. On glisse un objet du coffre jusqu'à l'endroit
-  voulu — le panneau s'efface pendant le geste. Un simple appui garde
-  l'objet en main : on touche ensuite le terrain pour le poser.
-* Sur le terrain : toucher un objet le **sélectionne** (sa barre propose
-  de le ranger dans le coffre ou de le **revendre à son prix d'achat**) ;
-  une fois sélectionné, on le glisse pour le déplacer. Un glisser qui part
-  d'ailleurs — sol nu ou objet non sélectionné — déplace la caméra, pour
-  que le geste de déplacement n'entre jamais en conflit avec elle. L'objet
-  reste sélectionné si on le lâche sur une place prise.
-* Les emplacements occupés (autres objets, maison) sont refusés : la
-  silhouette passe au rouge pendant le geste.
-* Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`.
+* Sur le terrain : toucher un objet le **sélectionne** ; sa barre propose
+  de le **revendre à son prix d'achat**, et une fois sélectionné on le
+  glisse pour le déplacer. L'objet reste sélectionné si on le lâche sur
+  une place prise.
+* Il n'y a pas de réserve : un objet est payé là où il se pose, et revendu
+  de là où il est.
+* Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. Une
+  sauvegarde de la version précédente est reprise au chargement : ce qui
+  attendait dans l'ancien coffre est remboursé en pièces.
 
 ## Brancher l'application d'apprentissage
 
@@ -98,8 +97,8 @@ reward/
   js/catalog.js       la liste des objets (données seules)
   js/state.js         pièces, objets posés, coffre, sauvegarde, règles
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
-  js/shop.js          le panneau magasin
-  js/app.js           overlay, coffre, panneau parent, pont avec l'app
+  js/shop.js          l'écran magasin
+  js/app.js           overlay, objet en main, panneau parent, pont avec l'app
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
     items/            un fichier par objet du magasin

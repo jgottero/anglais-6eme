@@ -9,12 +9,13 @@
      two pointers                 -> pinch zoom and pan
      press on the selected object -> move that object
      press on anything else       -> pan the camera; a press that does
-                                     not travel picks the object under it
-     an object dragged out of the chest or the shop -> drop it on a free
-     tile (a shop object is paid for as it lands)
+                                     not travel either picks the object
+                                     under it, or puts down whatever the
+                                     shop handed over — and pays for it
 
-   Rules (what fits where) live in state.js; this file only turns the
-   state into elements, and pointer events back into state calls.
+   Rules (what fits where, what it costs) live in state.js; this file
+   only turns the state into elements, and pointer events back into
+   state calls.
    ===================================================================== */
 const World = (function () {
 
@@ -30,8 +31,8 @@ const World = (function () {
 
   const cam = { x: 0, y: 0, scale: 1 };
   const pointers = new Map(); // live pointers, by id
-  let gesture = null;         // pan / object / pinch / chest
-  let placing = null;         // uid taken from the chest, waiting for a tap
+  let gesture = null;         // pan / object / pinch
+  let placing = null;         // catalogue id chosen in the shop, in hand
   let selectedUid = null;
 
   function init(options) {
@@ -219,6 +220,9 @@ const World = (function () {
     if (pointers.size === 2) { startPinch(); return; }
     if (pointers.size > 2 || (gesture && gesture.type === "pinch")) return;
 
+    // With something in hand, the press itself shows where it would land.
+    if (placing) hoverPlacing(event);
+
     /* Only the object already picked can be dragged. Everything else
        pans the camera, which is what a finger on the ground means far
        more often than "move this hen". */
@@ -257,40 +261,6 @@ const World = (function () {
       target: { x: entry.x, y: entry.y },
       ok: true
     };
-  }
-
-  // An object dragged straight out of a panel. The pointer press happened
-  // outside the viewport, so the panel hands the gesture over to us.
-  function dragFromChest(uid, event) {
-    const entry = PropertyState.get().storage.find(one => one.uid === uid);
-    const item = entry && CATALOG.item(entry.id);
-    if (!item) return;
-    startPanelDrag({ type: "chest", uid, item }, event);
-  }
-
-  // Same gesture from the shop, except the object is paid for on landing.
-  function dragFromShop(id, event) {
-    const item = CATALOG.item(id);
-    if (!item) return;
-    startPanelDrag({ type: "shop", itemId: id, item }, event);
-  }
-
-  function startPanelDrag(base, event) {
-    cancelPlacing();
-    clearSelection();
-    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    gesture = Object.assign(base, {
-      id: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      moved: false,
-      target: null,
-      ok: false
-    });
-  }
-
-  function fromPanel(one) {
-    return one && (one.type === "chest" || one.type === "shop");
   }
 
   function startPinch() {
@@ -344,12 +314,12 @@ const World = (function () {
         // It stays selected while travelling, so a refused drop leaves it
         // in hand rather than making the child pick it again.
         gesture.node.classList.add("is-dragging");
-      } else if (fromPanel(gesture) && hooks.onPanelDragStart) {
-        hooks.onPanelDragStart();
       }
     }
 
     if (gesture.type === "pan") {
+      // A travelling finger is moving the camera, not putting anything down.
+      if (placing) hideGhost();
       cam.x = gesture.camX + (event.clientX - gesture.startX);
       cam.y = gesture.camY + (event.clientY - gesture.startY);
       clampCamera();
@@ -372,12 +342,6 @@ const World = (function () {
       return;
     }
 
-    if (fromPanel(gesture)) {
-      const target = centredTarget(event.clientX, event.clientY, gesture.item);
-      gesture.target = target;
-      gesture.ok = PropertyState.canPlace(gesture.item, target.x, target.y, null);
-      showGhost(target.x, target.y, gesture.item, gesture.ok, true);
-    }
   }
 
   function onPointerUp(event) {
@@ -414,22 +378,6 @@ const World = (function () {
       return;
     }
 
-    if (fromPanel(finished)) {
-      hideGhost();
-      if (!finished.moved) {
-        // A simple tap on a chest object: keep it in hand and let the
-        // child tap the spot they want. A tap in the shop does nothing:
-        // the price button right below is how one buys without dragging.
-        if (finished.type === "chest") startPlacing(finished.uid);
-        return;
-      }
-      const landed = finished.ok && (finished.type === "chest"
-        ? PropertyState.place(finished.uid, finished.target.x, finished.target.y)
-        : PropertyState.buyAt(finished.itemId, finished.target.x, finished.target.y));
-      if (!landed) refuse();
-      else if (finished.type === "shop" && hooks.onBought) hooks.onBought(finished.item);
-      if (hooks.onPanelDragEnd) hooks.onPanelDragEnd();
-    }
   }
 
   function revertObject() {
@@ -443,12 +391,16 @@ const World = (function () {
     if (hooks.onRefused) hooks.onRefused("Il n'y a pas la place ici.");
   }
 
-  /* ---- Placing an object held in hand ---- */
+  /* ---- The object held in hand ----
+     The shop hands over a catalogue id; it stays in hand so that a row of
+     fields can be laid one tap after another, and is paid for each time
+     it lands. */
 
-  function startPlacing(uid) {
-    placing = uid;
+  function startPlacing(id) {
+    if (!CATALOG.item(id)) return;
+    placing = id;
     clearSelection();
-    if (hooks.onPlacingChange) hooks.onPlacingChange(uid);
+    if (hooks.onPlacingChange) hooks.onPlacingChange(id);
   }
 
   function cancelPlacing() {
@@ -459,10 +411,10 @@ const World = (function () {
   }
 
   function heldItem() {
-    const entry = PropertyState.get().storage.find(one => one.uid === placing);
-    return entry ? CATALOG.item(entry.id) : null;
+    return CATALOG.item(placing);
   }
 
+  // Follows the pointer on a computer, and the press itself on a screen.
   function hoverPlacing(event) {
     const item = heldItem();
     if (!item) return;
@@ -476,12 +428,12 @@ const World = (function () {
     const item = heldItem();
     if (!item) { cancelPlacing(); return; }
     const target = centredTarget(event.clientX, event.clientY, item);
-    const uid = placing;
-    if (PropertyState.place(uid, target.x, target.y)) {
-      placing = null;
-      hideGhost();
-      if (hooks.onPlacingChange) hooks.onPlacingChange(null);
-      select(uid);
+    hideGhost();
+    if (PropertyState.buyAt(item.id, target.x, target.y)) {
+      if (hooks.onPlaced) hooks.onPlaced(item);
+    } else if (PropertyState.get().coins < item.price) {
+      cancelPlacing();
+      if (hooks.onRefused) hooks.onRefused("Il te manque des pièces.");
     } else {
       refuse();
     }
@@ -504,7 +456,7 @@ const World = (function () {
 
   return {
     init, render, fitCamera,
-    dragFromChest, dragFromShop, startPlacing, cancelPlacing,
+    startPlacing, cancelPlacing,
     select, clearSelection,
     isPlacing() { return placing; },
     selected() { return selectedUid; }

@@ -28,43 +28,42 @@
     <span id="coins">0</span>
   </button>
 
-  <div class="hud-bottom">
+  <div class="hud-bottom" id="hud-bottom">
     <button class="big-btn" data-panel="shop"><span aria-hidden="true">🛒</span> Magasin</button>
-    <button class="big-btn" data-panel="chest">
-      <span aria-hidden="true">🧰</span> Coffre
-      <span id="chest-badge" class="badge" hidden>0</span>
-    </button>
   </div>
 
-  <!-- Messages stack under the top row, clear of the sheets below. -->
-  <div class="top-stack">
-    <div id="placing-bar" class="placing" hidden>
-      <span id="placing-name"></span>
-      <button id="cancel-placing">Annuler</button>
+  <!-- What the child is carrying, waiting for a free tile. -->
+  <div id="hand" class="hand" hidden>
+    <img id="hand-art" src="" alt="">
+    <div class="hand-text">
+      <b id="hand-name"></b>
+      <span class="hand-price"><img src="assets/coin.svg" alt="pièces"><span id="hand-price"></span></span>
+      <span class="hand-hint">Touche une case pour poser</span>
     </div>
+    <button id="cancel-placing" class="hand-cancel" aria-label="Reposer l'objet">✕</button>
+  </div>
+
+  <div class="top-stack">
     <div id="toast" class="toast" hidden></div>
   </div>
 
   <div id="action-bar" class="action-bar" hidden></div>
 </div>
 
-<section id="panel-shop" class="sheet" hidden aria-label="Magasin">
-  <header class="sheet-head">
+<!-- The shop takes the whole screen: its list scrolls without fighting
+     any other gesture, and the categories stay in sight. -->
+<section id="panel-shop" class="screen" hidden aria-label="Magasin">
+  <header class="screen-head">
     <h2>Magasin</h2>
-    <p class="sheet-hint">Glisse un objet sur ton terrain pour l'acheter</p>
+    <div class="screen-purse">
+      <img src="assets/coin.svg" alt="pièces">
+      <span id="shop-coins">0</span>
+    </div>
     <button class="close-btn" data-close aria-label="Fermer">✕</button>
   </header>
+  <p class="screen-hint">Touche un objet pour le prendre en main</p>
   <div id="shop-tabs" class="chips"></div>
   <div id="shop-grid" class="grid"></div>
-</section>
-
-<section id="panel-chest" class="sheet sheet-short" hidden aria-label="Coffre">
-  <header class="sheet-head">
-    <h2>Coffre</h2>
-    <p class="sheet-hint">Glisse un objet sur ton terrain</p>
-    <button class="close-btn" data-close aria-label="Fermer">✕</button>
-  </header>
-  <div id="chest-grid" class="grid chest-grid"></div>
 </section>
 
 <section id="dev-panel" class="dev" hidden>

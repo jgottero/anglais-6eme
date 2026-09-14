@@ -1,6 +1,7 @@
 /* =====================================================================
-   Look of the reward module: the property fills the screen, everything
-   else floats above it. Wood, grass and gold, readable on a phone.
+   Look of the reward module: the property fills the screen, the overlay
+   floats above it, and the shop takes the whole display when it opens.
+   Wood, grass and gold, readable on a phone.
    ===================================================================== */
 
 :root {
@@ -97,8 +98,9 @@ button { font: inherit; cursor: pointer; }
 /* Only the picked object can be dragged; the rest of the plot pans. */
 .ob { cursor: pointer; touch-action: none; }
 .ob.is-selected { cursor: grab; }
-/* Ground tiles cover their square edge to edge, with no drop shadow. */
+/* Ground tiles cover their square edge to edge. */
 .ob.is-ground img { object-fit: fill; }
+
 .ob.is-selected {
   outline: 3px dashed #fff;
   outline-offset: -3px;
@@ -191,7 +193,6 @@ button { font: inherit; cursor: pointer; }
 }
 
 .big-btn {
-  position: relative;
   border: 3px solid var(--wood-dark);
   border-radius: 14px;
   background: var(--panel);
@@ -202,17 +203,46 @@ button { font: inherit; cursor: pointer; }
 }
 .big-btn.is-on { background: var(--leaf); border-color: var(--leaf-dark); color: #fdf6e7; }
 
-.badge {
+/* ---- The object in hand ---- */
+
+.hand {
   position: absolute;
-  top: -9px;
-  right: -9px;
-  min-width: 24px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--danger);
-  color: #fff;
-  font-size: 0.8rem;
-  border: 2px solid var(--panel);
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(84vw, 320px);
+  padding: 9px 40px 9px 10px;
+  background: var(--panel);
+  border: 3px solid var(--leaf);
+  border-radius: 14px;
+  box-shadow: var(--lift);
+  animation: rise 0.16s ease-out;
+}
+.hand img { width: 42px; height: 42px; object-fit: contain; }
+.hand-text { display: grid; }
+.hand-text b { line-height: 1.2; }
+.hand-price {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.hand-price img { width: 17px; height: 17px; }
+.hand-hint { color: var(--ink-soft); font-size: 0.78rem; }
+.hand-cancel {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 2px solid var(--edge);
+  background: transparent;
+  color: var(--ink);
+  line-height: 1;
 }
 
 /* ---- Floating bars ---- */
@@ -230,145 +260,156 @@ button { font: inherit; cursor: pointer; }
 .hud .top-stack { pointer-events: none; }
 .top-stack > * { pointer-events: auto; }
 
-.placing, .action-bar {
-  max-width: min(94vw, 460px);
-  background: var(--panel);
-  border: 3px solid var(--wood-dark);
-  border-radius: 14px;
-  box-shadow: var(--lift);
-  padding: 9px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.placing span { font-weight: 700; }
-.placing button {
-  background: transparent;
-  border: 2px solid var(--edge);
-  color: var(--ink);
-  border-radius: 8px;
-  padding: 5px 10px;
-}
-
 .action-bar {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   bottom: calc(80px + env(safe-area-inset-bottom));
+  max-width: min(94vw, 460px);
+  display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--panel);
+  border: 3px solid var(--wood-dark);
+  border-radius: 14px;
+  box-shadow: var(--lift);
 }
 .bar-id { display: flex; align-items: center; gap: 10px; }
 .bar-id img { width: 40px; height: 40px; }
 .bar-id .en { display: block; color: var(--ink-soft); font-size: 0.85rem; font-style: italic; }
 .action-bar .hint { margin: 0; color: var(--ink-soft); font-size: 0.85rem; }
-.bar-actions { display: flex; gap: 8px; }
 
-.ghost-btn, .sell-btn, .mini-btn {
+.sell-btn {
   border-radius: 9px;
   padding: 8px 12px;
-  border: 2px solid var(--edge);
-  background: var(--panel);
-  color: var(--ink);
+  border: 2px solid #a97f1c;
+  background: var(--gold);
+  color: #3a2b1c;
   font-weight: 700;
 }
-.sell-btn { border-color: #a97f1c; background: var(--gold); color: #3a2b1c; }
-.mini-btn { width: 100%; padding: 5px; font-size: 0.82rem; font-weight: 400; }
 
-/* ---- Sheets: shop and chest ---- */
+/* ---- The shop, full screen ---- */
 
-.sheet {
+.screen {
   position: fixed;
-  z-index: 20;
-  left: 8px;
-  right: 8px;
-  bottom: calc(76px + env(safe-area-inset-bottom));
-  max-height: 62vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
   background: var(--panel);
-  border: 3px solid var(--wood-dark);
-  border-radius: 16px;
-  box-shadow: var(--lift);
-  padding: 12px 14px 16px;
+  padding:
+    calc(12px + env(safe-area-inset-top))
+    calc(14px + env(safe-area-inset-right))
+    0
+    calc(14px + env(safe-area-inset-left));
   animation: rise 0.18s ease-out;
-  transition: opacity 0.15s ease;
 }
-.sheet-short { max-height: 44vh; }
 
 @keyframes rise {
-  from { transform: translateY(16px); opacity: 0; }
+  from { transform: translateY(14px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Out of the way while an object is being dragged onto the property. */
-body.is-panel-drag .sheet { opacity: 0.15; pointer-events: none; }
-
-.sheet-head {
-  /* Stays in reach while a long list scrolls under it. */
-  position: sticky;
-  top: -12px;
-  z-index: 2;
+.screen-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  background: var(--panel);
-  padding: 12px 0 8px;
-  margin: -12px 0 6px;
 }
-.sheet-head h2 {
+.screen-head h2 {
   font-family: "Shantell Sans", "Comic Sans MS", cursive;
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
+  flex: 1;
 }
-.sheet-hint { flex: 1; margin: 0; color: var(--ink-soft); font-size: 0.85rem; }
+.screen-purse {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  padding: 3px 12px 3px 6px;
+}
+.screen-purse img { width: 21px; height: 21px; }
 .close-btn {
-  margin-left: auto;
   border: 2px solid var(--edge);
   background: transparent;
   color: var(--ink);
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: 9px;
+  width: 38px;
+  height: 38px;
+  font-size: 1rem;
 }
+.screen-hint { margin: 6px 0 10px; color: var(--ink-soft); font-size: 0.86rem; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chips {
+  display: flex;
+  /* One row that slides sideways: wrapping five chips would eat a third
+     of a phone screen. */
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--edge);
+}
+.chips::-webkit-scrollbar { display: none; }
 .chip {
+  flex: none;
+  white-space: nowrap;
   background: transparent;
   border: 2px solid var(--edge);
   border-radius: 999px;
-  padding: 5px 13px;
+  padding: 6px 14px;
   color: var(--ink);
 }
 .chip.is-on { background: var(--leaf); border-color: var(--leaf-dark); color: #fdf6e7; }
 
 .grid {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  /* Rows hug their cards instead of stretching down the empty screen. */
+  align-content: start;
   gap: 10px;
+  padding: 12px 0 calc(20px + env(safe-area-inset-bottom));
 }
 
 .card {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
   border: 2px solid var(--edge);
   border-radius: 12px;
-  padding: 8px;
+  padding: 9px;
+  background: transparent;
+  color: var(--ink);
   text-align: center;
+  font: inherit;
+  align-content: start;
 }
-.card.is-locked { opacity: 0.55; }
+.card:active { transform: scale(0.97); }
+.card.is-locked { opacity: 0.5; }
 
 .card-art {
   position: relative;
-  height: 76px;
+  width: 100%;
+  height: 78px;
   display: grid;
   place-items: center;
   background: #e8f1d9;
   border-radius: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
-.card-art img { max-width: 70px; max-height: 64px; }
-.card-art[data-drag], .card-art[data-shop] { cursor: grab; touch-action: none; }
-.card-art .owned, .card-art .count {
+.card-art img { max-width: 72px; max-height: 66px; }
+.card-art .owned {
   position: absolute;
   right: 5px;
   bottom: 4px;
@@ -378,40 +419,25 @@ body.is-panel-drag .sheet { opacity: 0.15; pointer-events: none; }
   font-size: 0.74rem;
   padding: 1px 7px;
 }
-/* How many of that object are waiting in the chest. */
-.card-art .count {
-  background: var(--danger);
-  font-size: 0.86rem;
-  font-weight: 700;
-  padding: 1px 9px;
-}
 
-.card h3 { margin: 0; font-size: 0.95rem; }
-.card .en { margin: 0 0 6px; color: var(--ink-soft); font-size: 0.8rem; font-style: italic; }
-.card .size { margin: 0 0 7px; color: var(--ink-soft); font-size: 0.72rem; }
-
-.empty {
-  grid-column: 1 / -1;
-  color: var(--ink-soft);
-  text-align: center;
-  margin: 14px 0;
-}
-
-.buy {
+.card .fr { font-weight: 700; }
+.card .en { color: var(--ink-soft); font-size: 0.82rem; font-style: italic; }
+.card .size { color: var(--ink-soft); font-size: 0.72rem; margin-bottom: 6px; }
+.card .price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
   border: 2px solid #a97f1c;
   background: var(--gold);
   color: #3a2b1c;
   border-radius: 9px;
-  padding: 7px;
+  padding: 6px;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
 }
-.buy .coin { width: 18px; height: 18px; }
-.buy:disabled { background: #d8d2c4; border-color: #b9b2a2; color: #7a7364; cursor: not-allowed; }
+.card .price .coin { width: 18px; height: 18px; }
+.card.is-locked .price { background: #d8d2c4; border-color: #b9b2a2; color: #7a7364; }
 
 /* ---- Parent panel ---- */
 

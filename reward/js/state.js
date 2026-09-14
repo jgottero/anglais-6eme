@@ -1,6 +1,7 @@
 /* =====================================================================
    STATE — the child's property: coins, what has been bought, and where
-   each object stands.
+   each object stands. There is no store room: an object is paid for as
+   it is put down, and sold back from where it stands.
 
    Everything is kept in one localStorage entry. The module owns the
    rules (can I afford this? does this object fit here?); the views only
@@ -21,32 +22,46 @@ const PropertyState = (function () {
 
   function blank() {
     return {
-      version: 1,
+      version: 2,
       coins: START_COINS,
       land: { cols: LAND.cols, rows: LAND.rows },
       house: { x: HOUSE.x, y: HOUSE.y, w: HOUSE.w, h: HOUSE.h },
-      placed: [],   // { uid, id, x, y } — x,y is the top-left tile
-      storage: [],  // { uid, id } — bought but not on the ground yet
-      tiers: [],    // ranks already rewarded, so a reward is never paid twice
+      placed: [],  // { uid, id, x, y } — x,y is the top-left tile
+      tiers: [],   // ranks already rewarded, so a reward is never paid twice
       nextUid: 1
     };
   }
 
+  let migrated = false; // an old save was rewritten as it was read
   let data = load();
   const listeners = [];
+  // Written back at once, so the conversion never happens twice.
+  if (migrated) save();
 
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return blank();
       const saved = JSON.parse(raw);
-      // Unknown or older saves start over rather than crash the prototype.
-      if (!saved || saved.version !== 1) return blank();
+      // Unknown saves start over rather than crash the prototype.
+      if (!saved || (saved.version !== 1 && saved.version !== 2)) return blank();
       const fresh = blank();
-      return Object.assign(fresh, saved, {
+      const loaded = Object.assign(fresh, saved, {
+        version: 2,
         land: Object.assign(fresh.land, saved.land),
         house: Object.assign(fresh.house, saved.house)
       });
+      // Version 1 kept a chest. The chest is gone, so whatever was
+      // waiting in it is paid back rather than lost.
+      if (Array.isArray(saved.storage)) {
+        loaded.coins += saved.storage.reduce((sum, entry) => {
+          const item = CATALOG.item(entry.id);
+          return sum + (item ? item.price : 0);
+        }, 0);
+      }
+      delete loaded.storage;
+      migrated = saved.version !== 2;
+      return loaded;
     } catch (err) {
       return blank();
     }
@@ -125,22 +140,11 @@ const PropertyState = (function () {
     return { tier, amount, coins: data.coins };
   }
 
-  /* ---- Buying, placing, selling ---- */
+  /* ---- Buying, moving, selling ---- */
 
-  // A purchase always lands in the chest; the child then drags it out
-  // onto the spot they want.
-  function buy(id) {
-    const item = CATALOG.item(id);
-    if (!item || data.coins < item.price) return null;
-    data.coins -= item.price;
-    const uid = data.nextUid++;
-    data.storage.push({ uid, id });
-    changed();
-    return { uid };
-  }
-
-  /* Bought and dropped in one gesture, straight from the shop: the object
-     never passes through the chest. Nothing is paid if the spot is taken. */
+  /* An object is bought where it lands: one call takes the coins and puts
+     it down, so the payment and the placement cannot come apart. Nothing
+     is paid when the purse is short or the spot is taken. */
   function buyAt(id, x, y) {
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
@@ -150,17 +154,6 @@ const PropertyState = (function () {
     data.placed.push({ uid, id, x, y });
     changed();
     return { uid };
-  }
-
-  function place(uid, x, y) {
-    const index = data.storage.findIndex(entry => entry.uid === uid);
-    if (index === -1) return false;
-    const item = CATALOG.item(data.storage[index].id);
-    if (!item || !canPlace(item, x, y, uid)) return false;
-    data.placed.push({ uid, id: data.storage[index].id, x, y });
-    data.storage.splice(index, 1);
-    changed();
-    return true;
   }
 
   function move(uid, x, y) {
@@ -174,30 +167,16 @@ const PropertyState = (function () {
     return true;
   }
 
-  // Back into the chest, keeping the object (and its value).
-  function store(uid) {
-    const index = data.placed.findIndex(entry => entry.uid === uid);
-    if (index === -1) return false;
-    data.storage.push({ uid, id: data.placed[index].id });
-    data.placed.splice(index, 1);
-    changed();
-    return true;
-  }
-
-  // Sold back at the price it was bought for, wherever it is.
+  // Sold back at the price it was bought for.
   function sell(uid) {
-    const lists = [data.placed, data.storage];
-    for (const list of lists) {
-      const index = list.findIndex(entry => entry.uid === uid);
-      if (index === -1) continue;
-      const item = CATALOG.item(list[index].id);
-      list.splice(index, 1);
-      const refund = item ? item.price : 0;
-      data.coins += refund;
-      changed();
-      return refund;
-    }
-    return null;
+    const index = data.placed.findIndex(entry => entry.uid === uid);
+    if (index === -1) return null;
+    const item = CATALOG.item(data.placed[index].id);
+    data.placed.splice(index, 1);
+    const refund = item ? item.price : 0;
+    data.coins += refund;
+    changed();
+    return refund;
   }
 
   function reset() {
@@ -217,6 +196,6 @@ const PropertyState = (function () {
     get, subscribe,
     canPlace, placedAt,
     addCoins, grantTier,
-    buy, buyAt, place, move, store, sell, reset
+    buyAt, move, sell, reset
   };
 })();
