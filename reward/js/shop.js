@@ -4,6 +4,10 @@
    One card per catalogue entry, filtered by category. A card shows both
    names of the object: the French one the child reads, and the English
    one a later version will teach out loud.
+
+   Buying happens either with the price button, which sends the object to
+   the chest, or by dragging the artwork straight onto the property, which
+   pays for it where it lands.
    ===================================================================== */
 const Shop = (function () {
 
@@ -28,6 +32,13 @@ const Shop = (function () {
       if (!button) return;
       category = button.dataset.cat;
       render();
+    });
+
+    gridEl.addEventListener("pointerdown", event => {
+      const handle = event.target.closest("[data-shop]");
+      if (!handle) return;
+      event.preventDefault();
+      if (hooks.onDragItem) hooks.onDragItem(CATALOG.item(handle.dataset.shop), event);
     });
 
     gridEl.addEventListener("click", event => {
@@ -65,8 +76,8 @@ const Shop = (function () {
         const owned = ownedCount(item.id);
         const affordable = coins >= item.price;
         return '<article class="card' + (affordable ? "" : " is-locked") + '">' +
-          '<div class="card-art">' +
-            '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '">' +
+          '<div class="card-art"' + (affordable ? ' data-shop="' + item.id + '" title="Glisse-moi sur ton terrain"' : '') + '>' +
+            '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
             (owned ? '<span class="owned" title="Déjà possédé">×' + owned + '</span>' : '') +
           '</div>' +
           '<h3>' + item.fr + '</h3>' +

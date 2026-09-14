@@ -39,13 +39,22 @@
       onSelect: renderActionBar,
       onPlacingChange: onPlacingChange,
       onRefused: toast,
-      onChestDragStart: () => document.body.classList.add("is-chest-drag"),
-      onChestDragEnd: onChestDragEnd
+      onPanelDragStart: () => document.body.classList.add("is-panel-drag"),
+      onPanelDragEnd: onPanelDragEnd,
+      onBought: item => toast("Posé sur ton terrain : «\u00A0" + item.fr + "\u00A0» (−" + item.price + " pièces)")
     });
 
     Shop.init({
-      onBought: item => toast(item.fr + " acheté ! C'est dans ton coffre."),
-      onRefused: toast
+      onBought: item => toast("Dans ton coffre : «\u00A0" + item.fr + "\u00A0» (−" + item.price + " pièces)"),
+      onRefused: toast,
+      onDragItem: (item, event) => {
+        if (!item) return;
+        if (PropertyState.get().coins < item.price) {
+          toast("Il te manque des pièces pour «\u00A0" + item.fr + "\u00A0».");
+          return;
+        }
+        World.dragFromShop(item.id, event);
+      }
     });
 
     setUpHud();
@@ -122,9 +131,10 @@
     });
   }
 
-  function onChestDragEnd() {
-    document.body.classList.remove("is-chest-drag");
-    if (!PropertyState.get().storage.length) openPanel(null);
+  function onPanelDragEnd() {
+    document.body.classList.remove("is-panel-drag");
+    // An emptied chest has nothing left to show.
+    if (openPanelName === "chest" && !PropertyState.get().storage.length) openPanel(null);
   }
 
   /* Objects of the same kind share one card: three hens show as one hen
