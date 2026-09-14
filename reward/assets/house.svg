@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 96" width="128" height="96">
+  <!-- The starting house, seen from slightly above: roof, facade, porch -->
+  <ellipse cx="64" cy="90" rx="52" ry="5" fill="#000" opacity=".15"/>
+  <path d="M4 46L64 6l60 40z" fill="#c8413c" stroke="#8f2a26" stroke-width="2"/>
+  <path d="M14 43L64 10l50 33z" fill="#d9524c"/>
+  <path d="M64 10v33M40 26l14 17M88 26L74 43" stroke="#b53a36" stroke-width="1.6"/>
+  <rect x="86" y="14" width="13" height="18" rx="2" fill="#9aa3ab" stroke="#6f7880" stroke-width="1.6"/>
+  <rect x="83" y="11" width="19" height="6" rx="2" fill="#b2b8bf" stroke="#6f7880" stroke-width="1.4"/>
+  <rect x="12" y="46" width="104" height="40" rx="3" fill="#d9b06a" stroke="#6d4a28" stroke-width="2"/>
+  <path d="M12 60h104" stroke="#c49a56" stroke-width="1.6"/>
+  <rect x="54" y="60" width="20" height="26" rx="2" fill="#8f6134" stroke="#5c3d1f" stroke-width="1.8"/>
+  <path d="M64 60v26" stroke="#7b5230" stroke-width="1.4"/>
+  <circle cx="59" cy="73" r="1.8" fill="#f2c94c"/>
+  <g fill="#9fd6f0" stroke="#5c3d1f" stroke-width="1.8">
+    <rect x="22" y="58" width="22" height="18" rx="2"/>
+    <rect x="84" y="58" width="22" height="18" rx="2"/>
+  </g>
+  <path d="M33 58v18M22 67h22M95 58v18M84 67h22" stroke="#5c3d1f" stroke-width="1.4"/>
+  <path d="M44 86h40v6H44z" fill="#b9a883" stroke="#8b7c5c" stroke-width="1.4"/>
+  <circle cx="18" cy="82" r="5" fill="#3f8b34" stroke="#2c5f24" stroke-width="1.2"/>
+  <circle cx="110" cy="82" r="5" fill="#3f8b34" stroke="#2c5f24" stroke-width="1.2"/>
+</svg>

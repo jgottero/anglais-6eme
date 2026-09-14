@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ma propriété — récompenses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Shantell+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="top">
+  <h1>Ma propriété</h1>
+  <div class="purse" title="Tes pièces">
+    <img src="assets/coin.svg" alt="pièces">
+    <span id="coins">0</span>
+  </div>
+  <button id="dev-toggle" class="icon-btn" title="Panneau parent" aria-label="Panneau parent">⚙</button>
+</header>
+
+<nav class="tabs">
+  <button class="tab" data-goto="property"><span aria-hidden="true">🏡</span> Propriété</button>
+  <button class="tab" data-goto="shop"><span aria-hidden="true">🛒</span> Magasin</button>
+</nav>
+
+<section id="dev-panel" class="dev" hidden>
+  <p>Panneau parent — remplace l'application d'apprentissage le temps du prototype.</p>
+  <div class="dev-row">
+    <button id="dev-tier">Palier atteint</button>
+    <button id="dev-coins">+100 pièces</button>
+    <button id="dev-reset" class="danger">Réinitialiser</button>
+  </div>
+</section>
+
+<main>
+
+  <section class="view" data-view="property">
+    <div id="placing-bar" class="placing" hidden>
+      <span id="placing-name"></span>
+      <button id="cancel-placing">Annuler</button>
+    </div>
+
+    <div class="yard-wrap">
+      <div id="yard" class="yard"></div>
+    </div>
+
+    <div id="action-bar" class="action-bar" hidden></div>
+    <div id="chest" class="chest" hidden></div>
+
+    <p class="note">
+      Clique sur un objet pour le vendre ou le ranger, glisse-le pour le déplacer.<br>
+      Bientôt : agrandir le terrain et ajouter des étages à la maison.
+    </p>
+  </section>
+
+  <section class="view" data-view="shop" hidden>
+    <div id="shop-tabs" class="chips"></div>
+    <div id="shop-grid" class="grid"></div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="js/catalog.js"></script>
+<script src="js/state.js"></script>
+<script src="js/world.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
