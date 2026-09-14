@@ -1,7 +1,6 @@
 /* =====================================================================
-   APP — wires the pieces together: the two tabs, the coin counter, the
-   chest, the action bar of the selected object, and the bridge the
-   learning app uses to pay for a new rank.
+   APP — the overlay on top of the property: coins, shop, chest, back,
+   and the bridge the learning app uses to pay for a new rank.
 
    The learning app never touches the state directly. It either calls
    REWARD.grantTier(rank) when the module is on the same page, or posts
@@ -16,79 +15,138 @@
     return 50 + (tier % 10 === 0 ? 150 : 0);
   }
 
-  const views = {};
-  let coinsEl, chestEl, barEl, toastEl, placingBarEl;
+  const COINS_PER_TAP = 100; // prototype only: tapping the purse pays
+
+  let coinsEl, purseEl, badgeEl, chestGridEl, barEl, placingBarEl, toastEl;
+  let panels = {};
+  let openPanelName = null;
   let shownCoins = null;
 
   function ready() {
     coinsEl = document.getElementById("coins");
-    chestEl = document.getElementById("chest");
+    purseEl = document.getElementById("purse");
+    badgeEl = document.getElementById("chest-badge");
+    chestGridEl = document.getElementById("chest-grid");
     barEl = document.getElementById("action-bar");
-    toastEl = document.getElementById("toast");
     placingBarEl = document.getElementById("placing-bar");
-
-    setUpTabs();
-    setUpDevPanel();
+    toastEl = document.getElementById("toast");
+    panels = {
+      shop: document.getElementById("panel-shop"),
+      chest: document.getElementById("panel-chest")
+    };
 
     World.init({
       onSelect: renderActionBar,
-      onPlacingChange: renderPlacingBar,
-      onRefused: toast
+      onPlacingChange: onPlacingChange,
+      onRefused: toast,
+      onChestDragStart: () => document.body.classList.add("is-chest-drag"),
+      onChestDragEnd: onChestDragEnd
     });
 
     Shop.init({
-      onBought: (item, placed) => {
-        toast(item.fr + " acheté ! " + (placed ? "C'est sur ton terrain." : "C'est dans ton coffre."));
-      },
+      onBought: item => toast(item.fr + " acheté ! C'est dans ton coffre."),
       onRefused: toast
     });
 
-    chestEl.addEventListener("click", event => {
-      const sellButton = event.target.closest("[data-sell]");
-      if (sellButton) {
-        const refund = PropertyState.sell(Number(sellButton.dataset.sell));
-        if (refund !== null) toast("Vendu. +" + refund + " pièces.");
-        return;
-      }
-      const chip = event.target.closest("[data-place]");
-      if (chip) {
-        show("property");
-        World.startPlacing(Number(chip.dataset.place));
-      }
-    });
-
-    barEl.addEventListener("click", onActionBarClick);
-    document.getElementById("cancel-placing")
-      .addEventListener("click", () => World.cancelPlacing());
+    setUpHud();
+    setUpChest();
+    setUpDevPanel();
 
     PropertyState.subscribe(refresh);
     refresh();
-    show("property");
+    toast("Glisse le terrain pour te déplacer, pince pour zoomer.");
   }
 
-  /* ---- Tabs ---- */
+  /* ---- Overlay buttons ---- */
 
-  function setUpTabs() {
-    document.querySelectorAll("[data-view]").forEach(section => {
-      views[section.dataset.view] = section;
+  function setUpHud() {
+    document.querySelectorAll("[data-panel]").forEach(button => {
+      button.addEventListener("click", () => {
+        openPanel(openPanelName === button.dataset.panel ? null : button.dataset.panel);
+      });
     });
-    document.querySelectorAll("[data-goto]").forEach(button => {
-      button.addEventListener("click", () => show(button.dataset.goto));
+    document.querySelectorAll("[data-close]").forEach(button => {
+      button.addEventListener("click", () => openPanel(null));
     });
+
+    // Prototype shortcut, standing in for the learning app.
+    purseEl.addEventListener("click", () => {
+      PropertyState.addCoins(COINS_PER_TAP);
+      toast("+" + COINS_PER_TAP + " pièces");
+    });
+
+    document.getElementById("back").addEventListener("click", () => {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: "reward:back" }, "*");
+      }
+      toast("Bientôt : retour aux exercices d'anglais.");
+    });
+
+    document.getElementById("cancel-placing")
+      .addEventListener("click", () => World.cancelPlacing());
+
+    barEl.addEventListener("click", onActionBarClick);
   }
 
-  function show(name) {
-    Object.keys(views).forEach(key => {
-      views[key].hidden = key !== name;
+  function openPanel(name) {
+    openPanelName = name;
+    Object.keys(panels).forEach(key => { panels[key].hidden = key !== name; });
+    document.querySelectorAll("[data-panel]").forEach(button => {
+      button.classList.toggle("is-on", button.dataset.panel === name);
     });
-    document.querySelectorAll("[data-goto]").forEach(button => {
-      button.classList.toggle("is-on", button.dataset.goto === name);
-    });
-    if (name === "property") {
-      // The plot can only be measured once its tab is on screen.
-      World.measure();
-      World.render();
+    if (name) {
+      World.cancelPlacing();
+      World.clearSelection();
     }
+    if (name === "shop") Shop.render();
+  }
+
+  /* ---- Chest ----
+     Its objects are dragged straight onto the property: the press is
+     caught here and handed over to the world, which follows the pointer
+     from there on. */
+
+  function setUpChest() {
+    chestGridEl.addEventListener("pointerdown", event => {
+      const handle = event.target.closest("[data-drag]");
+      if (!handle) return;
+      event.preventDefault();
+      World.dragFromChest(Number(handle.dataset.drag), event);
+    });
+
+    chestGridEl.addEventListener("click", event => {
+      const sellButton = event.target.closest("[data-sell]");
+      if (!sellButton) return;
+      const refund = PropertyState.sell(Number(sellButton.dataset.sell));
+      if (refund !== null) toast("Vendu. +" + refund + " pièces.");
+    });
+  }
+
+  function onChestDragEnd() {
+    document.body.classList.remove("is-chest-drag");
+    if (!PropertyState.get().storage.length) openPanel(null);
+  }
+
+  function renderChest(data) {
+    badgeEl.hidden = !data.storage.length;
+    badgeEl.textContent = data.storage.length;
+
+    if (!data.storage.length) {
+      chestGridEl.innerHTML = '<p class="empty">Ton coffre est vide. Va faire un tour au magasin !</p>';
+      return;
+    }
+    chestGridEl.innerHTML = data.storage.map(entry => {
+      const item = CATALOG.item(entry.id);
+      if (!item) return "";
+      return '<article class="card">' +
+        '<div class="card-art" data-drag="' + entry.uid + '" title="Glisse-moi sur le terrain">' +
+          '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
+        '</div>' +
+        '<h3>' + item.fr + '</h3>' +
+        '<p class="en">' + item.en + '</p>' +
+        '<button class="mini-btn" data-sell="' + entry.uid + '">Vendre +' + item.price + '</button>' +
+      '</article>';
+    }).join("");
   }
 
   /* ---- Redrawing after any change ---- */
@@ -97,7 +155,7 @@
     const data = PropertyState.get();
     renderCoins(data.coins);
     renderChest(data);
-    Shop.render();
+    if (openPanelName === "shop") Shop.render();
     World.render();
     renderActionBar(World.selected());
   }
@@ -105,45 +163,28 @@
   function renderCoins(coins) {
     coinsEl.textContent = coins;
     if (shownCoins !== null && coins !== shownCoins) {
-      coinsEl.parentElement.classList.remove("is-bumped");
-      void coinsEl.parentElement.offsetWidth; // restart the animation
-      coinsEl.parentElement.classList.add("is-bumped");
+      purseEl.classList.remove("is-bumped");
+      void purseEl.offsetWidth; // restart the animation
+      purseEl.classList.add("is-bumped");
     }
     shownCoins = coins;
   }
 
-  function renderChest(data) {
-    if (!data.storage.length) {
-      chestEl.hidden = true;
-      return;
-    }
-    chestEl.hidden = false;
-    chestEl.innerHTML = '<p class="chest-title">Coffre — clique pour poser</p>' +
-      '<div class="chest-row">' + data.storage.map(entry => {
-        const item = CATALOG.item(entry.id);
-        if (!item) return "";
-        return '<div class="chest-chip">' +
-          '<button class="chest-place" data-place="' + entry.uid + '" title="Poser ' + item.fr + '">' +
-            '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '">' +
-          '</button>' +
-          '<button class="chest-sell" data-sell="' + entry.uid + '" title="Vendre">↩ ' + item.price + '</button>' +
-        '</div>';
-      }).join("") + '</div>';
-  }
-
-  function renderPlacingBar(uid) {
+  function onPlacingChange(uid) {
     placingBarEl.hidden = !uid;
     if (!uid) return;
+    openPanel(null);
     const entry = PropertyState.get().storage.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (item) {
       document.getElementById("placing-name").textContent =
-        "Où poser « " + item.fr + " » ? Clique sur le terrain.";
+        "Où poser «\u00A0" + item.fr + "\u00A0»\u00A0? Touche le terrain.";
     }
   }
 
   function renderActionBar(uid) {
     if (!uid) { barEl.hidden = true; return; }
+    openPanel(null);
     const entry = PropertyState.get().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) { barEl.hidden = true; return; }
@@ -154,7 +195,6 @@
         '<img src="' + CATALOG.assetUrl(item.id) + '" alt="">' +
         '<div><b>' + item.fr + '</b><span class="en">' + item.en + '</span></div>' +
       '</div>' +
-      '<p class="hint">Glisse-le pour le déplacer.</p>' +
       '<div class="bar-actions">' +
         '<button class="ghost-btn" data-action="store" data-uid="' + uid + '">Ranger</button>' +
         '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>' +
@@ -186,9 +226,8 @@
     toastTimer = setTimeout(() => { toastEl.hidden = true; }, 2600);
   }
 
-  /* ---- Parent panel ----
-     Stands in for the learning app while the module is being tried out:
-     it hands out the reward of a rank, or wipes the property clean. */
+  /* ---- Parent panel ---- */
+
   function setUpDevPanel() {
     const panel = document.getElementById("dev-panel");
     document.getElementById("dev-toggle").addEventListener("click", () => {
@@ -196,21 +235,16 @@
     });
 
     document.getElementById("dev-tier").addEventListener("click", () => {
-      const data = PropertyState.get();
-      const tier = data.tiers.length + 1;
+      const tier = PropertyState.get().tiers.length + 1;
       const result = PropertyState.grantTier(tier, rewardForTier(tier));
       if (result) toast("Palier " + tier + " atteint ! +" + result.amount + " pièces.");
-    });
-
-    document.getElementById("dev-coins").addEventListener("click", () => {
-      PropertyState.addCoins(100);
-      toast("+100 pièces.");
     });
 
     document.getElementById("dev-reset").addEventListener("click", () => {
       if (!confirm("Tout effacer et recommencer la propriété ?")) return;
       PropertyState.reset();
       World.clearSelection();
+      World.fitCamera();
       toast("Propriété remise à zéro.");
     });
   }
