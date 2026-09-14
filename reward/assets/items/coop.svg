@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="96" height="64">
+  <!-- Chicken coop: fenced run on the left, nest box on the right -->
+  <ellipse cx="48" cy="58" rx="40" ry="5" fill="#000" opacity=".13"/>
+  <path d="M2 34h44v22H2z" fill="#a8c96a" stroke="#6d4a28" stroke-width="1.6"/>
+  <g stroke="#8f6134" stroke-width="2.2">
+    <path d="M2 40h44M2 48h44M12 34v22M24 34v22M36 34v22"/>
+  </g>
+  <path d="M44 12l48 12v4H40z" fill="#c8413c" stroke="#8f2a26" stroke-width="1.6"/>
+  <rect x="46" y="26" width="42" height="30" rx="2" fill="#c49254" stroke="#6d4a28" stroke-width="1.6"/>
+  <path d="M46 36h42M46 46h42" stroke="#a9763f" stroke-width="1.3"/>
+  <circle cx="60" cy="40" r="7" fill="#3a2b1c"/>
+  <path d="M53 47l-12 9h14z" fill="#8f6134" stroke="#5c3d1f" stroke-width="1.3"/>
+  <path d="M44 50l-6 4M48 52l-5 4" stroke="#6d4a28" stroke-width="1.2"/>
+  <g fill="#f3ead6" stroke="#8f2a26" stroke-width="1">
+    <ellipse cx="78" cy="38" rx="6" ry="5"/>
+  </g>
+  <circle cx="81" cy="31" r="4" fill="#f3ead6" stroke="#8f2a26" stroke-width="1"/>
+  <path d="M84 30l4 1.4-4 1.4z" fill="#e8a33d"/>
+  <circle cx="82" cy="30" r=".9" fill="#3a2b1c"/>
+  <ellipse cx="20" cy="46" rx="6" ry="5" fill="#f3ead6" stroke="#8f2a26" stroke-width="1"/>
+  <circle cx="24" cy="40" r="4" fill="#f3ead6" stroke="#8f2a26" stroke-width="1"/>
+  <path d="M27 39l4 1.4-4 1.4z" fill="#e8a33d"/>
+  <circle cx="25" cy="39" r=".9" fill="#3a2b1c"/>
+</svg>
