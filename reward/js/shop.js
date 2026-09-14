@@ -82,7 +82,8 @@ const Shop = (function () {
           '</div>' +
           '<h3>' + item.fr + '</h3>' +
           '<p class="en">' + item.en + '</p>' +
-          '<p class="size">' + item.w + '×' + item.h + ' case' + (item.w * item.h > 1 ? "s" : "") + '</p>' +
+          '<p class="size">' + item.w + '×' + item.h + ' case' + (item.w * item.h > 1 ? "s" : "") +
+            (CATALOG.layerOf(item) === "ground" ? " · terrain" : "") + '</p>' +
           '<button class="buy" data-buy="' + item.id + '"' + (affordable ? "" : " disabled") + '>' +
             '<img class="coin" src="assets/coin.svg" alt="pièces"> ' + item.price +
           '</button>' +

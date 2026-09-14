@@ -95,6 +95,8 @@ button { font: inherit; cursor: pointer; }
 }
 
 .ob { cursor: grab; touch-action: none; }
+/* Ground tiles cover their square edge to edge, with no drop shadow. */
+.ob.is-ground img { object-fit: fill; }
 .ob.is-selected {
   outline: 3px dashed #fff;
   outline-offset: -3px;

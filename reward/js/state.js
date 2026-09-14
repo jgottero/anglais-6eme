@@ -69,12 +69,17 @@ const PropertyState = (function () {
 
   function get() { return data; }
 
-  function placedAt(x, y) {
-    return data.placed.find(entry => {
+  // What sits on a tile. Objects come before ground, so the topmost thing
+  // is the one answered first.
+  function placedAt(x, y, layer) {
+    const covers = entry => {
       const item = CATALOG.item(entry.id);
       if (!item) return false;
+      if (layer && CATALOG.layerOf(item) !== layer) return false;
       return x >= entry.x && x < entry.x + item.w && y >= entry.y && y < entry.y + item.h;
-    }) || null;
+    };
+    return data.placed.filter(covers)
+      .sort((a, b) => CATALOG.layerOf(CATALOG.item(a.id)) === "ground" ? 1 : -1)[0] || null;
   }
 
   function overlapsHouse(x, y, w, h) {
@@ -83,18 +88,22 @@ const PropertyState = (function () {
            y < house.y + house.h && y + h > house.y;
   }
 
-  /* Can a footprint of w x h tiles sit with its top-left corner on x,y?
-     ignoreUid lets an object be tested against its own current spot when
-     it is being moved. */
-  function canPlace(x, y, w, h, ignoreUid) {
-    if (x < 0 || y < 0 || x + w > data.land.cols || y + h > data.land.rows) return false;
-    if (overlapsHouse(x, y, w, h)) return false;
+  /* Can this item sit with its top-left corner on x,y? Two things only
+     get in each other's way when they belong to the same layer: a path
+     and a field fight over a tile, a hen and a path do not. The house
+     takes both layers. ignoreUid lets something be tested against its
+     own current spot while it is being moved. */
+  function canPlace(item, x, y, ignoreUid) {
+    if (!item) return false;
+    if (x < 0 || y < 0 || x + item.w > data.land.cols || y + item.h > data.land.rows) return false;
+    if (overlapsHouse(x, y, item.w, item.h)) return false;
+    const layer = CATALOG.layerOf(item);
     return !data.placed.some(entry => {
       if (entry.uid === ignoreUid) return false;
-      const item = CATALOG.item(entry.id);
-      if (!item) return false;
-      return x < entry.x + item.w && x + w > entry.x &&
-             y < entry.y + item.h && y + h > entry.y;
+      const other = CATALOG.item(entry.id);
+      if (!other || CATALOG.layerOf(other) !== layer) return false;
+      return x < entry.x + other.w && x + item.w > entry.x &&
+             y < entry.y + other.h && y + item.h > entry.y;
     });
   }
 
@@ -135,7 +144,7 @@ const PropertyState = (function () {
   function buyAt(id, x, y) {
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
-    if (!canPlace(x, y, item.w, item.h, null)) return null;
+    if (!canPlace(item, x, y, null)) return null;
     data.coins -= item.price;
     const uid = data.nextUid++;
     data.placed.push({ uid, id, x, y });
@@ -147,7 +156,7 @@ const PropertyState = (function () {
     const index = data.storage.findIndex(entry => entry.uid === uid);
     if (index === -1) return false;
     const item = CATALOG.item(data.storage[index].id);
-    if (!item || !canPlace(x, y, item.w, item.h, uid)) return false;
+    if (!item || !canPlace(item, x, y, uid)) return false;
     data.placed.push({ uid, id: data.storage[index].id, x, y });
     data.storage.splice(index, 1);
     changed();
@@ -158,7 +167,7 @@ const PropertyState = (function () {
     const entry = data.placed.find(one => one.uid === uid);
     if (!entry) return false;
     const item = CATALOG.item(entry.id);
-    if (!item || !canPlace(x, y, item.w, item.h, uid)) return false;
+    if (!item || !canPlace(item, x, y, uid)) return false;
     entry.x = x;
     entry.y = y;
     changed();

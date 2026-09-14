@@ -22,6 +22,7 @@
 const CATALOG = (function () {
 
   const CATEGORIES = [
+    { id: "ground",    label: "Terrain",   icon: "🟫" },
     { id: "animals",   label: "Animaux",   icon: "🐔" },
     { id: "nature",    label: "Nature",    icon: "🌳" },
     { id: "garden",    label: "Jardin",    icon: "🪑" },
@@ -29,6 +30,10 @@ const CATALOG = (function () {
   ];
 
   const ITEMS = [
+    // ---------- ground: laid on the soil, other things stand on it ----------
+    { id: "path",  fr: "Chemin", en: "a path",  price: 15, w: 1, h: 1, layer: "ground", category: "ground", asset: "path.svg" },
+    { id: "field", fr: "Champ",  en: "a field", price: 25, w: 1, h: 1, layer: "ground", category: "ground", asset: "field.svg" },
+
     // ---------- animals ----------
     { id: "chicken", fr: "Poule",  en: "a hen",    price: 60,  w: 1, h: 1, category: "animals", asset: "chicken.svg" },
     { id: "duck",    fr: "Canard", en: "a duck",   price: 70,  w: 1, h: 1, category: "animals", asset: "duck.svg" },
@@ -50,7 +55,6 @@ const CATALOG = (function () {
     { id: "pond",       fr: "Mare",       en: "a pond",         price: 260, w: 2, h: 2, category: "nature", asset: "pond.svg" },
 
     // ---------- garden ----------
-    { id: "path",         fr: "Chemin",             en: "a path",          price: 15,  w: 1, h: 1, category: "garden", asset: "path.svg" },
     { id: "fence",        fr: "Barrière",           en: "a fence",         price: 20,  w: 1, h: 1, category: "garden", asset: "fence.svg" },
     { id: "sign",         fr: "Panneau",            en: "a sign",          price: 40,  w: 1, h: 1, category: "garden", asset: "sign.svg" },
     { id: "barrel",       fr: "Tonneau",            en: "a barrel",        price: 50,  w: 1, h: 1, category: "garden", asset: "barrel.svg" },
@@ -75,6 +79,8 @@ const CATALOG = (function () {
     CATEGORIES,
     ITEMS,
     item(id) { return BY_ID[id] || null; },
+    // Everything is an object unless it says otherwise.
+    layerOf(item) { return item && item.layer === "ground" ? "ground" : "object"; },
     assetUrl(id) {
       const item = BY_ID[id];
       return item ? "assets/items/" + item.asset : "";

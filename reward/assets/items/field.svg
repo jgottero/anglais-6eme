@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Ploughed soil: a ground tile, objects can stand on top of it -->
+  <rect width="32" height="32" fill="#8a5a34"/>
+  <rect width="32" height="32" fill="#7b4f2c" opacity=".4"/>
+  <g fill="#9c6a3e">
+    <rect x="0" y="2" width="32" height="5" rx="2.5"/>
+    <rect x="0" y="12" width="32" height="5" rx="2.5"/>
+    <rect x="0" y="22" width="32" height="5" rx="2.5"/>
+  </g>
+  <g fill="#6b4222" opacity=".7">
+    <rect x="0" y="8" width="32" height="2.4" rx="1.2"/>
+    <rect x="0" y="18" width="32" height="2.4" rx="1.2"/>
+    <rect x="0" y="28" width="32" height="2.4" rx="1.2"/>
+  </g>
+  <g fill="#5f9a3c">
+    <circle cx="7" cy="4.5" r="1.6"/>
+    <circle cx="21" cy="14.5" r="1.6"/>
+    <circle cx="13" cy="24.5" r="1.6"/>
+    <circle cx="27" cy="24.5" r="1.6"/>
+  </g>
+  <g fill="#a87848" opacity=".6">
+    <circle cx="16" cy="9.4" r=".9"/>
+    <circle cx="26" cy="19.4" r=".9"/>
+    <circle cx="5" cy="19.4" r=".9"/>
+  </g>
+</svg>

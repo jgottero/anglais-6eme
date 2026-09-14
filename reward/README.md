@@ -31,8 +31,14 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   haut à gauche (il préviendra l'application d'apprentissage), et en bas
   les boutons **Magasin** et **Coffre** avec le nombre d'objets en attente.
   Toucher les pièces en ajoute 100 — raccourci de prototype.
-* **Magasin** : 30 objets en quatre familles (animaux, nature, jardin,
-  bâtiments). Chaque fiche affiche le nom français et le nom anglais.
+* **Magasin** : 31 objets en cinq familles (terrain, animaux, nature,
+  jardin, bâtiments). Chaque fiche affiche le nom français et le nom
+  anglais.
+* **Deux couches** : le *terrain* (chemin, champ) se pose sur le sol, tout
+  le reste se pose dessus. Une case ne peut porter qu'un seul terrain et
+  qu'un seul objet : un chemin et un champ se disputent la case, une poule
+  et un chien aussi, mais la poule se pose sans problème sur le chemin.
+  La maison, elle, occupe les deux couches.
 * Deux façons d'acheter : le bouton prix met l'objet **dans le coffre**,
   ou bien on glisse le dessin de l'objet directement sur le terrain —
   l'achat est alors réglé à l'endroit où il se pose. Rien n'est débité si
@@ -98,9 +104,11 @@ reward/
 
 1. Déposer un SVG dans `assets/items/`. L'échelle est de **32 px par
    case** : un objet de 2 × 1 cases se dessine dans un `viewBox` de
-   `0 0 64 32`, posé sur le bas du cadre.
+   `0 0 64 32`, posé sur le bas du cadre. Un terrain, lui, remplit son
+   cadre bord à bord.
 2. Ajouter une ligne dans `js/catalog.js` (`id`, `fr`, `en`, `price`,
-   `w`, `h`, `category`, `asset`). L'objet apparaît aussitôt en magasin.
+   `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un
+   terrain). L'objet apparaît aussitôt en magasin.
 
 Ne jamais renommer un `id` déjà utilisé : c'est lui qui est écrit dans la
 sauvegarde.

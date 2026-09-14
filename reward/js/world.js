@@ -147,13 +147,20 @@ const World = (function () {
     house.innerHTML = '<img src="assets/house.svg" alt="La maison" draggable="false">';
     world.appendChild(house);
 
-    // Drawn from the back of the plot to the front, so an object standing
-    // lower on the ground overlaps the one behind it.
-    data.placed.slice().sort((a, b) => a.y - b.y).forEach(entry => {
+    /* The ground (paths, fields) is laid down first, then everything that
+       stands on it, each layer from the back of the plot to the front so
+       that what is lower overlaps what is behind it. */
+    const rank = entry => {
+      const item = CATALOG.item(entry.id);
+      return CATALOG.layerOf(item) === "ground" ? 0 : 1;
+    };
+    data.placed.slice().sort((a, b) => rank(a) - rank(b) || a.y - b.y).forEach(entry => {
       const item = CATALOG.item(entry.id);
       if (!item) return;
       const node = document.createElement("div");
-      node.className = "ob" + (entry.uid === selectedUid ? " is-selected" : "");
+      node.className = "ob" +
+        (CATALOG.layerOf(item) === "ground" ? " is-ground" : "") +
+        (entry.uid === selectedUid ? " is-selected" : "");
       node.dataset.uid = entry.uid;
       node.style.cssText = box(entry.x, entry.y, item.w, item.h);
       node.innerHTML = '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">';
@@ -354,7 +361,7 @@ const World = (function () {
       const x = Math.round(Math.max(0, Math.min(land.cols - gesture.item.w, point.x - gesture.offsetX)));
       const y = Math.round(Math.max(0, Math.min(land.rows - gesture.item.h, point.y - gesture.offsetY)));
       gesture.target = { x, y };
-      gesture.ok = PropertyState.canPlace(x, y, gesture.item.w, gesture.item.h, gesture.uid);
+      gesture.ok = PropertyState.canPlace(gesture.item, x, y, gesture.uid);
       showGhost(x, y, gesture.item, gesture.ok, false);
       // The object follows the finger; the ghost shows where it lands.
       gesture.node.style.transform =
@@ -366,7 +373,7 @@ const World = (function () {
     if (fromPanel(gesture)) {
       const target = centredTarget(event.clientX, event.clientY, gesture.item);
       gesture.target = target;
-      gesture.ok = PropertyState.canPlace(target.x, target.y, gesture.item.w, gesture.item.h, null);
+      gesture.ok = PropertyState.canPlace(gesture.item, target.x, target.y, null);
       showGhost(target.x, target.y, gesture.item, gesture.ok, true);
     }
   }
@@ -457,7 +464,7 @@ const World = (function () {
     if (!item) return;
     const target = centredTarget(event.clientX, event.clientY, item);
     showGhost(target.x, target.y, item,
-      PropertyState.canPlace(target.x, target.y, item.w, item.h, null), true);
+      PropertyState.canPlace(item, target.x, target.y, null), true);
   }
 
   function tapOnGround(event) {
