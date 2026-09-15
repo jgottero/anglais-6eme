@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" width="32" height="16">
+  <!-- What the shop sells: a length of low stone wall -->
+  <rect x="2" y="4.4" width="28" height="7.2" fill="#aeb7be" stroke="#7d868d" stroke-width=".9"/>
+  <g stroke="#98a1a8" stroke-width=".8"><path d="M2 8h28M9 4.4v3.6M17 8v3.6M24 4.4v3.6"/></g>
+  <g fill="#b4bcc2" stroke="#7d868d" stroke-width=".9">
+    <rect x="0.6" y="2.8" width="8.8" height="10.4" rx="1.2"/>
+    <rect x="22.6" y="2.8" width="8.8" height="10.4" rx="1.2"/>
+  </g>
+  <g stroke="#d3d9dd" stroke-width=".9"><path d="M1.2 3.6h7.6M23.2 3.6h7.6"/></g>
+</svg>

@@ -14,14 +14,17 @@
    ===================================================================== */
 (function () {
 
-  /* ---- What a rank is worth ----
-     Enough for a small animal at every rank, and a real prize every ten
-     ranks so a long run of work ends on something big. */
-  function rewardForTier(tier) {
-    return 50 + (tier % 10 === 0 ? 150 : 0);
+  /* ---- What a level is worth ----
+     There are a hundred of them, and they are the spine of the whole
+     module: every one pays, every fifth opens a new shelf in the shop,
+     every tenth pays handsomely. The purse grows with the level because
+     what the shop offers grows with it too — a hen at the start, a big
+     wheel at the end. */
+  function rewardForTier(level) {
+    return 100 + 10 * level +
+      (level % 5 === 0 ? 250 : 0) +
+      (level % 10 === 0 ? 500 : 0);
   }
-
-  const COINS_PER_TAP = 100; // prototype only: tapping the purse pays
 
   let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, barEl, toastEl;
   let sceneEl, exitEl, backEl;
@@ -83,10 +86,16 @@
       button.addEventListener("click", () => openShop(false));
     });
 
-    // Prototype shortcut, standing in for the learning app.
+    /* Prototype shortcut, standing in for the learning app: a press on
+       the purse is a level passed, with the coins and the new shelf of
+       the shop that come with it. */
     purseEl.addEventListener("click", () => {
-      PropertyState.addCoins(COINS_PER_TAP);
-      toast("+" + COINS_PER_TAP + " pièces");
+      const next = PropertyState.level() + 1;
+      if (next > CATALOG.LAST_LEVEL) {
+        toast("Niveau " + CATALOG.LAST_LEVEL + " : tu as tout débloqué !");
+        return;
+      }
+      window.REWARD.grantTier(next);
     });
 
     document.getElementById("back").addEventListener("click", () => {
@@ -132,6 +141,16 @@
     World.render();
     renderActionBar(World.selected());
     renderHand(World.isPlacing());
+  }
+
+  /* What a level brings, in one line: the coins first, and then the news
+     that matters — the shop has new shelves. The count is what the child
+     can actually see from where they stand. */
+  function levelNews(result) {
+    const line = "Niveau " + result.tier + " ! +" + result.amount + " pièces";
+    const fresh = CATALOG.newAt(result.level);
+    if (!fresh.length) return line + ".";
+    return line + " — " + fresh.length + " nouveautés au magasin !";
   }
 
   /* ---- Going from one scene to another ----
@@ -362,11 +381,12 @@
   window.REWARD = {
     grantTier(tier) {
       const result = PropertyState.grantTier(tier, rewardForTier(tier));
-      if (result) toast("Palier " + tier + " atteint ! +" + result.amount + " pièces.");
+      if (result) toast(levelNews(result));
       return result;
     },
     addCoins(amount) { return PropertyState.addCoins(amount); },
     coins() { return PropertyState.get().coins; },
+    level() { return PropertyState.level(); },
     // Starting the property over, from the console or from the main app.
     reset() {
       PropertyState.reset();

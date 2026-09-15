@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- The run of wall down to the pillar below -->
+  <rect x="4.6" y="0" width="6.8" height="16" fill="#aeb7be" stroke="#7d868d" stroke-width=".8"/>
+  <g stroke="#98a1a8" stroke-width=".7"><path d="M4.6 5h6.8M4.6 11h6.8"/></g>
+</svg>

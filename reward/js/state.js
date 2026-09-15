@@ -158,14 +158,24 @@ const PropertyState = (function () {
   }
 
   /* Pays the reward for a rank of the learning app. Ranks already paid
-     are ignored, so the main app can call this as often as it likes. */
+     are ignored, so the main app can call this as often as it likes.
+     The answer says which level the child was on and which one they are
+     on now, because a level is what opens the shop's next shelf. */
   function grantTier(tier, amount) {
     if (data.tiers.indexOf(tier) !== -1) return null;
+    const was = level();
     data.tiers.push(tier);
     data.coins += amount;
     changed();
-    return { tier, amount, coins: data.coins };
+    return { tier, amount, coins: data.coins, was, level: level() };
   }
+
+  /* The level reached: the highest rank ever rewarded. It is worked out
+     from the ranks themselves, so nothing can drift out of step. */
+  function level() {
+    return data.tiers.length ? Math.max.apply(null, data.tiers) : 0;
+  }
+
 
   /* ---- Buying, moving, selling ---- */
 
@@ -175,6 +185,7 @@ const PropertyState = (function () {
   function buyAt(id, x, y, turn, mirror) {
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
+    if (!CATALOG.unlocked(item, level())) return null;   // not yet earned
     if (!canPlace(item, x, y, null, turn)) return null;
     data.coins -= item.price;
     const uid = data.nextUid++;
@@ -305,7 +316,7 @@ const PropertyState = (function () {
     scene, sceneId, enter, wayOut,
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
-    addCoins, grantTier,
+    addCoins, grantTier, level,
     buyAt, move, turn, mirror, sell, reset
   };
 })();

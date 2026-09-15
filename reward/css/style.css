@@ -112,6 +112,39 @@ button { font: inherit; cursor: pointer; }
 .plot-tag b { display: flex; align-items: center; gap: 6px; color: #f2c94c; }
 .plot-tag img { width: 22px; height: 22px; }
 
+/* ---- The shop, level by level ---- */
+
+/* Where the child is on the way to a hundred levels, right under the
+   title of the shop. */
+.screen-level {
+  margin: 0 18px 10px;
+  color: #6d5a3f;
+  font-size: 15px;
+}
+.screen-level b { color: #3f2f1c; }
+
+/* A card for something the next levels will bring: still on the shelf,
+   so the child can see what the work is for, but plainly not for sale
+   yet. */
+.card.is-coming {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+  cursor: default;
+}
+.card.is-coming .coming {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(63, 47, 28, 0.85);
+  color: #fdf6e7;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .blk, .ob, .ghost { position: absolute; }
 
 .blk img, .ob img, .ghost img, .join-cell img {

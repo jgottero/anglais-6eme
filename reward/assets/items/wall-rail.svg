@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- The run of wall between one pillar and the next one across -->
+  <rect x="0" y="4.4" width="16" height="7.2" fill="#aeb7be" stroke="#7d868d" stroke-width=".8"/>
+  <g stroke="#98a1a8" stroke-width=".7"><path d="M0 8h16M4 4.4v3.6M11 8v3.6"/></g>
+</svg>

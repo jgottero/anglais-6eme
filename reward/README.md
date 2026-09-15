@@ -1,8 +1,9 @@
 # Module « récompense » — Ma propriété
 
-Prototype autonome : l'enfant gagne des pièces en franchissant des paliers
-dans l'application d'apprentissage, puis les dépense pour aménager sa
-propriété et sa maison, vues de dessus.
+Prototype autonome : l'enfant gagne des pièces en franchissant des
+**niveaux** dans l'application d'apprentissage, puis les dépense pour
+aménager sa propriété et sa maison, vues de dessus. Il y a cent niveaux,
+et tous les cinq le magasin ouvre une nouvelle étagère.
 
 Ce dossier ne dépend de rien du reste du dépôt (`index.html`, `farm.js`,
 `words.js`) et l'inverse est vrai aussi : le module se lance seul.
@@ -100,13 +101,42 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   verger, le sable autour du lac. Quand deux taches se recouvrent, la
   première l'emporte : c'est ainsi que le ponton du lac et la jetée du
   port passent par-dessus l'eau au lieu d'être avalés par elle.
+* **Cent niveaux, et le magasin qui s'ouvre** : l'application
+  d'apprentissage fait monter l'enfant de niveau ; chaque niveau paie, et
+  **tous les cinq niveaux une dizaine de nouveautés** arrivent en
+  magasin. Le catalogue compte **228 objets et terrains** en tout :
+  26 dès le premier jour (de quoi faire un jardin et meubler une
+  chambre), puis vingt fournées de dix, de plus en plus chères et de plus
+  en plus spectaculaires.
+
+  | Niveau | Ce qui arrive | Niveau | Ce qui arrive |
+  | --- | --- | --- | --- |
+  | 0 | le jardin de départ | 55 | l'eau : **piscine**, fontaine, jacuzzi |
+  | 5 | le potager | 60 | le sport |
+  | 10 | le verger | 65 | la salle de bain et la cuisine |
+  | 15 | les allées et les sols | 70 | le grand salon (piano, aquarium) |
+  | 20 | la basse-cour | 75 | la nature sauvage (cerf, renard) |
+  | 25 | la maison s'équipe | 80 | la fête |
+  | 30 | le jardin d'agrément | 85 | les animaux d'ailleurs |
+  | 35 | la ferme (tracteur, grange) | 90 | l'hiver |
+  | 40 | **la ville** (route, feu tricolore) | 95 | les monuments |
+  | 45 | les jeux | 100 | les merveilles : phare, manège, grande roue |
+  | 50 | **la plage** | | |
+
+  Les familles ont grandi avec : Terrain, Nature, Jardin, Animaux,
+  **Ferme**, **Ville**, **Plage**, **Jeux**, Meubles, Bâtiments.
+* **Voir ce qui vient** : le magasin affiche d'abord ce qui est débloqué,
+  puis, en grisé au bout de chaque famille, la fournée suivante avec son
+  niveau (« niv. 25 »). Une ligne sous le titre rappelle où l'on en est :
+  « Niveau 12 / 100 · 10 nouveautés au niveau 15 ». Toucher un objet
+  encore verrouillé dit à quel niveau il arrive, et ne le vend pas.
 * **Magasin** : il s'ouvre en plein écran, les familles restent visibles
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
-  place là où l'enfant se trouve — 32 objets dehors (terrain, animaux,
-  nature, jardin, bâtiments), 17 dedans (meubles, porte, carrelage, tapis,
-  et le chat et le chien qui vont des deux côtés). Chaque fiche annonce
-  d'abord le **nom anglais**, en gras, le nom français en gris dessous, et
-  le prix — la taille se devine au dessin, elle n'est pas écrite.
+  place là où l'enfant se trouve — le potager et la vache dehors, la
+  baignoire et le piano dedans, le chat et le chien des deux côtés.
+  Chaque fiche annonce d'abord le **nom anglais**, en gras, le nom
+  français en gris dessous, et le prix — la taille se devine au dessin,
+  elle n'est pas écrite.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
   Un appui sur le terrain le pose et débite les pièces, **centré au plus
@@ -192,9 +222,10 @@ paliers. Deux façons de l'appeler, au choix.
 Sur la même page (les scripts du module sont chargés) :
 
 ```js
-REWARD.grantTier(rank);   // paie le palier une seule fois, même rappelé
-REWARD.addCoins(50);      // pièces hors palier
+REWARD.grantTier(level);  // paie le niveau une seule fois, même rappelé
+REWARD.addCoins(50);      // pièces hors niveau
 REWARD.coins();           // solde actuel
+REWARD.level();           // niveau atteint (0 à 100)
 REWARD.reset();           // tout effacer et recommencer
 ```
 
@@ -211,10 +242,20 @@ reprendra la main.
 
 `REWARD.reset()` efface la propriété et rend la mise de départ.
 
-Un palier déjà payé est ignoré (`grantTier` renvoie `null`), donc
-l'application principale peut rejouer ses paliers sans risque de double
-récompense. Le barème est dans `js/app.js` (`rewardForTier`) : 50 pièces
-par palier, 200 tous les dix paliers.
+Un niveau déjà payé est ignoré (`grantTier` renvoie `null`), donc
+l'application principale peut rejouer ses niveaux sans risque de double
+récompense. Le niveau atteint est simplement le plus haut jamais payé, et
+c'est lui qui décide de ce que le magasin propose.
+
+Le barème est dans `js/app.js` (`rewardForTier`) : **100 + 10 × niveau**,
+plus 250 tous les cinq niveaux et 500 tous les dix. Cela fait 110 pièces
+au niveau 1, 1850 au niveau 100, et **70 500 pièces** sur la partie
+entière — de quoi acheter les onze parcelles (46 800) et beaucoup de
+choses à poser dessus, sans pouvoir tout prendre : il faut choisir.
+
+Dans le prototype, **un appui sur la bourse fait passer un niveau** (et
+donc gagner ses pièces et ses nouveautés) : c'est ce qui remplace
+l'application d'apprentissage tant qu'elle n'est pas branchée.
 
 ## Organisation
 
@@ -249,11 +290,12 @@ reward/
    4 × 2 dans `0 0 64 32`, un poteau de 1 × 1 dans `0 0 16 16`. Un
    terrain remplit son cadre bord à bord.
 2. Ajouter une ligne dans `js/catalog.js` (`id`, `fr`, `en`, `price`,
-   `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un terrain,
-   `where: "in"` ou `"both"` pour ce qui se vend dans la maison,
+   `level`, `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un
+   terrain, `where: "in"` ou `"both"` pour ce qui se vend dans la maison,
    `turns: true` pour ce qui peut être orienté ; le miroir, lui, marche
-   sans rien déclarer). L'objet apparaît aussitôt en magasin, du bon côté
-   des murs.
+   sans rien déclarer). Le `level` est le niveau qui le met en rayon : 0
+   pour le premier jour, un multiple de cinq ensuite. L'objet apparaît
+   aussitôt en magasin, au bon niveau et du bon côté des murs.
 3. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` avec
    `group` (avec quoi il s'assemble) et, au choix, l'une des deux
    manières :
