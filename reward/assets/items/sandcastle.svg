@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <g transform="scale(0.5)">
   <ellipse cx="16" cy="28" rx="13" ry="3" fill="#000" opacity=".13"/>
   <g fill="#e8d7a8" stroke="#c0a769" stroke-width="1.4">
     <path d="M3 28V14h7v14z"/><path d="M22 28V14h7v14z"/><path d="M10 28V18h12v10z"/>
@@ -10,4 +11,5 @@
   <path d="M16 18V8" stroke="#8f7f63" stroke-width="1.2"/>
   <path d="M16 8l6 2-6 2z" fill="#c8413c"/>
   <rect x="13" y="22" width="6" height="6" rx="1" fill="#c0a769"/>
+  </g>
 </svg>

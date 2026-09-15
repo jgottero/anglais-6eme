@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <g transform="scale(0.5)">
   <ellipse cx="16" cy="29" rx="8" ry="2.4" fill="#000" opacity=".14"/>
   <path d="M12 4c0-3 8-3 8 0" fill="none" stroke="#6f7880" stroke-width="1.6"/>
   <rect x="9" y="4" width="14" height="4" rx="1.5" fill="#6f7880" stroke="#4a4f55" stroke-width="1.2"/>
@@ -6,4 +7,5 @@
   <g stroke="#c99a37" stroke-width="1.2"><path d="M13 8v16M19 8v16"/></g>
   <path d="M13 14h6v8h-6z" fill="#f2c94c"/>
   <rect x="8" y="24" width="16" height="5" rx="1.5" fill="#6f7880" stroke="#4a4f55" stroke-width="1.2"/>
+  </g>
 </svg>

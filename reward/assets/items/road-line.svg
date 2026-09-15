@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" fill="#4e5257"/>
-  <g fill="#585d62"><circle cx="6" cy="20" r="1.5"/><circle cx="26" cy="10" r="1.4"/></g>
-  <g fill="#f0e9d8"><rect x="14" y="1" width="4" height="10" rx="1"/><rect x="14" y="21" width="4" height="10" rx="1"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- Road with a centre line: the line itself is drawn towards each
+       neighbouring piece, so a run of them carries one line through -->
+  <rect width="16" height="16" fill="#4e5257"/>
+  <g fill="#585d62"><circle cx="4" cy="11" r=".9"/><circle cx="12" cy="4" r=".8"/></g>
+  <rect x="6.6" y="6.6" width="2.8" height="2.8" rx="1" fill="#f0e9d8"/>
 </svg>

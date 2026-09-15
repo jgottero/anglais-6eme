@@ -629,7 +629,7 @@ const World = (function () {
   function refuse(item, x, y, turn) {
     if (!hooks.onRefused) return;
     const size = item ? CATALOG.footprint(item, turn) : { w: 1, h: 1 };
-    if (!PropertyState.buildable(x, y, size.w, size.h)) return;
+    if (!PropertyState.buildable(x, y, size.w, size.h, item)) return;
     hooks.onRefused("Il n'y a pas la place ici.");
   }
 

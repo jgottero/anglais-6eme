@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- What the shop sells: a piece of stream, banks and all -->
+  <rect width="32" height="32" fill="#8a6f4a"/>
+  <rect x="6" width="20" height="32" fill="#45b0dc"/>
+  <g stroke="#6b5434" stroke-width="1"><path d="M6 0v32M26 0v32"/></g>
+  <g stroke="#a9e2f6" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".85">
+    <path d="M9 9c2.5-2.5 5 2.5 7.5 0"/><path d="M14 22c2.5-2.5 5 2.5 7.5 0"/>
+  </g>
+  <g fill="#b4bcc2"><circle cx="3" cy="7" r="2"/><circle cx="29" cy="14" r="1.8"/><circle cx="3" cy="24" r="1.6"/><circle cx="29" cy="27" r="2"/></g>
+</svg>

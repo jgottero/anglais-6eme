@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" width="32" height="16">
+  <!-- What the shop sells: a length of hedge, trimmed all round -->
+  <rect width="32" height="16" fill="#2f7a2c"/>
+  <g fill="#3f9a37"><circle cx="5" cy="6" r="3.4"/><circle cx="13" cy="5" r="3.6"/><circle cx="21" cy="6" r="3.4"/><circle cx="28" cy="5" r="3"/>
+    <circle cx="9" cy="11" r="3"/><circle cx="17" cy="11" r="3.2"/><circle cx="25" cy="11" r="3"/></g>
+  <g fill="#57b34a"><circle cx="8" cy="7" r="1.6"/><circle cx="20" cy="9" r="1.4"/><circle cx="29" cy="9" r="1.2"/></g>
+  <g fill="#245f22"><rect width="32" height="3" /><rect y="13" width="32" height="3"/></g>
+  <g stroke="#1b4a1a" stroke-width=".8"><path d="M0 3h32M0 13h32"/></g>
+</svg>

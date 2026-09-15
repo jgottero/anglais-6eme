@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- The centre line running across, from one piece to the next -->
+  <rect x="0" y="6.6" width="4.6" height="2.8" rx="1" fill="#f0e9d8"/>
+  <rect x="11.4" y="6.6" width="4.6" height="2.8" rx="1" fill="#f0e9d8"/>
+</svg>

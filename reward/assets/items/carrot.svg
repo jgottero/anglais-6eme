@@ -1,9 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <g transform="scale(0.5)">
   <ellipse cx="16" cy="27" rx="11" ry="3" fill="#000" opacity=".13"/>
   <g fill="#e8801f" stroke="#b25c12" stroke-width="1.2">
     <path d="M8 14l3 12 3-12z"/><path d="M18 12l3 14 3-14z"/>
   </g>
   <g fill="none" stroke="#3f8b34" stroke-width="1.8" stroke-linecap="round">
     <path d="M11 14V8M11 11L7 7M11 11l4-4M21 12V6M21 9l-4-4M21 9l4-4"/>
+  </g>
   </g>
 </svg>

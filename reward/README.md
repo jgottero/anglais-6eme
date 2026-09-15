@@ -24,12 +24,14 @@ zéro, `REWARD.reset()` dans la console du navigateur.
 
 La propriété occupe tout l'écran ; le reste flotte par-dessus.
 
-* Une maison et un terrain vus de dessus, posés sur une grille fine : un
-  objet courant (poule, chaise, chemin) occupe 2 × 2 cases, une porte
-  seulement 2 × 1, un poteau de barrière une seule case. Les murs des
-  intérieurs font une case, et chaque pièce compte un nombre pair de
-  cases dans les deux sens, pour qu'un sol puisse la couvrir
-  entièrement.
+* Une maison et un terrain vus de dessus, posés sur une grille fine. Les
+  tailles vont de **1 × 1 à 8 × 8** : un ballon, une poubelle, une fleur
+  ou un poteau tiennent sur une case ; une poule, une chaise, un chemin
+  en occupent 2 × 2 ; un cheval ou un tracteur 6 × 3 ; le moulin 6 × 9 et
+  la grande roue 8 × 8. C'est cette différence d'échelle qui fait qu'une
+  propriété ressemble à quelque chose. Les murs des intérieurs font une
+  case, et chaque pièce compte un nombre pair de cases dans les deux
+  sens, pour qu'un sol puisse la couvrir entièrement.
 * **Caméra** : glisser n'importe où sur le terrain la déplace (sauf sur
   l'objet sélectionné, qui suit alors le doigt), deux doigts (ou la
   molette) zooment. On ne peut pas dézoomer au-delà du terrain entier ;
@@ -154,13 +156,22 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   assez de pièces pour le suivant.
 * Rien n'est débité si la case est prise. Un glisser garde son sens
   habituel même avec un objet en main : il déplace la caméra.
-* **La piscine se construit case par case** : c'est un terrain, qui se
-  raccorde comme la barrière mais dans l'autre sens — au lieu d'un
-  morceau entre deux voisines, **des dalles sur chaque côté où la
-  piscine s'arrête**, avec l'angle qu'il faut à chaque coin et le
-  raccord qui tourne quand la forme revient sur elle-même. On dessine
-  donc un bassin de la forme qu'on veut, même en L, et il est toujours
-  entouré de sa margelle ; au milieu, il n'y a que de l'eau.
+* **Six objets se raccordent à leurs voisins**, de deux manières.
+
+  *Tout autour* — ce qui a un bord : la **piscine** et sa margelle de
+  dalles, la **haie** et ses côtés taillés, le **ruisseau** et ses
+  berges. Chacun occupe une case ; le bord n'est dessiné que sur les
+  côtés où la forme s'arrête, avec l'angle qu'il faut à chaque coin et
+  le raccord qui tourne quand la forme revient sur elle-même. On dessine
+  donc un bassin, une haie ou un cours d'eau de la forme qu'on veut,
+  même en L, toujours bordé comme il faut ; au milieu, il n'y a que de
+  l'eau ou du feuillage.
+
+  *Entre deux voisins* — ce qui fait une ligne : la **barrière** (ci-
+  dessous), le **muret** de pierre et la **route à bandes**, dont la
+  ligne blanche court d'une case à la suivante et tourne avec la route.
+  Une case isolée reste un poteau, un bout de mur, un morceau de
+  bitume.
 * **Les barrières se rejoignent** : une barrière occupe **une case** et
   se pose comme un poteau. Dès qu'une deuxième est posée à côté — à
   droite, à gauche, au-dessus ou en dessous — les deux ne font plus
@@ -184,6 +195,13 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   posé. L'emprise ne change pas, donc c'est toujours possible, et les
   deux se combinent : une porte peut être tournée puis retournée. Sur un
   dessin symétrique, cela ne se voit simplement pas.
+* **On bâtit sur l'eau quand cela a un sens** : la mer et le lac
+  refusent tout — sauf ce qui flotte. Un **ponton**, une **barque**, un
+  **bateau pirate**, un **pont**, une **bouée**, une planche de surf, un
+  cygne, un canard, un nénuphar se posent sur l'eau comme sur la terre ;
+  une poule, un banc ou un tracteur, non. C'est un mot du catalogue
+  (`wet`) : sans lui, l'eau reste interdite, et un appui sur la mer ne
+  fait toujours rien.
 * **Deux couches** : le *terrain* (chemin, champ, piscine) se pose sur le sol, tout
   le reste se pose dessus. Une case ne peut porter qu'un seul terrain et
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
@@ -296,7 +314,10 @@ reward/
    sans rien déclarer). Le `level` est le niveau qui le met en rayon : 0
    pour le premier jour, un multiple de cinq ensuite. L'objet apparaît
    aussitôt en magasin, au bon niveau et du bon côté des murs.
-3. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` avec
+3. Ajouter `wet: true` à ce qui doit pouvoir se poser **sur l'eau** (un
+   ponton, un bateau, un oiseau d'eau). Sans ce mot, la mer et le lac le
+   refusent.
+4. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` avec
    `group` (avec quoi il s'assemble) et, au choix, l'une des deux
    manières :
    * *entre deux voisins* — `across` (le morceau dessiné entre deux

@@ -21,7 +21,7 @@
 const PropertyState = (function () {
 
   const KEY = "reward-property-v1";
-  const VERSION = 6;   // the shape of the save; an older one is dropped
+  const VERSION = 7;   // the shape of the save; an older one is dropped
   const START_COINS = 150;
 
   function blank() {
@@ -96,18 +96,23 @@ const PropertyState = (function () {
 
   function sceneId() { return data.current; }
 
-  // Only ground one owns can be built on: outside, the plots bought;
-  // inside, the floor of the room. The rest can be looked at, no more.
-  function buildable(x, y, w, h) {
+  /* Only ground one owns can be built on: outside, the plots bought;
+     inside, the floor of the room. The rest can be looked at, no more.
+
+     Water is ground too, and one does not build on the sea — but a
+     jetty, a boat, a swan belong there and nowhere else, so an object
+     that floats is let through. Asked without an object (a bare tile,
+     the way the view tests a press), the sea stays out of bounds. */
+  function buildable(x, y, w, h, item) {
     const place = scene();
     const plots = place.plots.filter(plot => plot.owned);
+    const floats = CATALOG.floats(item);
     for (let ty = y; ty < y + h; ty++) {
       for (let tx = x; tx < x + w; tx++) {
         const covered = plots.some(plot =>
           tx >= plot.x && tx < plot.x + plot.w && ty >= plot.y && ty < plot.y + plot.h);
         if (!covered) return false;
-        // Water is ground too, and one does not build on the sea.
-        if (Ground.look(place, tx, ty) === "water") return false;
+        if (!floats && Ground.look(place, tx, ty) === "water") return false;
       }
     }
     return true;
@@ -136,7 +141,7 @@ const PropertyState = (function () {
     const size = CATALOG.footprint(item, turn);
     const land = scene().land;
     if (x < 0 || y < 0 || x + size.w > land.cols || y + size.h > land.rows) return false;
-    if (!buildable(x, y, size.w, size.h)) return false;
+    if (!buildable(x, y, size.w, size.h, item)) return false;
     if (overlapsBlock(x, y, size.w, size.h)) return false;
     const layer = CATALOG.layerOf(item);
     return !scene().placed.some(entry => {
