@@ -72,6 +72,13 @@
     tellParent();
     sceneEl.textContent = PropertyState.scene().name;
     showWayOut(PropertyState.scene());
+    /* What the save could not keep came back as coins; saying so is
+       better than letting the child hunt for a missing bench. */
+    const paid = PropertyState.mendedCoins();
+    if (paid) {
+      toast("Quelques objets ne tenaient plus ici : +" + paid + " pièces rendues.");
+      return;
+    }
     const left = PropertyState.plotsForSale().length;
     toast(left
       ? "Glisse pour te déplacer, pince pour zoomer. Les terrains sombres sont à vendre."
@@ -88,10 +95,14 @@
       button.addEventListener("click", () => openShop(false));
     });
 
-    /* Prototype shortcut, standing in for the learning app: a press on
-       the purse is a level passed, with the coins and the new shelf of
-       the shop that come with it. */
+    /* A press on the purse passes a level — but only when the module is
+       opened on its own, to try it out. Inside the learning app the
+       levels are earned in the exercises and nowhere else. */
     purseEl.addEventListener("click", () => {
+      if (window.parent !== window) {
+        toast("Les pièces se gagnent dans les exercices d'anglais.");
+        return;
+      }
       const next = PropertyState.level() + 1;
       if (next > CATALOG.LAST_LEVEL) {
         toast("Niveau " + CATALOG.LAST_LEVEL + " : tu as tout débloqué !");

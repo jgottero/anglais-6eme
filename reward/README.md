@@ -224,13 +224,25 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   dans un mur latéral.
   La porte du magasin, elle, est un objet comme un autre : on l'achète,
   on la pose dans une embrasure, on la tourne, on la revend.
+* **Une sauvegarde n'est jamais jetée.** Quand la forme du fichier
+  change, `VERSION` monte d'un cran et une étape est ajoutée dans `STEPS`
+  (`js/state.js`) : elle transforme la version précédente en la suivante.
+  Faute d'étape, la sauvegarde est reprise quand même — les pièces, les
+  niveaux et les parcelles sont gardés, et **tout ce qui était posé est
+  remboursé** au prix d'achat. Au chargement, un dernier passage remet en
+  ordre ce qui ne tient plus (un objet qui a changé de taille, un objet
+  sur une case devenue eau ou mur, un objet disparu du catalogue) : lui
+  aussi est remboursé, l'enfant est prévenu (« +350 pièces rendues »), et
+  le fichier est réécrit aussitôt pour qu'un remboursement ne soit jamais
+  payé deux fois.
 * Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. La
   sauvegarde ne contient que les pièces, les parcelles achetées et les
   objets de chaque lieu : **la carte n'est jamais sauvegardée**, elle est
   reconstruite depuis `js/scenes.js` à chaque ouverture, si bien que le
   plan peut évoluer sans abîmer une propriété existante. Une sauvegarde
-  écrite par une version antérieure (`version` différente) est **effacée
-  et non convertie** : la grille sous elle n'est plus la même.
+  écrite par une version antérieure est **convertie**, jamais effacée
+  (voir ci-dessus) ; seule une sauvegarde écrite par une version plus
+  récente est ignorée, faute de savoir la lire.
 
 ## L'application d'apprentissage
 
@@ -292,7 +304,10 @@ choses à poser dessus, sans pouvoir tout prendre : il faut choisir.
 
 Quand on ouvre `reward/index.html` tout seul, **un appui sur la bourse
 fait passer un niveau** (et donc gagner ses pièces et ses nouveautés) :
-c'est ce qui permet d'essayer le module sans faire d'exercices.
+c'est ce qui permet d'essayer le module sans faire d'exercices. Ouvert
+depuis l'application, le même appui ne fait rien d'autre que rappeler
+que les pièces se gagnent dans les exercices — un raccourci d'essai n'a
+pas à devenir une machine à pièces.
 
 ## Organisation
 

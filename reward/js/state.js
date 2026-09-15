@@ -21,7 +21,7 @@
 const PropertyState = (function () {
 
   const KEY = "reward-property-v1";
-  const VERSION = 7;   // the shape of the save; an older one is dropped
+  const VERSION = 7;   // the shape of the save
   const START_COINS = 150;
 
   function blank() {
@@ -36,9 +36,23 @@ const PropertyState = (function () {
     };
   }
 
+  /* STEPS[n] turns a save of version n into one of version n + 1. Add
+     one here the day the shape changes — never a wipe. It is declared
+     before the save is read, which is why it sits this far up. */
+  const STEPS = {};
+
+  let carried = 0;    // coins handed back while reading an older save
+
   let data = load();
   let built = null;   // the scenes, rebuilt from the plots owned
   rebuild();
+
+  /* Whatever was read — a save from an older shape, an object that no
+     longer fits — the file is written back in today's shape straight
+     away, so a refund is never paid twice. */
+  let mended = carried + mend();
+  save();
+
   const listeners = [];
 
   /* The map is never saved: it is rebuilt from the plots bought, and the
@@ -52,26 +66,113 @@ const PropertyState = (function () {
     if (!built[data.current]) data.current = SCENES.first;
   }
 
-  /* Saves of an older shape are not converted: the grid under them is
-     not the one we draw any more. A property from before starts again. */
+  /* ---- Reading a save ----
+     A property is never thrown away because the module has moved on.
+     Every change of shape brings its own step below, which turns the
+     version before it into the next one; what a step cannot carry over
+     is paid back into the purse, which always means something. A save
+     from a version we have no step for is taken the same way: the
+     coins, the levels and the land are kept, and everything put down is
+     refunded.
+
+     The steps themselves are declared with the rest of the state, above:
+     they have to exist before the first save is read. */
+
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return blank();
       const saved = JSON.parse(raw);
-      if (!saved || saved.version !== VERSION) return blank();
-      const fresh = blank();
-      fresh.coins = saved.coins || 0;
-      fresh.tiers = saved.tiers || [];
-      fresh.nextUid = saved.nextUid || 1;
-      fresh.owned = Array.isArray(saved.owned) && saved.owned.length
-        ? saved.owned : [SCENES.FIRST_PLOT];
-      fresh.placed = saved.placed && typeof saved.placed === "object" ? saved.placed : {};
-      fresh.current = saved.current || SCENES.first;
-      return fresh;
+      if (!saved || typeof saved !== "object") return blank();
+      // A file written by a later version: nothing sensible to read.
+      if ((Number(saved.version) || 0) > VERSION) return blank();
+      return adopt(saved);
     } catch (err) {
       return blank();
     }
+  }
+
+  function adopt(saved) {
+    let data = saved;
+    let version = Number(data.version) || 0;
+    while (version < VERSION) {
+      const step = STEPS[version];
+      if (!step) return refunded(data);
+      data = step(data);
+      version = Number(data.version) || version + 1;
+      data.version = version;
+    }
+    return settle(data);
+  }
+
+  // Whatever the shape, these are the fields the rest of the module reads.
+  function settle(saved) {
+    const fresh = blank();
+    fresh.coins = Math.max(0, Math.round(Number(saved.coins) || 0));
+    fresh.tiers = (Array.isArray(saved.tiers) ? saved.tiers : [])
+      .filter(one => typeof one === "number" && one > 0);
+    fresh.nextUid = Math.max(1, Number(saved.nextUid) || 1);
+    const owned = (Array.isArray(saved.owned) ? saved.owned : []).filter(id => SCENES.plot(id));
+    fresh.owned = owned.length ? owned : [SCENES.FIRST_PLOT];
+    fresh.placed = saved.placed && typeof saved.placed === "object" ? saved.placed : {};
+    fresh.current = saved.current || SCENES.first;
+    return fresh;
+  }
+
+  /* The last resort, and the one the child should never notice much: the
+     purse, the levels and the land are kept, and every object that was
+     put down comes back as the coins it cost. */
+  function refunded(saved) {
+    const fresh = settle(saved);
+    Object.keys(fresh.placed).forEach(id => {
+      (fresh.placed[id] || []).forEach(entry => {
+        const item = CATALOG.item(entry && entry.id);
+        if (item) { fresh.coins += item.price; carried += item.price; }
+      });
+    });
+    fresh.placed = {};
+    return fresh;
+  }
+
+  /* Read after the scenes are built: an object whose drawing changed
+     size, one standing where the map now has water or a wall, one the
+     catalogue has dropped — each is paid back rather than left in a
+     place where it no longer belongs. Returns what that cost. */
+  function mend() {
+    let paid = 0;
+    Object.keys(built).forEach(id => {
+      const place = built[id];
+      const kept = [];
+      place.placed.forEach(entry => {
+        const item = CATALOG.item(entry && entry.id);
+        if (item && fitsIn(place, kept, item, entry)) { kept.push(entry); return; }
+        if (item) paid += item.price;
+      });
+      if (kept.length !== place.placed.length) {
+        place.placed.splice(0, place.placed.length, ...kept);
+      }
+    });
+    if (paid) { data.coins += paid; save(); }
+    return paid;
+  }
+
+  function fitsIn(place, kept, item, entry) {
+    const size = CATALOG.footprint(item, entry.r);
+    if (!(entry.x >= 0 && entry.y >= 0)) return false;
+    if (entry.x + size.w > place.land.cols || entry.y + size.h > place.land.rows) return false;
+    if (!buildableIn(place, entry.x, entry.y, size.w, size.h, item)) return false;
+    if (place.blocks.some(block => hits(entry, size, block, block))) return false;
+    const layer = CATALOG.layerOf(item);
+    return !kept.some(other => {
+      const what = CATALOG.item(other.id);
+      if (!what || CATALOG.layerOf(what) !== layer) return false;
+      return hits(entry, size, other, CATALOG.footprint(what, other.r));
+    });
+  }
+
+  function hits(entry, size, at, theirs) {
+    return entry.x < at.x + theirs.w && entry.x + size.w > at.x &&
+           entry.y < at.y + theirs.h && entry.y + size.h > at.y;
   }
 
   function save() {
@@ -104,7 +205,11 @@ const PropertyState = (function () {
      that floats is let through. Asked without an object (a bare tile,
      the way the view tests a press), the sea stays out of bounds. */
   function buildable(x, y, w, h, item) {
-    const place = scene();
+    return buildableIn(scene(), x, y, w, h, item);
+  }
+
+  // The same question asked of any scene, which is what mending needs.
+  function buildableIn(place, x, y, w, h, item) {
     const plots = place.plots.filter(plot => plot.owned);
     const floats = CATALOG.floats(item);
     for (let ty = y; ty < y + h; ty++) {
@@ -325,8 +430,13 @@ const PropertyState = (function () {
   function reset() {
     data = blank();
     rebuild();
+    mended = 0;
+    carried = 0;
     changed();
   }
+
+  // What the last load had to pay back, so the child can be told.
+  function mendedCoins() { return mended; }
 
   function subscribe(fn) {
     listeners.push(fn);
@@ -341,7 +451,7 @@ const PropertyState = (function () {
     scene, sceneId, enter, wayOut,
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
-    addCoins, grantTier, grantUpTo, level,
+    addCoins, grantTier, grantUpTo, level, mendedCoins,
     buyAt, move, turn, mirror, sell, reset
   };
 })();

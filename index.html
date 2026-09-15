@@ -467,8 +467,10 @@ const Store = {
     }
   },
 
-  // Accepts anything previously stored, including the version 1 shape which
-  // only had `words`, and starts a fresh tally when the date has turned.
+  /* Accepts anything previously stored, including the version 1 shape
+     which only had `words`, and starts a fresh tally when the date has
+     turned. A save is never thrown away because the app has moved on:
+     whatever is recognised is kept, the rest is left behind. */
   adopt(data) {
     const fresh = emptyProgress();
     if (!data) return fresh;
