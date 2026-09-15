@@ -190,12 +190,27 @@
     document.getElementById("mirror-held").hidden = false;
   }
 
-  function onPlaced(item) {
+  function onPlaced(item, spot) {
+    flyCoins(-item.price, spot);
     // Out of hand as soon as the next one is out of reach.
-    const short = PropertyState.get().coins < item.price;
-    if (short) World.cancelPlacing();
-    toast("Posé : « " + item.fr + " » (−" + item.price + " pièces)" +
-      (short ? " — il ne t'en reste plus assez" : ""));
+    if (PropertyState.get().coins < item.price) {
+      World.cancelPlacing();
+      toast("Il ne te reste plus assez de pièces pour un autre.");
+    }
+  }
+
+  /* What an object costs, or brings back, said where it happened: the
+     number climbs out of the object and fades. */
+  function flyCoins(amount, spot) {
+    if (!spot || !amount) return;
+    const note = document.createElement("div");
+    note.className = "coin-fly" + (amount < 0 ? " is-spent" : " is-earned");
+    note.style.left = Math.round(spot.x) + "px";
+    note.style.top = Math.round(spot.y) + "px";
+    note.innerHTML = (amount < 0 ? "−" : "+") + Math.abs(amount) +
+      '<img src="assets/coin.svg" alt="pièces">';
+    document.body.appendChild(note);
+    setTimeout(() => note.remove(), 1200);
   }
 
   /* The bar of what is selected: an object one can move and sell, or
@@ -279,9 +294,15 @@
       toast("Nouvelle parcelle : «\u00A0" + bought.name + "\u00A0» (−" + bought.price + " pièces)");
       return;
     }
-    const refund = PropertyState.sell(Number(button.dataset.uid));
+    const uid = Number(button.dataset.uid);
+    // Where it stood, caught before it is gone.
+    const entry = PropertyState.scene().placed.find(one => one.uid === uid);
+    const item = entry && CATALOG.item(entry.id);
+    const size = item ? CATALOG.footprint(item, entry.r) : null;
+    const spot = size ? World.screenOf(entry.x, entry.y, size.w, size.h) : null;
+    const refund = PropertyState.sell(uid);
     World.clearSelection();
-    if (refund !== null) toast("Vendu. +" + refund + " pièces.");
+    if (refund !== null) flyCoins(refund, spot);
   }
 
   /* ---- Saying the name out loud ----

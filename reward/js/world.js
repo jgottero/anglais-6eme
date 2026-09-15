@@ -274,6 +274,15 @@ const World = (function () {
 
   /* ---- Coordinates ---- */
 
+  // Middle of a footprint, in screen pixels: where the coins fly from.
+  function screenOf(x, y, w, h) {
+    const rect = viewport.getBoundingClientRect();
+    return {
+      x: rect.left + cam.x + (x + w / 2) * TILE * cam.scale,
+      y: rect.top + cam.y + (y + h / 2) * TILE * cam.scale
+    };
+  }
+
   // Pointer position in tile units (fractional) in the scene.
   function pointerTile(clientX, clientY) {
     const rect = viewport.getBoundingClientRect();
@@ -475,12 +484,14 @@ const World = (function () {
     hideGhost();
   }
 
+  /* Aiming past the edge of the ground is not a mistake worth a word:
+     nothing happens, and the object stays in hand. A case that is taken
+     does say so — there the child aimed at their own property. */
   function refuse(item, x, y, turn) {
     if (!hooks.onRefused) return;
     const size = item ? CATALOG.footprint(item, turn) : { w: 1, h: 1 };
-    hooks.onRefused(PropertyState.buildable(x, y, size.w, size.h)
-      ? "Il n'y a pas la place ici."
-      : "On ne construit pas là.");
+    if (!PropertyState.buildable(x, y, size.w, size.h)) return;
+    hooks.onRefused("Il n'y a pas la place ici.");
   }
 
   /* ---- The object held in hand ----
@@ -555,7 +566,8 @@ const World = (function () {
     const target = centredTarget(event.clientX, event.clientY, item, placing.r);
     hideGhost();
     if (PropertyState.buyAt(item.id, target.x, target.y, placing.r, placing.m)) {
-      if (hooks.onPlaced) hooks.onPlaced(item);
+      const size = CATALOG.footprint(item, placing.r);
+      if (hooks.onPlaced) hooks.onPlaced(item, screenOf(target.x, target.y, size.w, size.h));
     } else if (PropertyState.get().coins < item.price) {
       cancelPlacing();
       if (hooks.onRefused) hooks.onRefused("Il te manque des pièces.");
@@ -605,7 +617,7 @@ const World = (function () {
   }
 
   return {
-    init, render, fitCamera,
+    init, render, fitCamera, screenOf,
     startPlacing, cancelPlacing,
     turnHeld, mirrorHeld, turnSelected, mirrorSelected,
     select, clearSelection,

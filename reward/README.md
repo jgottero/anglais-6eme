@@ -75,8 +75,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   cette case en bas à droite de l'objet, viser son milieu le pose à cheval
   autour d'elle. La silhouette montre le résultat avant de lâcher. La
   position visée n'est jamais ramenée vers le terrain : appuyer à côté (ou
-  trop près du bord pour que l'objet tienne) refuse la pose au lieu de
-  glisser l'objet sur la case constructible la plus proche. Il **reste en main**
+  trop près du bord pour que l'objet tienne) ne pose rien, sans un mot —
+  l'objet reste simplement en main. Une case déjà occupée, elle, le dit.
+* **Les pièces se voient** : à chaque achat le prix s'envole en rouge à
+  l'endroit où l'objet se pose (−220 🪙), et à chaque vente la somme
+  rendue s'envole en vert de là où il se trouvait. Il **reste en main**
   ensuite, pour poser toute une rangée de champs sans rouvrir le magasin ;
   la croix le repose, et il quitte la main tout seul dès qu'il n'y a plus
   assez de pièces pour le suivant.
