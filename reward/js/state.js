@@ -95,8 +95,9 @@ const PropertyState = (function () {
 
   function sceneId() { return data.current; }
 
-  // Outside, only the plots bought can be built on.
-  function onMyGround(x, y, w, h) {
+  // Outside, only the plots bought can be built on; inside, the floor of
+  // the room. Everything else is scenery one cannot touch.
+  function buildable(x, y, w, h) {
     const plots = scene().plots;
     for (let ty = y; ty < y + h; ty++) {
       for (let tx = x; tx < x + w; tx++) {
@@ -131,7 +132,7 @@ const PropertyState = (function () {
     const size = CATALOG.footprint(item, turn);
     const land = scene().land;
     if (x < 0 || y < 0 || x + size.w > land.cols || y + size.h > land.rows) return false;
-    if (!onMyGround(x, y, size.w, size.h)) return false;
+    if (!buildable(x, y, size.w, size.h)) return false;
     if (overlapsBlock(x, y, size.w, size.h)) return false;
     const layer = CATALOG.layerOf(item);
     return !scene().placed.some(entry => {
@@ -277,7 +278,7 @@ const PropertyState = (function () {
     get, subscribe,
     scene, sceneId, enter,
     plotForSale, buyPlot,
-    canPlace, blockAt,
+    canPlace, buildable, blockAt,
     addCoins, grantTier,
     buyAt, move, turn, mirror, sell, reset
   };

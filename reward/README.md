@@ -30,8 +30,10 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   qu'un sol puisse la couvrir entièrement.
 * **Caméra** : glisser n'importe où sur le terrain la déplace (sauf sur
   l'objet sélectionné, qui suit alors le doigt), deux doigts (ou la
-  molette) zooment. On ne peut pas dézoomer au-delà du terrain entier, ni
-  le faire sortir de l'écran.
+  molette) zooment. On ne peut pas dézoomer au-delà du terrain entier ;
+  en revanche la scène se déplace librement **jusqu'à ce qu'un de ses
+  bords atteigne le milieu de l'écran**, de quoi amener un coin de pièce
+  au centre pour y construire.
 * **Overlay permanent** : les pièces en haut à droite, un bouton retour en
   haut à gauche (il préviendra l'application d'apprentissage), et le
   bouton **Magasin** en bas. Toucher les pièces en ajoute 100 — raccourci
@@ -71,7 +73,10 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Un appui sur le terrain le pose et débite les pièces, **centré au plus
   près de l'endroit touché** : viser le coin haut-gauche d'une case met
   cette case en bas à droite de l'objet, viser son milieu le pose à cheval
-  autour d'elle. La silhouette montre le résultat avant de lâcher. Il **reste en main**
+  autour d'elle. La silhouette montre le résultat avant de lâcher. La
+  position visée n'est jamais ramenée vers le terrain : appuyer à côté (ou
+  trop près du bord pour que l'objet tienne) refuse la pose au lieu de
+  glisser l'objet sur la case constructible la plus proche. Il **reste en main**
   ensuite, pour poser toute une rangée de champs sans rouvrir le magasin ;
   la croix le repose, et il quitte la main tout seul dès qu'il n'y a plus
   assez de pièces pour le suivant.

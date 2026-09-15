@@ -25,7 +25,6 @@ const World = (function () {
   const TEXTURE = TILE * 2;   // ground and walls keep their own scale
   const MAX_SCALE = 2.4;
   const DRAG_THRESHOLD = 6;   // screen pixels before a press becomes a drag
-  const EDGE_PAD = 28;        // how far the scene may travel off screen
 
   let viewport = null;
   let world = null;
@@ -76,18 +75,18 @@ const World = (function () {
       "translate(" + cam.x + "px," + cam.y + "px) scale(" + cam.scale + ")";
   }
 
+  /* How far the scene may travel: until one of its edges reaches the
+     middle of the screen, never further. A corner of a room can then be
+     brought to the centre to build in it, and the scene can still never
+     be pushed off the screen altogether. */
   function clampCamera() {
     const land = PropertyState.scene().land;
-    const vw = viewport.clientWidth;
-    const vh = viewport.clientHeight;
+    const halfWide = viewport.clientWidth / 2;
+    const halfHigh = viewport.clientHeight / 2;
     const ww = land.cols * TILE * cam.scale;
     const wh = land.rows * TILE * cam.scale;
-    // Smaller than the screen: centred. Bigger: kept under the screen,
-    // so the scene can never be dragged away out of sight.
-    cam.x = ww + 2 * EDGE_PAD <= vw ? (vw - ww) / 2
-      : Math.max(vw - ww - EDGE_PAD, Math.min(EDGE_PAD, cam.x));
-    cam.y = wh + 2 * EDGE_PAD <= vh ? (vh - wh) / 2
-      : Math.max(vh - wh - EDGE_PAD, Math.min(EDGE_PAD, cam.y));
+    cam.x = Math.max(halfWide - ww, Math.min(halfWide, cam.x));
+    cam.y = Math.max(halfHigh - wh, Math.min(halfHigh, cam.y));
   }
 
   // Scale at which the whole scene just fits the screen. Zooming out any
@@ -290,19 +289,21 @@ const World = (function () {
      bottom-right corner; touch the middle of the case and it sits square
      around it.
 
+     The answer is never pulled back towards the ground: touching past
+     the edge of what can be built on gives a spot past the edge, which
+     is then refused. Sliding an object to the nearest legal case would
+     put it somewhere nobody pointed at.
+
      The nudge is there for the exact halfway points, where the finger is
      equally close to two answers: without it the last bit of a division
      would pick one or the other from one press to the next. */
   function centredTarget(clientX, clientY, item, turn) {
-    const land = PropertyState.scene().land;
     const size = CATALOG.footprint(item, turn);
     const point = pointerTile(clientX, clientY);
     const NUDGE = 1e-6;
-    const anchor = (along, tiles, limit) =>
-      Math.max(0, Math.min(limit - tiles, Math.round(along - tiles / 2 + NUDGE)));
     return {
-      x: anchor(point.x, size.w, land.cols),
-      y: anchor(point.y, size.h, land.rows)
+      x: Math.round(point.x - size.w / 2 + NUDGE),
+      y: Math.round(point.y - size.h / 2 + NUDGE)
     };
   }
 
@@ -421,11 +422,9 @@ const World = (function () {
     }
 
     if (gesture.type === "object") {
-      const land = PropertyState.scene().land;
-      const size = CATALOG.footprint(gesture.item, gesture.turn);
       const point = pointerTile(event.clientX, event.clientY);
-      const x = Math.round(Math.max(0, Math.min(land.cols - size.w, point.x - gesture.offsetX)));
-      const y = Math.round(Math.max(0, Math.min(land.rows - size.h, point.y - gesture.offsetY)));
+      const x = Math.round(point.x - gesture.offsetX);
+      const y = Math.round(point.y - gesture.offsetY);
       gesture.target = { x, y };
       gesture.ok = PropertyState.canPlace(gesture.item, x, y, gesture.uid, gesture.turn);
       showGhost(x, y, gesture.item, { r: gesture.turn }, gesture.ok, false);
@@ -464,7 +463,7 @@ const World = (function () {
         PropertyState.move(finished.uid, finished.target.x, finished.target.y);
       } else {
         render();
-        refuse();
+        refuse(finished.item, finished.target.x, finished.target.y, finished.turn);
       }
     }
   }
@@ -476,8 +475,12 @@ const World = (function () {
     hideGhost();
   }
 
-  function refuse() {
-    if (hooks.onRefused) hooks.onRefused("Il n'y a pas la place ici.");
+  function refuse(item, x, y, turn) {
+    if (!hooks.onRefused) return;
+    const size = item ? CATALOG.footprint(item, turn) : { w: 1, h: 1 };
+    hooks.onRefused(PropertyState.buildable(x, y, size.w, size.h)
+      ? "Il n'y a pas la place ici."
+      : "On ne construit pas là.");
   }
 
   /* ---- The object held in hand ----
@@ -557,7 +560,7 @@ const World = (function () {
       cancelPlacing();
       if (hooks.onRefused) hooks.onRefused("Il te manque des pièces.");
     } else {
-      refuse();
+      refuse(item, target.x, target.y, placing.r);
     }
   }
 
