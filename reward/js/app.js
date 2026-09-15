@@ -98,6 +98,9 @@
     document.getElementById("turn-held")
       .addEventListener("click", () => World.turnHeld());
 
+    document.getElementById("mirror-held")
+      .addEventListener("click", () => World.mirrorHeld());
+
     exitEl.addEventListener("click", () => leaveScene());
 
     barEl.addEventListener("click", onActionBarClick);
@@ -170,11 +173,15 @@
     const art = document.getElementById("hand-art");
     art.src = CATALOG.assetUrl(item.id);
     art.alt = item.fr;
-    // The drawing in the corner turns with the object it stands for.
-    art.style.transform = held.r ? "rotate(" + held.r * 90 + "deg)" : "";
+    // The drawing in the corner is posed like the object it stands for.
+    const poses = [];
+    if (held.r) poses.push("rotate(" + held.r * 90 + "deg)");
+    if (held.m) poses.push("scaleX(-1)");
+    art.style.transform = poses.join(" ");
     document.getElementById("hand-name").textContent = item.fr;
     document.getElementById("hand-price").textContent = item.price;
     document.getElementById("turn-held").hidden = !item.turns;
+    document.getElementById("mirror-held").hidden = !item.mirrors;
   }
 
   function onPlaced(item) {
@@ -210,6 +217,7 @@
     return nameCard(CATALOG.assetUrl(item.id), item.fr, item.en) +
       '<p class="hint">Glisse pour déplacer</p>' +
       (item.turns ? '<button class="turn-btn" data-action="turn" title="Tourner">↻ Tourner</button>' : "") +
+      (item.mirrors ? '<button class="turn-btn" data-action="mirror" title="Miroir">⇄ Miroir</button>' : "") +
       '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>';
   }
 
@@ -244,6 +252,10 @@
     }
     if (button.dataset.action === "turn") {
       World.turnSelected();
+      return;
+    }
+    if (button.dataset.action === "mirror") {
+      World.mirrorSelected();
       return;
     }
     if (button.dataset.action === "plot") {

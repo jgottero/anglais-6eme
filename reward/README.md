@@ -83,6 +83,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   poser, et dans sa barre une fois posé. Un quart de tour à la fois ;
   l'emprise tourne avec le dessin, et un objet qui ne rentrerait plus en
   travers reste comme il était.
+* **Miroir** : ce qui est dessiné tourné d'un côté (les animaux, la
+  porte ouverte, le pommier, la boîte aux lettres, le poulailler, la
+  bibliothèque…) porte en plus un bouton ⇄ qui le retourne de gauche à
+  droite. L'emprise ne change pas, donc c'est toujours possible, et les
+  deux se combinent : une porte peut être tournée puis retournée.
 * **Deux couches** : le *terrain* (chemin, champ) se pose sur le sol, tout
   le reste se pose dessus. Une case ne peut porter qu'un seul terrain et
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
@@ -167,9 +172,10 @@ reward/
    4 × 2 dans `0 0 64 32`. Un terrain remplit son cadre bord à bord.
 2. Ajouter une ligne dans `js/catalog.js` (`id`, `fr`, `en`, `price`,
    `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un terrain,
-   `where: "in"` ou `"both"` pour ce qui se vend dans la maison, et
-   `turns: true` pour ce qui peut être orienté). L'objet apparaît aussitôt
-   en magasin, du bon côté des murs.
+   `where: "in"` ou `"both"` pour ce qui se vend dans la maison,
+   `turns: true` pour ce qui peut être orienté et `mirrors: true` pour ce
+   qui peut être retourné). L'objet apparaît aussitôt en magasin, du bon
+   côté des murs.
 
 Ne jamais renommer un `id` déjà utilisé : c'est lui qui est écrit dans la
 sauvegarde.

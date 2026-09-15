@@ -294,8 +294,8 @@ button { font: inherit; cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 10px;
-  max-width: min(84vw, 320px);
-  padding: 9px 40px 9px 10px;
+  max-width: min(88vw, 340px);
+  padding: 9px 76px 9px 10px;
   background: var(--panel);
   border: 3px solid var(--leaf);
   border-radius: 14px;
@@ -314,10 +314,8 @@ button { font: inherit; cursor: pointer; }
 }
 .hand-price img { width: 17px; height: 17px; }
 .hand-hint { color: var(--ink-soft); font-size: 0.78rem; }
-.hand-cancel, .hand-turn {
+.hand-cancel, .hand-pose {
   pointer-events: auto;
-  position: absolute;
-  right: 6px;
   width: 28px;
   height: 28px;
   border-radius: 8px;
@@ -326,8 +324,9 @@ button { font: inherit; cursor: pointer; }
   color: var(--ink);
   line-height: 1;
 }
-.hand-cancel { top: 6px; }
-.hand-turn { bottom: 6px; border-color: var(--leaf); font-size: 1.05rem; }
+.hand-cancel { position: absolute; top: 6px; right: 6px; }
+.hand-poses { position: absolute; right: 6px; bottom: 6px; display: flex; gap: 4px; }
+.hand-pose { border-color: var(--leaf); font-size: 1.05rem; }
 .hand img { transition: transform 0.12s ease; }
 
 /* ---- Floating bars ---- */

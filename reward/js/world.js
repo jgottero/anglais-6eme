@@ -227,7 +227,7 @@ const World = (function () {
         (isSelected("object", entry.uid) ? " is-selected" : "");
       node.dataset.uid = entry.uid;
       node.style.cssText = box(entry.x, entry.y, size.w, size.h);
-      node.innerHTML = art(item, entry.r);
+      node.innerHTML = art(item, entry.r, entry.m);
       world.appendChild(node);
     });
 
@@ -240,24 +240,32 @@ const World = (function () {
            "width:" + w * TILE + "px;height:" + h * TILE + "px;";
   }
 
-  /* The drawing keeps its own width and height and is spun inside the
-     tiles it takes: a bench turned sideways is the same bench. */
-  function art(item, turn) {
+  /* The drawing keeps its own width and height and is posed inside the
+     tiles it takes: a bench turned sideways is the same bench, a hen
+     flipped over is the same hen looking the other way. The flip comes
+     first, so it reads as the object itself being back to front however
+     it is turned. */
+  function art(item, turn, mirror) {
     const quarter = (turn || 0) % 4;
-    const style = quarter
-      ? ' style="width:' + item.w * TILE + 'px;height:' + item.h * TILE + 'px;' +
-        'transform:translate(-50%,-50%) rotate(' + quarter * 90 + 'deg)"'
-      : "";
-    return '<img class="' + (quarter ? "is-turned" : "") + '" src="' + CATALOG.assetUrl(item.id) +
-      '" alt="' + item.fr + '" draggable="false"' + style + '>';
+    if (!quarter && !mirror) {
+      return '<img src="' + CATALOG.assetUrl(item.id) +
+        '" alt="' + item.fr + '" draggable="false">';
+    }
+    const poses = ["translate(-50%,-50%)"];
+    if (quarter) poses.push("rotate(" + quarter * 90 + "deg)");
+    if (mirror) poses.push("scaleX(-1)");
+    return '<img class="is-turned" src="' + CATALOG.assetUrl(item.id) +
+      '" alt="' + item.fr + '" draggable="false"' +
+      ' style="width:' + item.w * TILE + 'px;height:' + item.h * TILE + 'px;' +
+      'transform:' + poses.join(" ") + '">';
   }
 
-  function showGhost(x, y, item, turn, valid, withArt) {
-    const size = CATALOG.footprint(item, turn);
+  function showGhost(x, y, item, pose, valid, withArt) {
+    const size = CATALOG.footprint(item, pose.r);
     ghost.hidden = false;
     ghost.style.cssText = box(x, y, size.w, size.h);
     ghost.classList.toggle("is-bad", !valid);
-    ghost.innerHTML = withArt ? art(item, turn) : "";
+    ghost.innerHTML = withArt ? art(item, pose.r, pose.m) : "";
   }
 
   function hideGhost() {
@@ -420,7 +428,7 @@ const World = (function () {
       const y = Math.round(Math.max(0, Math.min(land.rows - size.h, point.y - gesture.offsetY)));
       gesture.target = { x, y };
       gesture.ok = PropertyState.canPlace(gesture.item, x, y, gesture.uid, gesture.turn);
-      showGhost(x, y, gesture.item, gesture.turn, gesture.ok, false);
+      showGhost(x, y, gesture.item, { r: gesture.turn }, gesture.ok, false);
       // The object follows the finger; the ghost shows where it lands.
       gesture.node.style.transform =
         "translate(" + (event.clientX - gesture.startX) / cam.scale + "px," +
@@ -479,7 +487,7 @@ const World = (function () {
 
   function startPlacing(id) {
     if (!CATALOG.item(id)) return;
-    placing = { id, r: 0 };
+    placing = { id, r: 0, m: 0 };
     clearSelection();
     if (hooks.onPlacingChange) hooks.onPlacingChange(placing);
   }
@@ -494,12 +502,27 @@ const World = (function () {
     return true;
   }
 
+  // The same, the other way round.
+  function mirrorHeld() {
+    const item = heldItem();
+    if (!item || !item.mirrors) return false;
+    placing.m = placing.m ? 0 : 1;
+    hideGhost();
+    if (hooks.onPlacingChange) hooks.onPlacingChange(placing);
+    return true;
+  }
+
   // A quarter turn of what is selected, where it stands.
   function turnSelected() {
     if (!selected || selected.kind !== "object") return false;
     if (PropertyState.turn(selected.uid)) return true;
     if (hooks.onRefused) hooks.onRefused("Pas la place de la tourner ici.");
     return false;
+  }
+
+  function mirrorSelected() {
+    if (!selected || selected.kind !== "object") return false;
+    return PropertyState.mirror(selected.uid);
   }
 
   function cancelPlacing() {
@@ -518,7 +541,7 @@ const World = (function () {
     const item = heldItem();
     if (!item) return;
     const target = centredTarget(event.clientX, event.clientY, item, placing.r);
-    showGhost(target.x, target.y, item, placing.r,
+    showGhost(target.x, target.y, item, placing,
       PropertyState.canPlace(item, target.x, target.y, null, placing.r), true);
   }
 
@@ -528,7 +551,7 @@ const World = (function () {
     if (!item) { cancelPlacing(); return; }
     const target = centredTarget(event.clientX, event.clientY, item, placing.r);
     hideGhost();
-    if (PropertyState.buyAt(item.id, target.x, target.y, placing.r)) {
+    if (PropertyState.buyAt(item.id, target.x, target.y, placing.r, placing.m)) {
       if (hooks.onPlaced) hooks.onPlaced(item);
     } else if (PropertyState.get().coins < item.price) {
       cancelPlacing();
@@ -580,7 +603,8 @@ const World = (function () {
 
   return {
     init, render, fitCamera,
-    startPlacing, cancelPlacing, turnHeld, turnSelected,
+    startPlacing, cancelPlacing,
+    turnHeld, mirrorHeld, turnSelected, mirrorSelected,
     select, clearSelection,
     isPlacing() { return placing; },
     held() { return placing; },

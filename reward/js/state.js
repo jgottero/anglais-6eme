@@ -167,15 +167,16 @@ const PropertyState = (function () {
   /* An object is bought where it lands: one call takes the coins and
      puts it down, so the payment and the placement cannot come apart.
      Nothing is paid when the purse is short or the spot is taken. */
-  function buyAt(id, x, y, turn) {
+  function buyAt(id, x, y, turn, mirror) {
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
     if (!canPlace(item, x, y, null, turn)) return null;
     data.coins -= item.price;
     const uid = data.nextUid++;
     const entry = { uid, id, x, y };
-    // Only what has been turned carries a turn, so saves stay readable.
+    // Only what has been turned or flipped says so, so saves stay readable.
     if (turn) entry.r = turn;
+    if (mirror) entry.m = 1;
     scene().placed.push(entry);
     changed();
     return { uid };
@@ -188,6 +189,18 @@ const PropertyState = (function () {
     if (!item || !canPlace(item, x, y, uid, entry.r)) return false;
     entry.x = x;
     entry.y = y;
+    changed();
+    return true;
+  }
+
+  /* Flipped left to right, where it stands. The footprint does not
+     change, so this can never be refused. */
+  function mirror(uid) {
+    const entry = scene().placed.find(one => one.uid === uid);
+    const item = entry && CATALOG.item(entry.id);
+    if (!item || !item.mirrors) return false;
+    if (entry.m) delete entry.m;
+    else entry.m = 1;
     changed();
     return true;
   }
@@ -266,6 +279,6 @@ const PropertyState = (function () {
     plotForSale, buyPlot,
     canPlace, blockAt,
     addCoins, grantTier,
-    buyAt, move, turn, sell, reset
+    buyAt, move, turn, mirror, sell, reset
   };
 })();
