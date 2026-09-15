@@ -23,7 +23,7 @@
 
   const COINS_PER_TAP = 100; // prototype only: tapping the purse pays
 
-  let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, bottomEl, barEl, toastEl;
+  let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, barEl, toastEl;
   let sceneEl, exitEl, backEl;
   let shopOpen = false;
   let shownCoins = null;
@@ -34,7 +34,6 @@
     purseEl = document.getElementById("purse");
     shopEl = document.getElementById("panel-shop");
     handEl = document.getElementById("hand");
-    bottomEl = document.getElementById("hud-bottom");
     barEl = document.getElementById("action-bar");
     toastEl = document.getElementById("toast");
     sceneEl = document.getElementById("scene-name");
@@ -176,12 +175,11 @@
     shownCoins = coins;
   }
 
-  /* The object in hand sits in the corner. The shop button steps aside
-     while it is there: the child is placing, not shopping. */
+  /* The object in hand sits in the bottom corner, clear of the buttons:
+     the shop stays within reach, to change one's mind about what to buy. */
   function renderHand(held) {
     const item = held ? CATALOG.item(held.id) : null;
     handEl.hidden = !item;
-    bottomEl.hidden = !!item;
     if (!item) return;
     const art = document.getElementById("hand-art");
     art.src = CATALOG.assetUrl(item.id);
