@@ -95,15 +95,18 @@ const PropertyState = (function () {
 
   function sceneId() { return data.current; }
 
-  // Outside, only the plots bought can be built on; inside, the floor of
-  // the room. Everything else is scenery one cannot touch.
+  // Only ground one owns can be built on: outside, the plots bought;
+  // inside, the floor of the room. The rest can be looked at, no more.
   function buildable(x, y, w, h) {
-    const plots = scene().plots;
+    const place = scene();
+    const plots = place.plots.filter(plot => plot.owned);
     for (let ty = y; ty < y + h; ty++) {
       for (let tx = x; tx < x + w; tx++) {
         const covered = plots.some(plot =>
           tx >= plot.x && tx < plot.x + plot.w && ty >= plot.y && ty < plot.y + plot.h);
         if (!covered) return false;
+        // Water is ground too, and one does not build on the sea.
+        if (Ground.look(place, tx, ty) === "water") return false;
       }
     }
     return true;
@@ -242,22 +245,26 @@ const PropertyState = (function () {
   }
 
   /* ---- Growing the property ----
-     Plots are bought in the order they are offered, each dearer than the
-     last. A new plot brings its own ground, its own scenery, and the
-     scenes its buildings lead to. */
+     Every plot is on the map from the start and can be bought whenever
+     the purse allows. A plot bought brings its ground out from under its
+     veil, wakes its scenery, and opens the scenes its buildings lead
+     to. */
 
-  function plotForSale() {
-    return SCENES.nextPlot(data.owned);
+  function plotsForSale() {
+    return SCENES.plotsForSale(data.owned);
   }
 
-  function buyPlot() {
-    const next = plotForSale();
-    if (!next || data.coins < next.price) return null;
-    data.coins -= next.price;
-    data.owned.push(next.id);
+  /* Any plot of the map can be bought, in any order, as soon as the
+     purse allows: the whole map is on show from the first day. */
+  function buyPlot(id) {
+    const plot = SCENES.plot(id);
+    if (!plot || data.owned.indexOf(id) !== -1) return null;
+    if (data.coins < plot.price) return null;
+    data.coins -= plot.price;
+    data.owned.push(id);
     rebuild();
     changed();
-    return next;
+    return plot;
   }
 
   function reset() {
@@ -277,7 +284,7 @@ const PropertyState = (function () {
   return {
     get, subscribe,
     scene, sceneId, enter,
-    plotForSale, buyPlot,
+    plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
     addCoins, grantTier,
     buyAt, move, turn, mirror, sell, reset

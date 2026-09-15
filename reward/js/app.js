@@ -67,9 +67,9 @@
     refresh();
     sceneEl.textContent = PropertyState.scene().name;
     showWayOut(PropertyState.scene());
-    const sale = PropertyState.plotForSale();
-    toast(sale
-      ? "Glisse pour te déplacer, pince pour zoomer. «\u00A0" + sale.name + "\u00A0» est à vendre à côté."
+    const left = PropertyState.plotsForSale().length;
+    toast(left
+      ? "Glisse pour te déplacer, pince pour zoomer. Les terrains sombres sont à vendre."
       : "Glisse pour te déplacer, pince pour zoomer.");
   }
 
@@ -224,7 +224,7 @@
     let card = null;
     if (what && what.kind === "object") card = objectBar(what.uid);
     else if (what && what.kind === "block") card = blockBar(what.index);
-    else if (what && what.kind === "plot") card = plotBar();
+    else if (what && what.kind === "plot") card = plotBar(what.id);
     barEl.hidden = !card;
     if (card) barEl.innerHTML = card;
   }
@@ -260,16 +260,16 @@
       '</button>';
   }
 
-  /* The plot on sale, drawn locked next to the property: its bar says
-     what it costs, and buys it when the purse is full enough. */
-  function plotBar() {
-    const next = PropertyState.plotForSale();
-    if (!next) return null;
-    const missing = next.price - PropertyState.get().coins;
-    return nameCard("assets/coin.svg", next.name, "une parcelle à acheter") +
+  /* A plot still under its veil: its bar says what it costs, and buys it
+     when the purse is full enough. Any of them, in any order. */
+  function plotBar(id) {
+    const plot = SCENES.plot(id);
+    if (!plot) return null;
+    const missing = plot.price - PropertyState.get().coins;
+    return nameCard("assets/coin.svg", plot.name, "une parcelle à acheter") +
       (missing > 0
         ? '<p class="hint">Il te manque ' + missing + ' pièces</p>'
-        : '<button class="sell-btn" data-action="plot">Acheter (' + next.price + ')</button>');
+        : '<button class="sell-btn" data-action="plot" data-plot="' + id + '">Acheter (' + plot.price + ')</button>');
   }
 
   function onActionBarClick(event) {
@@ -292,7 +292,7 @@
       return;
     }
     if (button.dataset.action === "plot") {
-      const bought = PropertyState.buyPlot();
+      const bought = PropertyState.buyPlot(button.dataset.plot);
       if (!bought) return;
       World.clearSelection();
       World.fitCamera();

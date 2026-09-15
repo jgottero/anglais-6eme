@@ -79,49 +79,19 @@ button { font: inherit; cursor: pointer; }
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.45));
 }
 
-/* One piece of ground: a plot of the property, or the floor of a room.
-   The seam between two plots is what makes the property readable. */
-.plot {
+/* The floor is one painting, made case by case (see js/ground.js): no
+   seam between the plots one owns, and a veil over the ones on sale. */
+.ground {
   position: absolute;
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture);
-  background-image:
-    repeating-linear-gradient(to right, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px var(--tile)),
-    repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px var(--tile));
-  box-shadow: inset 0 0 0 4px rgba(62, 41, 20, 0.45);
+  top: 0;
+  left: 0;
 }
 
-.ground-grass  { background-color: #7cbf4a; background-image:
-  repeating-linear-gradient(to right, rgba(255,255,255,.14) 0 1px, transparent 1px var(--tile)),
-  repeating-linear-gradient(to bottom, rgba(255,255,255,.14) 0 1px, transparent 1px var(--tile)),
-  url("../assets/grass.svg");
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
-.ground-forest { background-color: #4e7a37; background-image:
-  repeating-linear-gradient(to right, rgba(255,255,255,.10) 0 1px, transparent 1px var(--tile)),
-  repeating-linear-gradient(to bottom, rgba(255,255,255,.10) 0 1px, transparent 1px var(--tile)),
-  url("../assets/forest.svg");
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
-.ground-sand   { background-color: #e8d5a3; background-image:
-  repeating-linear-gradient(to right, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
-  repeating-linear-gradient(to bottom, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
-  url("../assets/sand.svg");
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
-.ground-paving { background-color: #9aa3ab; background-image:
-  repeating-linear-gradient(to right, rgba(255,255,255,.12) 0 1px, transparent 1px var(--tile)),
-  repeating-linear-gradient(to bottom, rgba(255,255,255,.12) 0 1px, transparent 1px var(--tile)),
-  url("../assets/paving.svg");
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
-.ground-floor  { background-color: #c8a06a; background-image:
-  repeating-linear-gradient(to right, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
-  repeating-linear-gradient(to bottom, rgba(92,61,31,.10) 0 1px, transparent 1px var(--tile)),
-  url("../assets/floor.svg");
-  background-size: var(--tile) var(--tile), var(--tile) var(--tile), var(--texture) var(--texture); }
-
-/* The plot on sale: wild ground behind a fence of dashes, with its price. */
+/* A plot on sale: its veil is painted with the ground, so the element
+   itself only carries the price and catches the press. */
+.plot { position: absolute; }
 .plot.is-forsale {
-  background-color: rgba(20, 45, 18, 0.55);
-  background-image: none;
-  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.45);
-  border: 3px dashed rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.16);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -164,6 +134,8 @@ button { font: inherit; cursor: pointer; }
    seen from inside. None of it can be bought, moved or sold. */
 .blk img { object-fit: fill; }
 .blk-wall { cursor: default; }
+/* A building on a plot nobody owns: seen through the veil, not touched. */
+.blk.is-locked { pointer-events: none; filter: brightness(0.55) saturate(0.75); }
 .blk-house, .blk-door { cursor: pointer; }
 .blk.is-selected {
   outline: 3px dashed #fff;

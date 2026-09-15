@@ -29,6 +29,8 @@ const World = (function () {
   let viewport = null;
   let world = null;
   let ghost = null;
+  let ground = null;      // the canvas the floor is painted on
+  let painted = null;     // which map that painting shows
   let hooks = {};
 
   const cam = { x: 0, y: 0, scale: 1 };
@@ -46,6 +48,9 @@ const World = (function () {
     ghost = document.createElement("div");
     ghost.className = "ghost";
     ghost.hidden = true;
+
+    ground = document.createElement("canvas");
+    ground.className = "ground";
 
     viewport.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
@@ -175,30 +180,28 @@ const World = (function () {
     world.classList.toggle("is-indoor", !!place.indoor);
     world.innerHTML = "";
 
-    // The ground first: the plots bought, each with its own texture.
-    place.plots.forEach(plot => {
+    // The ground, painted once per map: every case its own drawing, and
+    // a veil over what has not been bought.
+    world.appendChild(ground);
+    paintGround(place);
+
+    // A plot still for sale can be touched anywhere, and says its price.
+    place.plots.filter(plot => !plot.owned).forEach(plot => {
       const node = document.createElement("div");
-      node.className = "plot ground-" + plot.ground;
+      node.className = "plot is-forsale" + (isSelected("plot", plot.id) ? " is-selected" : "");
+      node.dataset.sale = plot.id;
       node.style.cssText = box(plot.x, plot.y, plot.w, plot.h);
+      node.innerHTML = '<span class="plot-tag">' + plot.name +
+        '<b><img src="assets/coin.svg" alt="pièces">' + plot.price + '</b></span>';
       world.appendChild(node);
     });
-
-    // Then the one on sale, locked, with its price on it.
-    if (place.forSale) {
-      const node = document.createElement("div");
-      node.className = "plot is-forsale" + (isSelected("plot", place.forSale.id) ? " is-selected" : "");
-      node.dataset.sale = place.forSale.id;
-      node.style.cssText = box(place.forSale.x, place.forSale.y, place.forSale.w, place.forSale.h);
-      node.innerHTML = '<span class="plot-tag">' + place.forSale.name +
-        '<b><img src="assets/coin.svg" alt="pièces">' + place.forSale.price + '</b></span>';
-      world.appendChild(node);
-    }
 
     place.blocks.forEach((block, index) => {
       const kind = SCENES.kind(block.kind);
       if (!kind) return;
       const node = document.createElement("div");
       node.className = "blk blk-" + block.kind +
+        (block.owned === false ? " is-locked" : "") +
         (isSelected("block", index) ? " is-selected" : "");
       node.dataset.block = index;
       node.style.cssText = box(block.x, block.y, block.w, block.h);
@@ -232,6 +235,19 @@ const World = (function () {
 
     world.appendChild(ghost);
     applyCamera();
+  }
+
+  /* The floor is redrawn only when the map itself changes: entering a
+     scene, or buying a plot. Putting a hen down does not repaint a
+     meadow. */
+  function paintGround(place) {
+    const signature = place.id + ":" + place.plots.map(plot => plot.owned ? plot.id : "").join(",");
+    if (painted === signature) return;
+    painted = signature;
+    Ground.load(() => {
+      // Another scene may have been entered while the drawings loaded.
+      if (painted === signature) Ground.paint(ground, place);
+    });
   }
 
   function box(x, y, w, h) {
@@ -596,7 +612,8 @@ const World = (function () {
       select({ kind: "plot", id: node.dataset.sale });
       return;
     }
-    // A wall is scenery: only what leads somewhere is worth picking.
+    // A wall is scenery, and so is a building on a plot not bought yet:
+    // only what leads somewhere is worth picking.
     const index = Number(node.dataset.block);
     const block = PropertyState.scene().blocks[index];
     if (block && block.to) select({ kind: "block", index });

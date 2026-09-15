@@ -13,9 +13,13 @@
      indoor   picks the floor under everything, and the objects the shop
               offers there.
      land     size in tiles of everything the camera may show.
-     plots    the pieces of ground one can build on. Outside they are the
-              plots bought so far; inside, the single floor of the room.
-     forSale  outside only: the next plot, drawn locked with its price.
+     patches  optional pieces of another ground inside a plot — a paved
+              yard, a clearing — given from the corner of the plot.
+     plots    the pieces of ground the scene is made of. Outside, every
+              plot of the map is there from the start, each saying
+              whether it has been bought; inside, the single floor of
+              the room. What has not been bought is drawn under a veil,
+              can be looked at, and can be bought at any time.
      blocks   what is built in and cannot be bought, moved or sold: the
               house, the walls, the sea, the stairs. A block takes both
               layers of its tiles, so nothing can be put on it, and a
@@ -35,7 +39,6 @@ const SCENES = (function () {
     cottage:     { fr: "La maisonnette", en: "the cottage", sprite: "assets/cottage.svg",   action: "Entrer" },
     tower:       { fr: "L'immeuble",  en: "the block of flats", sprite: "assets/apartment.svg", action: "Entrer" },
     tree:        { fr: "Un grand sapin", en: "a tall pine", sprite: "assets/items/pine-tree.svg" },
-    water:       { fr: "La mer",      en: "the sea",     tile: "assets/water.svg" },
     stairs_up:   { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-up.svg",    action: "Monter" },
     stairs_down: { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-down.svg",  action: "Descendre" }
   };
@@ -177,7 +180,7 @@ const SCENES = (function () {
       id, name,
       indoor: true,
       land: { cols: plan[0].length, rows: plan.length },
-      plots: [{ id: id + "-floor", x: 0, y: 0, w: plan[0].length, h: plan.length, ground: "floor" }],
+      plots: [{ id: id + "-floor", x: 0, y: 0, w: plan[0].length, h: plan.length, ground: "floor", owned: true }],
       blocks: blocksFromPlan(plan, ways)
     };
   }
@@ -214,6 +217,7 @@ const SCENES = (function () {
       name: "Le bosquet",
       x: 0, y: 20, w: 28, h: 16,
       ground: "forest",
+      patches: [{ x: 16, y: 8, w: 10, h: 6, ground: "grass" }],   // a clearing
       price: 700,
       blocks: [
         { x: 2, y: 2, w: 4, h: 4, kind: "cabin", to: "cabin" },
@@ -229,14 +233,18 @@ const SCENES = (function () {
       name: "La plage",
       x: 28, y: 20, w: 20, h: 16,
       ground: "sand",
+      // The sea is painted with the ground, so its edge wanders like any
+      // other: see js/ground.js. Nothing is built on it.
+      patches: [{ x: 0, y: 12, w: 20, h: 6, ground: "water" }],
       price: 1500,
-      blocks: [{ x: 0, y: 12, w: 20, h: 4, kind: "water" }]
+      blocks: []
     },
     {
       id: "hamlet",
       name: "Le hameau",
       x: 0, y: 36, w: 48, h: 16,
       ground: "grass",
+      patches: [{ x: 16, y: 4, w: 12, h: 8, ground: "paving" }],  // the village square
       price: 3000,
       blocks: [
         { x: 4, y: 4, w: 6, h: 4, kind: "cottage", to: "cottage_west" },
@@ -251,7 +259,8 @@ const SCENES = (function () {
       id: "tower",
       name: "L'immeuble",
       x: 48, y: 0, w: 16, h: 52,
-      ground: "paving",
+      ground: "grass",
+      patches: [{ x: 0, y: 2, w: 16, h: 14, ground: "paving" }],  // the yard
       price: 6000,
       blocks: [{ x: 2, y: 4, w: 10, h: 8, kind: "tower", to: "flat_1" }],
       rooms: [
@@ -268,24 +277,31 @@ const SCENES = (function () {
     return PLOTS.find(one => one.id === id) || null;
   }
 
-  // The next plot on sale, or nothing once the property is complete.
-  function nextPlot(owned) {
-    return PLOTS.find(one => (owned || []).indexOf(one.id) === -1) || null;
+  // Everything still to be bought, in the order it is offered.
+  function plotsForSale(owned) {
+    return PLOTS.filter(one => (owned || []).indexOf(one.id) === -1);
   }
 
-  /* Builds every scene from the plots bought so far. The property grows
-     to hold them, plus the one on sale, which is drawn locked. */
+  /* Builds every scene. The whole map is there from the first day: what
+     has been bought, and what has not, drawn under a veil with its price
+     on it. Only a plot one owns brings its rooms along — there is no
+     walking into a cabin in the wood before buying the wood. */
   function build(owned) {
-    const mine = PLOTS.filter(one => (owned || []).indexOf(one.id) !== -1);
-    const sale = nextPlot(owned);
-    const shown = sale ? mine.concat([sale]) : mine;
-
+    const mine = owned || [];
     const blocks = [];
     const scenes = {};
-    mine.forEach(one => {
+
+    PLOTS.forEach(one => {
+      const bought = mine.indexOf(one.id) !== -1;
       (one.blocks || []).forEach(block => {
-        blocks.push(Object.assign({}, block, { x: block.x + one.x, y: block.y + one.y }));
+        blocks.push(Object.assign({}, block, {
+          x: block.x + one.x,
+          y: block.y + one.y,
+          owned: bought,
+          to: bought ? block.to : null
+        }));
       });
+      if (!bought) return;
       (one.rooms || []).forEach(make => {
         const built = make();
         scenes[built.id] = built;
@@ -297,11 +313,18 @@ const SCENES = (function () {
       name: "Ta propriété",
       indoor: false,
       land: {
-        cols: Math.max.apply(null, shown.map(one => one.x + one.w)),
-        rows: Math.max.apply(null, shown.map(one => one.y + one.h))
+        cols: Math.max.apply(null, PLOTS.map(one => one.x + one.w)),
+        rows: Math.max.apply(null, PLOTS.map(one => one.y + one.h))
       },
-      plots: mine.map(one => ({ id: one.id, name: one.name, x: one.x, y: one.y, w: one.w, h: one.h, ground: one.ground })),
-      forSale: sale ? { id: sale.id, name: sale.name, x: sale.x, y: sale.y, w: sale.w, h: sale.h, price: sale.price } : null,
+      plots: PLOTS.map(one => ({
+        id: one.id, name: one.name, price: one.price,
+        x: one.x, y: one.y, w: one.w, h: one.h,
+        ground: one.ground,
+        patches: (one.patches || []).map(patch => ({
+          x: patch.x + one.x, y: patch.y + one.y, w: patch.w, h: patch.h, ground: patch.ground
+        })),
+        owned: mine.indexOf(one.id) !== -1
+      })),
       blocks
     };
     return scenes;
@@ -309,7 +332,7 @@ const SCENES = (function () {
 
   return {
     BLOCKS, PLOTS, FIRST_PLOT,
-    build, plot, nextPlot,
+    build, plot, plotsForSale,
     kind(name) { return BLOCKS[name] || null; },
     first: "outside"
   };

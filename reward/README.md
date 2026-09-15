@@ -51,11 +51,12 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Chaque intérieur est un monde indépendant, avec ses pièces séparées par
   des murs : ses objets lui appartiennent, seules les pièces de monnaie
   sont communes.
-* **Acheter des parcelles** : à côté de la propriété, la parcelle
-  suivante est dessinée en friche avec son prix. On la touche, sa barre
-  dit ce qu'elle coûte (ou ce qui manque), et elle rejoint le terrain
-  d'un seul tenant. Six parcelles, de plus en plus chères et de plus en
-  plus impressionnantes :
+* **Toute la carte est là dès le premier jour** : les six parcelles sont
+  dessinées, avec leurs décors et leurs bâtiments, et celles qui n'ont pas
+  été achetées sont sous un voile sombre — on devine ce qu'il y a, et on
+  voit le prix. On en touche une, sa barre dit ce qu'elle coûte (ou ce qui
+  manque), et elle s'éclaire. **Elles s'achètent dans l'ordre qu'on
+  veut**, dès que la bourse suit :
 
   | Parcelle | Prix | Ce qu'elle apporte |
   | --- | --- | --- |
@@ -67,7 +68,17 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   | L'immeuble | 6000 | une cour pavée et **trois étages** à aménager |
 
   On ne peut rien poser sur une parcelle qui n'est pas achetée, ni sur la
-  mer.
+  mer ; et on n'entre pas dans une cabane qu'on ne possède pas.
+* **Un seul monde** : les parcelles achetées n'ont aucune bordure entre
+  elles, et le sol est peint **case par case** (`js/ground.js`), chacune
+  tirée au sort parmi les variantes de son biome — herbe, sous-bois,
+  sable, pavés, mer. La limite entre deux biomes est lue un peu à côté,
+  le long d'une ligne qui serpente : le sable mord sur l'herbe au lieu de
+  s'arrêter au cordeau, et le rivage dessine une vraie côte. Les règles
+  posent la même question que le dessin, donc ce qui ressemble à de l'eau
+  est exactement ce sur quoi on ne peut pas bâtir.
+* Une parcelle peut aussi porter des **taches d'un autre sol** : la cour
+  pavée de l'immeuble, la place du hameau, la clairière du bosquet.
 * **Magasin** : il s'ouvre en plein écran, les familles restent visibles
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
   place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
@@ -173,6 +184,7 @@ reward/
   css/style.css       toute la mise en forme
   js/catalog.js       la liste des objets (données seules)
   js/scenes.js        les parcelles et les lieux : plans, murs, portes, escaliers
+  js/ground.js        la peinture du sol, case par case, et la limite des biomes
   js/state.js         pièces, objets posés par lieu, sauvegarde, règles
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
   js/shop.js          l'écran magasin
@@ -181,8 +193,8 @@ reward/
     house.svg grass.svg coin.svg
     floor.svg wall.svg door.svg window.svg window-side.svg  (les intérieurs)
     back.svg exit.svg cart.svg                (les icônes des boutons)
-    grass.svg forest.svg sand.svg paving.svg  (les sols des parcelles)
-    water.svg cabin.svg cottage.svg apartment.svg stairs-*.svg
+    ground/           (les sols, plusieurs variantes par biome)
+    cabin.svg cottage.svg apartment.svg stairs-*.svg
     items/            un fichier par objet du magasin
 ```
 
