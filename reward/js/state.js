@@ -238,6 +238,24 @@ const PropertyState = (function () {
 
   /* ---- Going from one scene to another ---- */
 
+  /* The way out of a room: its door, and the scene that door opens on.
+     A floor above the ground has no door of its own, only stairs, so
+     the way out is the door of the floor its stairs lead down to, as
+     far down as it takes. Outside, there is nothing to leave. */
+  function wayOut(id) {
+    const seen = {};
+    let place = built[id || data.current];
+    while (place && place.indoor && !seen[place.id]) {
+      seen[place.id] = true;
+      const door = place.blocks.find(block => block.kind === "door" && block.to);
+      if (door) return door.to;
+      const down = place.blocks.find(block => block.kind === "stairs_down" && block.to);
+      if (!down) return null;
+      place = built[down.to];
+    }
+    return null;
+  }
+
   function enter(id) {
     if (!built[id] || id === data.current) return false;
     data.current = id;
@@ -284,7 +302,7 @@ const PropertyState = (function () {
 
   return {
     get, subscribe,
-    scene, sceneId, enter,
+    scene, sceneId, enter, wayOut,
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
     addCoins, grantTier,

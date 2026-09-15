@@ -49,14 +49,18 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 * **Des lieux, pas un seul** : la propriété dehors, et l'intérieur de
   chaque bâtiment. Toucher un bâtiment propose **Entrer** ; la porte (ou
   le bouton **Sortir**) ramène dehors, et un escalier mène à l'étage.
+  Le bouton **Sortir** cherche vraiment la porte : depuis un étage, qui
+  n'a que des escaliers, il redescend jusqu'à l'étage qui en a une et
+  ressort par là, d'un seul appui.
   Chaque intérieur est un monde indépendant, avec ses pièces séparées par
   des murs : ses objets lui appartiennent, seules les pièces de monnaie
   sont communes.
 * **Toute la carte est là dès le premier jour** : les onze parcelles sont
   dessinées, avec leurs décors et leurs bâtiments, et celles qui n'ont pas
   été achetées sont sous un voile sombre — on devine ce qu'il y a, et on
-  voit le prix. On en touche une, sa barre dit ce qu'elle coûte (ou ce qui
-  manque), et elle s'éclaire. **Elles s'achètent dans l'ordre qu'on
+  voit le prix. On en touche une **n'importe où, y compris sur ses
+  bâtiments** — c'est le terrain entier qui est en vente — et sa barre
+  dit ce qu'elle coûte (ou ce qui manque) avant qu'elle s'éclaire. **Elles s'achètent dans l'ordre qu'on
   veut**, dès que la bourse suit.
 
   Le pays s'organise autour du terrain de départ, qui est au milieu : la

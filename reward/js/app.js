@@ -146,8 +146,11 @@
     toast(place.indoor ? "Te voilà chez toi." : "Te voilà dehors.");
   }
 
+  // Where the corner button leads from here: out of the building, not
+  // merely through the first doorway of the room (the stairs come
+  // first in a floor of flats, and they are not the way out).
   function wayOut(place) {
-    return place.indoor ? place.blocks.find(block => block.to) : null;
+    return place.indoor ? PropertyState.wayOut(place.id) : null;
   }
 
   /* The corner holds one button: inside a building it is the way out,
@@ -160,7 +163,7 @@
 
   function leaveScene() {
     const out = wayOut(PropertyState.scene());
-    if (out) PropertyState.enter(out.to);
+    if (out) PropertyState.enter(out);
   }
 
   function renderCoins(coins) {

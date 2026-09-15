@@ -185,17 +185,6 @@ const World = (function () {
     world.appendChild(ground);
     paintGround(place);
 
-    // A plot still for sale can be touched anywhere, and says its price.
-    place.plots.filter(plot => !plot.owned).forEach(plot => {
-      const node = document.createElement("div");
-      node.className = "plot is-forsale" + (isSelected("plot", plot.id) ? " is-selected" : "");
-      node.dataset.sale = plot.id;
-      node.style.cssText = box(plot.x, plot.y, plot.w, plot.h);
-      node.innerHTML = '<span class="plot-tag">' + plot.name +
-        '<b><img src="assets/coin.svg" alt="pièces">' + plot.price + '</b></span>';
-      world.appendChild(node);
-    });
-
     place.blocks.forEach((block, index) => {
       const kind = SCENES.kind(block.kind);
       if (!kind) return;
@@ -211,6 +200,20 @@ const World = (function () {
         node.style.backgroundImage = 'url("' + kind.tile + '")';
         node.style.backgroundSize = TEXTURE + "px " + TEXTURE + "px";
       }
+      world.appendChild(node);
+    });
+
+    /* A plot still for sale is laid over its own scenery, buildings and
+       all: it is the whole piece of land that is on offer, so a press
+       anywhere on it says what it costs, and its price is never hidden
+       behind a roof. */
+    place.plots.filter(plot => !plot.owned).forEach(plot => {
+      const node = document.createElement("div");
+      node.className = "plot is-forsale" + (isSelected("plot", plot.id) ? " is-selected" : "");
+      node.dataset.sale = plot.id;
+      node.style.cssText = box(plot.x, plot.y, plot.w, plot.h);
+      node.innerHTML = '<span class="plot-tag">' + plot.name +
+        '<b><img src="assets/coin.svg" alt="pièces">' + plot.price + '</b></span>';
       world.appendChild(node);
     });
 
