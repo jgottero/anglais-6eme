@@ -15,9 +15,9 @@ Ouvrir `reward/index.html`. Un simple serveur statique convient :
 python3 -m http.server 8000     # puis http://localhost:8000/reward/
 ```
 
-Le bouton ⚙ ouvre un **panneau parent** qui remplace l'application
-d'apprentissage le temps du prototype : accorder le palier suivant, tout
-remettre à zéro.
+Le temps du prototype, toucher les pièces en ajoute 100 : de quoi essayer
+le magasin sans passer par l'application d'apprentissage. Pour repartir de
+zéro, `REWARD.reset()` dans la console du navigateur.
 
 ## Ce que fait le module
 
@@ -144,6 +144,7 @@ Sur la même page (les scripts du module sont chargés) :
 REWARD.grantTier(rank);   // paie le palier une seule fois, même rappelé
 REWARD.addCoins(50);      // pièces hors palier
 REWARD.coins();           // solde actuel
+REWARD.reset();           // tout effacer et recommencer
 ```
 
 Dans une iframe :
@@ -156,6 +157,8 @@ iframe.contentWindow.postMessage({ type: "reward:tier", tier: rank }, "*");
 Le bouton retour prévient la page parente avec
 `{ type: "reward:back" }` ; c'est là que l'application d'apprentissage
 reprendra la main.
+
+`REWARD.reset()` efface la propriété et rend la mise de départ.
 
 Un palier déjà payé est ignoré (`grantTier` renvoie `null`), donc
 l'application principale peut rejouer ses paliers sans risque de double
@@ -173,7 +176,7 @@ reward/
   js/state.js         pièces, objets posés par lieu, sauvegarde, règles
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
   js/shop.js          l'écran magasin
-  js/app.js           overlay, objet en main, panneau parent, pont avec l'app
+  js/app.js           overlay, objet en main, voix, pont avec l'app
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
     floor.svg wall.svg door.svg window.svg window-side.svg  (les intérieurs)

@@ -545,31 +545,6 @@ button { font: inherit; cursor: pointer; }
 .card .price .coin { width: 18px; height: 18px; }
 .card.is-locked .price { background: #d8d2c4; border-color: #b9b2a2; color: #7a7364; }
 
-/* ---- Parent panel ---- */
-
-.dev {
-  position: fixed;
-  z-index: 25;
-  top: calc(66px + env(safe-area-inset-top));
-  right: 12px;
-  max-width: 300px;
-  padding: 12px;
-  background: var(--panel);
-  border: 3px dashed var(--wood-dark);
-  border-radius: 12px;
-  box-shadow: var(--lift);
-}
-.dev p { margin: 0 0 8px; color: var(--ink-soft); font-size: 0.84rem; }
-.dev-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.dev button {
-  background: transparent;
-  color: var(--ink);
-  border: 2px solid var(--edge);
-  border-radius: 8px;
-  padding: 6px 11px;
-}
-.dev button.danger { border-color: var(--danger); color: var(--danger); }
-
 /* ---- Coins flying off an object ---- */
 
 .coin-fly {

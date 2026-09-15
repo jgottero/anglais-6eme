@@ -57,7 +57,6 @@
     });
 
     setUpHud();
-    setUpDevPanel();
     // Voices arrive late in some browsers; take them when they do.
     if (canSpeak && typeof window.speechSynthesis.addEventListener === "function") {
       window.speechSynthesis.addEventListener("voiceschanged", pickVoice);
@@ -355,31 +354,6 @@
     toastTimer = setTimeout(() => { toastEl.hidden = true; }, 2600);
   }
 
-  /* ---- Parent panel ---- */
-
-  function setUpDevPanel() {
-    const panel = document.getElementById("dev-panel");
-    document.getElementById("dev-toggle").addEventListener("click", () => {
-      panel.hidden = !panel.hidden;
-    });
-
-    document.getElementById("dev-tier").addEventListener("click", () => {
-      const tier = PropertyState.get().tiers.length + 1;
-      const result = PropertyState.grantTier(tier, rewardForTier(tier));
-      if (result) toast("Palier " + tier + " atteint ! +" + result.amount + " pièces.");
-    });
-
-    document.getElementById("dev-reset").addEventListener("click", () => {
-      if (!confirm("Tout effacer et recommencer la propriété ?")) return;
-      PropertyState.reset();
-      World.cancelPlacing();
-      World.clearSelection();
-      World.fitCamera();
-      onScene(PropertyState.scene());
-      toast("Propriété remise à zéro.");
-    });
-  }
-
   /* ---- Bridge for the learning app ---- */
 
   window.REWARD = {
@@ -390,6 +364,14 @@
     },
     addCoins(amount) { return PropertyState.addCoins(amount); },
     coins() { return PropertyState.get().coins; },
+    // Starting the property over, from the console or from the main app.
+    reset() {
+      PropertyState.reset();
+      World.cancelPlacing();
+      World.clearSelection();
+      World.fitCamera();
+      onScene(PropertyState.scene());
+    },
     rewardForTier
   };
 
