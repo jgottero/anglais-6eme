@@ -68,7 +68,10 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   dessin, elle n'est pas écrite.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
-  Un appui sur une case le pose et débite les pièces. Il **reste en main**
+  Un appui sur le terrain le pose et débite les pièces, **centré au plus
+  près de l'endroit touché** : viser le coin haut-gauche d'une case met
+  cette case en bas à droite de l'objet, viser son milieu le pose à cheval
+  autour d'elle. La silhouette montre le résultat avant de lâcher. Il **reste en main**
   ensuite, pour poser toute une rangée de champs sans rouvrir le magasin ;
   la croix le repose, et il quitte la main tout seul dès qu'il n'y a plus
   assez de pièces pour le suivant.

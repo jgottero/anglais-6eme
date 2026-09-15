@@ -276,16 +276,22 @@ const World = (function () {
     };
   }
 
-  /* Where an object held in hand would land. The tile under the finger
-     is always one of the tiles it covers — rounding around the middle
-     would make a two-tile object flip from one row to the next on a
-     boundary the child cannot see. */
+  /* Where an object held in hand would land: as close as the grid allows
+     to being centred on the very point touched. Touch the top-left
+     corner of a case and a two-case object ends up with that case as its
+     bottom-right corner; touch the middle of the case and it sits square
+     around it.
+
+     The nudge is there for the exact halfway points, where the finger is
+     equally close to two answers: without it the last bit of a division
+     would pick one or the other from one press to the next. */
   function centredTarget(clientX, clientY, item, turn) {
     const land = PropertyState.scene().land;
     const size = CATALOG.footprint(item, turn);
     const point = pointerTile(clientX, clientY);
+    const NUDGE = 1e-6;
     const anchor = (along, tiles, limit) =>
-      Math.max(0, Math.min(limit - tiles, Math.floor(along) - Math.floor((tiles - 1) / 2)));
+      Math.max(0, Math.min(limit - tiles, Math.round(along - tiles / 2 + NUDGE)));
     return {
       x: anchor(point.x, size.w, land.cols),
       y: anchor(point.y, size.h, land.rows)
