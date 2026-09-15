@@ -63,9 +63,9 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
   place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
   nature, jardin, bâtiments), 17 dedans (meubles, porte, carrelage, tapis,
-  et le chat et le chien qui vont des deux côtés). Chaque fiche porte son
-  nom français, son nom anglais et son prix — la taille se devine au
-  dessin, elle n'est pas écrite.
+  et le chat et le chien qui vont des deux côtés). Chaque fiche annonce
+  d'abord le **nom anglais**, en gras, le nom français en gris dessous, et
+  le prix — la taille se devine au dessin, elle n'est pas écrite.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
   Un appui sur le terrain le pose et débite les pièces, **centré au plus
@@ -93,6 +93,10 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
   et un chien aussi, mais la poule se pose sans problème sur le chemin.
   La maison, elle, occupe les deux couches.
+* **Écouter** : la barre d'un objet (ou d'un bâtiment) sélectionné porte
+  un bouton 🔊 qui prononce son nom anglais avec la voix du navigateur,
+  un peu ralentie. C'est le premier fil tiré vers le vocabulaire : le nom
+  anglais est déjà partout, il se dit maintenant à voix haute.
 * Dans les deux lieux : toucher un objet le **sélectionne** ; sa barre propose
   de le **revendre à son prix d'achat**, et une fois sélectionné on le
   glisse pour le déplacer. L'objet reste sélectionné si on le lâche sur
@@ -188,6 +192,10 @@ sauvegarde.
   `js/scenes.js` suffit — position, sol, prix, décors, et les intérieurs
   qu'elle amène. Rien d'autre à toucher, et les propriétés déjà
   sauvegardées la voient apparaître à vendre.
+* **Le vocabulaire pour de bon** : faire dire les noms tout seuls au fil
+  de la visite, ou les demander sous forme de questions. La brique est
+  posée (`say()` dans `js/app.js`, et le nom anglais de chaque objet dans
+  le catalogue).
 * Faire travailler le vocabulaire à partir des objets posés : le nom
   anglais de chaque objet est déjà dans le catalogue, prêt à être lu à
   voix haute ou demandé sous forme de question.

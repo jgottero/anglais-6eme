@@ -58,6 +58,11 @@
 
     setUpHud();
     setUpDevPanel();
+    // Voices arrive late in some browsers; take them when they do.
+    if (canSpeak && typeof window.speechSynthesis.addEventListener === "function") {
+      window.speechSynthesis.addEventListener("voiceschanged", pickVoice);
+    }
+    pickVoice();
 
     PropertyState.subscribe(refresh);
     refresh();
@@ -178,7 +183,8 @@
     if (held.r) poses.push("rotate(" + held.r * 90 + "deg)");
     if (held.m) poses.push("scaleX(-1)");
     art.style.transform = poses.join(" ");
-    document.getElementById("hand-name").textContent = item.fr;
+    document.getElementById("hand-name").textContent = item.en;
+    document.getElementById("hand-sub").textContent = item.fr;
     document.getElementById("hand-price").textContent = item.price;
     document.getElementById("turn-held").hidden = !item.turns;
     document.getElementById("mirror-held").hidden = !item.mirrors;
@@ -203,10 +209,11 @@
     if (card) barEl.innerHTML = card;
   }
 
-  function nameCard(art, fr, en) {
+  /* The English name leads, in full, with the French one under it. */
+  function nameCard(art, english, french) {
     return '<div class="bar-id">' +
       '<img src="' + art + '" alt="">' +
-      '<div><b>' + fr + '</b><span class="en">' + en + '</span></div>' +
+      '<div><b>' + english + '</b><span class="sub">' + french + '</span></div>' +
     '</div>';
   }
 
@@ -214,8 +221,9 @@
     const entry = PropertyState.scene().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) return null;
-    return nameCard(CATALOG.assetUrl(item.id), item.fr, item.en) +
+    return nameCard(CATALOG.assetUrl(item.id), item.en, item.fr) +
       '<p class="hint">Glisse pour déplacer</p>' +
+      sayButton(item.en) +
       (item.turns ? '<button class="turn-btn" data-action="turn" title="Tourner">↻ Tourner</button>' : "") +
       (item.mirrors ? '<button class="turn-btn" data-action="mirror" title="Miroir">⇄ Miroir</button>' : "") +
       '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>';
@@ -225,7 +233,8 @@
     const block = PropertyState.scene().blocks[index];
     const kind = block && SCENES.kind(block.kind);
     if (!kind || !block.to) return null;
-    return nameCard(kind.sprite || kind.tile, kind.fr, kind.en) +
+    return nameCard(kind.sprite || kind.tile, kind.en, kind.fr) +
+      sayButton(kind.en) +
       '<button class="enter-btn" data-action="enter" data-to="' + block.to + '">' +
         (kind.action || "Entrer") +
       '</button>';
@@ -258,6 +267,10 @@
       World.mirrorSelected();
       return;
     }
+    if (button.dataset.action === "say") {
+      say(button.dataset.say);
+      return;
+    }
     if (button.dataset.action === "plot") {
       const bought = PropertyState.buyPlot();
       if (!bought) return;
@@ -269,6 +282,40 @@
     const refund = PropertyState.sell(Number(button.dataset.uid));
     World.clearSelection();
     if (refund !== null) toast("Vendu. +" + refund + " pièces.");
+  }
+
+  /* ---- Saying the name out loud ----
+     The whole point of the property, in the end: the objects teach the
+     words. The voice is whichever English one the browser has. */
+
+  const canSpeak = typeof window.speechSynthesis !== "undefined" &&
+    typeof window.SpeechSynthesisUtterance !== "undefined";
+  let englishVoice = null;
+
+  function pickVoice() {
+    if (!canSpeak) return null;
+    const voices = window.speechSynthesis.getVoices();
+    englishVoice = voices.find(voice => /^en[-_]GB/i.test(voice.lang)) ||
+      voices.find(voice => /^en/i.test(voice.lang)) || null;
+    return englishVoice;
+  }
+
+  // Nothing to press where the browser has no voice at all.
+  function sayButton(words) {
+    if (!canSpeak || !words) return "";
+    return '<button class="say-btn" data-action="say" data-say="' + words +
+      '" title="Écouter en anglais" aria-label="Écouter le nom anglais">🔊</button>';
+  }
+
+  function say(words) {
+    if (!canSpeak) return;
+    const said = new SpeechSynthesisUtterance(words);
+    said.lang = "en-GB";
+    said.rate = 0.85;   // a shade slower than a native speaker
+    const voice = englishVoice || pickVoice();
+    if (voice) said.voice = voice;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(said);
   }
 
   /* ---- Messages ---- */

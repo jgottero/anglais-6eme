@@ -313,6 +313,7 @@ button { font: inherit; cursor: pointer; }
   color: var(--ink);
 }
 .hand-price img { width: 17px; height: 17px; }
+.hand-sub { color: var(--ink-soft); font-size: 0.8rem; font-style: italic; }
 .hand-hint { color: var(--ink-soft); font-size: 0.78rem; }
 .hand-cancel, .hand-pose {
   pointer-events: auto;
@@ -363,8 +364,19 @@ button { font: inherit; cursor: pointer; }
 }
 .bar-id { display: flex; align-items: center; gap: 10px; }
 .bar-id img { width: 40px; height: 40px; }
-.bar-id .en { display: block; color: var(--ink-soft); font-size: 0.85rem; font-style: italic; }
+.bar-id .sub { display: block; color: var(--ink-soft); font-size: 0.85rem; font-style: italic; }
 .action-bar .hint { margin: 0; color: var(--ink-soft); font-size: 0.85rem; }
+
+.say-btn {
+  border-radius: 9px;
+  padding: 8px 12px;
+  border: 2px solid var(--leaf-dark);
+  background: var(--leaf);
+  color: #fdf6e7;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+}
 
 .turn-btn {
   border-radius: 9px;
@@ -524,8 +536,8 @@ button { font: inherit; cursor: pointer; }
   padding: 1px 7px;
 }
 
-.card .fr { font-weight: 700; }
-.card .en { color: var(--ink-soft); font-size: 0.82rem; font-style: italic; }
+.card .name { font-weight: 700; }
+.card .sub { color: var(--ink-soft); font-size: 0.82rem; font-style: italic; }
 .card .size { color: var(--ink-soft); font-size: 0.72rem; margin-bottom: 6px; }
 /* Most objects say nothing there: no line, no gap. */
 .card .size:empty { display: none; }

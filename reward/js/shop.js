@@ -9,8 +9,9 @@
    closes the shop, and the object is paid for where it is put down.
    Nothing here drags, so the list scrolls the way a list should.
 
-   A card shows both names of the object: the French one the child reads,
-   and the English one a later version will teach out loud.
+   A card leads with the English name — that is what the child is here
+   to learn — and keeps the French one underneath to say which object it
+   is.
    ===================================================================== */
 const Shop = (function () {
 
@@ -92,8 +93,8 @@ const Shop = (function () {
             '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
             (owned ? '<span class="owned" title="Déjà posé ici">×' + owned + '</span>' : '') +
           '</span>' +
-          '<span class="fr">' + item.fr + '</span>' +
-          '<span class="en">' + item.en + '</span>' +
+          '<span class="name">' + item.en + '</span>' +
+          '<span class="sub">' + item.fr + '</span>' +
           '<span class="size">' + (CATALOG.layerOf(item) === "ground" ? "terrain" : "") + '</span>' +
           '<span class="price">' +
             '<img class="coin" src="assets/coin.svg" alt="pièces"> ' + item.price +
