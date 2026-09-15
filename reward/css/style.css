@@ -529,21 +529,19 @@ button { font: inherit; cursor: pointer; }
 .card .size { color: var(--ink-soft); font-size: 0.72rem; margin-bottom: 6px; }
 /* Most objects say nothing there: no line, no gap. */
 .card .size:empty { display: none; }
+/* The price is a label, not a button: the whole card is what one presses. */
 .card .price {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  width: 100%;
-  border: 2px solid #a97f1c;
-  background: var(--gold);
-  color: #3a2b1c;
-  border-radius: 9px;
-  padding: 6px;
+  padding: 3px 0 1px;
+  color: var(--ink);
   font-weight: 700;
+  font-size: 1.05rem;
 }
-.card .price .coin { width: 18px; height: 18px; }
-.card.is-locked .price { background: #d8d2c4; border-color: #b9b2a2; color: #7a7364; }
+.card .price .coin { width: 19px; height: 19px; }
+.card.is-locked .price { color: var(--ink-soft); }
 
 /* ---- Coins flying off an object ---- */
 
