@@ -190,6 +190,8 @@ const World = (function () {
       if (!kind) return;
       const node = document.createElement("div");
       node.className = "blk blk-" + block.kind +
+        // Scenery: a wall, a window, a building one does not own yet.
+        (block.to ? "" : " is-fixed") +
         (block.owned === false ? " is-locked" : "") +
         (isSelected("block", index) ? " is-selected" : "");
       node.dataset.block = index;

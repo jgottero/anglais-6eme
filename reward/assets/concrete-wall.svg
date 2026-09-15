@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- The block of flats: poured panels, thin joints -->
+  <rect width="32" height="32" fill="#b9bcc0"/>
+  <g stroke="#a2a5a9" stroke-width="1.2"><path d="M0 16h32M16 0v16M8 16v16M24 16v16"/></g>
+  <g fill="#c3c6ca"><rect x="1" y="1" width="14" height="14"/><rect x="9" y="17" width="14" height="14"/></g>
+</svg>

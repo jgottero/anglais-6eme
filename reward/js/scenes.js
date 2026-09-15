@@ -35,9 +35,46 @@ const SCENES = (function () {
      the long block wide and low. */
   const BLOCKS = {
     house:       { fr: "Ta maison",   en: "your house",  sprite: "assets/house.svg",        action: "Entrer" },
+
+    /* The walls and windows of the interiors, one set per building: the
+       cabin is built of logs, the flats of poured panels and glass, the
+       harbour shed of corrugated steel. A room picks its set through
+       the styles below; nothing else changes. */
     wall:        { fr: "Un mur",      en: "a wall",      tile: "assets/wall.svg" },
     window:      { fr: "Une fenêtre", en: "a window",    sprite: "assets/window.svg" },
     window_side: { fr: "Une fenêtre", en: "a window",    sprite: "assets/window-side.svg" },
+
+    log_wall:    { fr: "Un mur de rondins", en: "a log wall", tile: "assets/log-wall.svg" },
+    log_window:  { fr: "Une fenêtre", en: "a window",    sprite: "assets/log-window.svg" },
+    log_window_side: { fr: "Une fenêtre", en: "a window", sprite: "assets/log-window-side.svg" },
+
+    plaster_wall: { fr: "Un mur crépi", en: "a plastered wall", tile: "assets/plaster-wall.svg" },
+    shutter_window: { fr: "Une fenêtre à volets", en: "a shuttered window", sprite: "assets/shutter-window.svg" },
+    shutter_window_side: { fr: "Une fenêtre à volets", en: "a shuttered window", sprite: "assets/shutter-window-side.svg" },
+
+    panel_wall:  { fr: "Un mur lambrissé", en: "a panelled wall", tile: "assets/panel-wall.svg" },
+    panel_window: { fr: "Une fenêtre", en: "a window",   sprite: "assets/panel-window.svg" },
+    panel_window_side: { fr: "Une fenêtre", en: "a window", sprite: "assets/panel-window-side.svg" },
+
+    concrete_wall: { fr: "Un mur de béton", en: "a concrete wall", tile: "assets/concrete-wall.svg" },
+    bay_window:  { fr: "Une baie vitrée", en: "a bay window", sprite: "assets/bay-window.svg" },
+    bay_window_side: { fr: "Une baie vitrée", en: "a bay window", sprite: "assets/bay-window-side.svg" },
+
+    white_wall:  { fr: "Un mur clair", en: "a pale wall", tile: "assets/white-wall.svg" },
+    tall_window: { fr: "Une baie vitrée", en: "a bay window", sprite: "assets/tall-window.svg" },
+    tall_window_side: { fr: "Une baie vitrée", en: "a bay window", sprite: "assets/tall-window-side.svg" },
+
+    raw_wall:    { fr: "Un mur brut", en: "a bare concrete wall", tile: "assets/raw-wall.svg" },
+    raw_window:  { fr: "Une baie vitrée", en: "a bay window", sprite: "assets/raw-window.svg" },
+    raw_window_side: { fr: "Une baie vitrée", en: "a bay window", sprite: "assets/raw-window-side.svg" },
+
+    brick_wall:  { fr: "Un mur de briques", en: "a brick wall", tile: "assets/brick-wall.svg" },
+    brick_window: { fr: "Une verrière", en: "a workshop window", sprite: "assets/brick-window.svg" },
+    brick_window_side: { fr: "Une verrière", en: "a workshop window", sprite: "assets/brick-window-side.svg" },
+
+    metal_wall:  { fr: "Un mur de tôle", en: "a steel wall", tile: "assets/metal-wall.svg" },
+    metal_window: { fr: "Une fenêtre", en: "a window",   sprite: "assets/metal-window.svg" },
+    metal_window_side: { fr: "Une fenêtre", en: "a window", sprite: "assets/metal-window-side.svg" },
     door:        { fr: "La porte",    en: "the door",    sprite: "assets/door.svg",         action: "Sortir" },
     cabin:       { fr: "La cabane",   en: "the cabin",   sprite: "assets/cabin.svg",        action: "Entrer" },
     cottage:     { fr: "La maisonnette", en: "the cottage", sprite: "assets/cottage.svg",   action: "Entrer" },
@@ -262,11 +299,28 @@ const SCENES = (function () {
     "##########DD############"
   ];
 
+  /* ---- What each building is made of ----
+     The same plans, dressed differently: the child who works their way
+     from the cabin to the tower should see it in the walls and under
+     their feet. `floor` is the ground the room is laid on, the rest
+     says what the signs of a plan stand for here. */
+  const STYLES = {
+    house:   { floor: "floor",      wall: "wall",          window: "window",         side: "window_side" },
+    cabin:   { floor: "logs",       wall: "log_wall",      window: "log_window",     side: "log_window_side" },
+    west:    { floor: "terracotta", wall: "plaster_wall",  window: "shutter_window", side: "shutter_window_side" },
+    east:    { floor: "stone",      wall: "panel_wall",    window: "panel_window",   side: "panel_window_side" },
+    flat:    { floor: "lino",       wall: "concrete_wall", window: "bay_window",     side: "bay_window_side" },
+    tower:   { floor: "polished",   wall: "white_wall",    window: "tall_window",    side: "tall_window_side" },
+    newtown: { floor: "carpet",     wall: "raw_wall",      window: "raw_window",     side: "raw_window_side" },
+    loft:    { floor: "concrete",   wall: "brick_wall",    window: "brick_window",   side: "brick_window_side" },
+    shed:    { floor: "planks",     wall: "metal_wall",    window: "metal_window",   side: "metal_window_side" }
+  };
+
   /* A plan becomes as few rectangles as possible: runs of the same sign
      on a row, then rows stacked when they line up. A doorway two tiles
      wide is one door, a square of stairs is one staircase. */
-  function blocksFromPlan(plan, ways) {
-    const signs = { "#": "wall", O: "window", I: "window_side", D: "door", U: "stairs_up", W: "stairs_down" };
+  function blocksFromPlan(plan, ways, style) {
+    const signs = { "#": style.wall, O: style.window, I: style.side, D: "door", U: "stairs_up", W: "stairs_down" };
     const blocks = [];
     plan.forEach((row, y) => {
       let x = 0;
@@ -285,13 +339,15 @@ const SCENES = (function () {
     return blocks;
   }
 
-  function room(id, name, plan, ways) {
+  function room(id, name, plan, ways, look) {
+    const style = STYLES[look] || STYLES.house;
     return {
       id, name,
       indoor: true,
       land: { cols: plan[0].length, rows: plan.length },
-      plots: [{ id: id + "-floor", x: 0, y: 0, w: plan[0].length, h: plan.length, ground: "floor", owned: true }],
-      blocks: blocksFromPlan(plan, ways)
+      plots: [{ id: id + "-floor", x: 0, y: 0, w: plan[0].length, h: plan.length,
+                ground: style.floor, owned: true }],
+      blocks: blocksFromPlan(plan, ways, style)
     };
   }
 
@@ -316,7 +372,7 @@ const SCENES = (function () {
       ground: "grass",
       price: 0,
       blocks: [{ x: 10, y: 2, w: 8, h: 6, kind: "house", to: "house" }],
-      rooms: [() => room("house", "Ta maison", HOUSE_PLAN, { D: "outside" })]
+      rooms: [() => room("house", "Ta maison", HOUSE_PLAN, { D: "outside" }, "house")]
     },
     {
       id: "meadow",
@@ -340,7 +396,7 @@ const SCENES = (function () {
         { x: 24, y: 2, w: 4, h: 4, kind: "tree" },
         { x: 8, y: 11, w: 4, h: 4, kind: "tree" }
       ],
-      rooms: [() => room("cabin", "La cabane", CABIN_PLAN, { D: "outside" })]
+      rooms: [() => room("cabin", "La cabane", CABIN_PLAN, { D: "outside" }, "cabin")]
     },
     {
       id: "orchard",
@@ -387,8 +443,8 @@ const SCENES = (function () {
         { x: 19, y: 3, w: 6, h: 4, kind: "cottage", to: "cottage_east" }
       ],
       rooms: [
-        () => room("cottage_west", "La maisonnette du couchant", COTTAGE_PLAN, { D: "outside" }),
-        () => room("cottage_east", "La maisonnette du levant", COTTAGE_PLAN, { D: "outside" })
+        () => room("cottage_west", "La maisonnette du couchant", COTTAGE_PLAN, { D: "outside" }, "west"),
+        () => room("cottage_east", "La maisonnette du levant", COTTAGE_PLAN, { D: "outside" }, "east")
       ]
     },
     {
@@ -414,12 +470,12 @@ const SCENES = (function () {
         { x: 20, y: 2, w: 6, h: 12, kind: "spire", to: "tower_a1" }
       ],
       rooms: [
-        () => room("flat_1", "Immeuble — 1er étage", FLOOR_PLANS.ground, { D: "outside", U: "flat_2" }),
-        () => room("flat_2", "Immeuble — 2e étage", FLOOR_PLANS.middle, { U: "flat_3", W: "flat_1" }),
-        () => room("flat_3", "Immeuble — 3e étage", FLOOR_PLANS.top, { W: "flat_2" }),
-        () => room("tower_a1", "La tour du parc — 1er étage", FLAT_PLANS.ground, { D: "outside", U: "tower_a2" }),
-        () => room("tower_a2", "La tour du parc — 2e étage", FLAT_PLANS.middle, { U: "tower_a3", W: "tower_a1" }),
-        () => room("tower_a3", "La tour du parc — 3e étage", FLAT_PLANS.top, { W: "tower_a2" })
+        () => room("flat_1", "Immeuble — 1er étage", FLOOR_PLANS.ground, { D: "outside", U: "flat_2" }, "flat"),
+        () => room("flat_2", "Immeuble — 2e étage", FLOOR_PLANS.middle, { U: "flat_3", W: "flat_1" }, "flat"),
+        () => room("flat_3", "Immeuble — 3e étage", FLOOR_PLANS.top, { W: "flat_2" }, "flat"),
+        () => room("tower_a1", "La tour du parc — 1er étage", FLAT_PLANS.ground, { D: "outside", U: "tower_a2" }, "tower"),
+        () => room("tower_a2", "La tour du parc — 2e étage", FLAT_PLANS.middle, { U: "tower_a3", W: "tower_a1" }, "tower"),
+        () => room("tower_a3", "La tour du parc — 3e étage", FLAT_PLANS.top, { W: "tower_a2" }, "tower")
       ]
     },
     {
@@ -449,10 +505,10 @@ const SCENES = (function () {
         { x: 10, y: 3, w: 16, h: 6, kind: "row", to: "loft_1" }
       ],
       rooms: [
-        () => room("tower_b1", "La tour neuve — 1er étage", FLAT_PLANS.ground, { D: "outside", U: "tower_b2" }),
-        () => room("tower_b2", "La tour neuve — 2e étage", FLAT_PLANS.top, { W: "tower_b1" }),
-        () => room("loft_1", "Le long immeuble — 1er étage", LOFT_PLANS.ground, { D: "outside", U: "loft_2" }),
-        () => room("loft_2", "Le long immeuble — 2e étage", LOFT_PLANS.top, { W: "loft_1" })
+        () => room("tower_b1", "La tour neuve — 1er étage", FLAT_PLANS.ground, { D: "outside", U: "tower_b2" }, "newtown"),
+        () => room("tower_b2", "La tour neuve — 2e étage", FLAT_PLANS.top, { W: "tower_b1" }, "newtown"),
+        () => room("loft_1", "Le long immeuble — 1er étage", LOFT_PLANS.ground, { D: "outside", U: "loft_2" }, "loft"),
+        () => room("loft_2", "Le long immeuble — 2e étage", LOFT_PLANS.top, { W: "loft_1" }, "loft")
       ]
     },
     {
@@ -468,7 +524,7 @@ const SCENES = (function () {
       ],
       price: 12000,
       blocks: [{ x: 3, y: 1, w: 12, h: 6, kind: "shed", to: "shed" }],
-      rooms: [() => room("shed", "Le hangar du port", SHED_PLAN, { D: "outside" })]
+      rooms: [() => room("shed", "Le hangar du port", SHED_PLAN, { D: "outside" }, "shed")]
     }
   ];
 

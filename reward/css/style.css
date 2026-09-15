@@ -173,7 +173,9 @@ button { font: inherit; cursor: pointer; }
 /* What is built in: the house seen from outside, the walls and the door
    seen from inside. None of it can be bought, moved or sold. */
 .blk img { object-fit: fill; }
-.blk-wall { cursor: default; }
+/* Nothing that leads anywhere: a wall, a window, a building on land
+   nobody owns. Only what can be entered looks touchable. */
+.blk.is-fixed { cursor: default; }
 /* A building on a plot nobody owns: seen through the veil, not touched. */
 .blk.is-locked { pointer-events: none; filter: brightness(0.55) saturate(0.75); }
 .blk-house, .blk-door { cursor: pointer; }

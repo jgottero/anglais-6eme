@@ -55,6 +55,18 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Le bouton **Sortir** cherche vraiment la porte : depuis un étage, qui
   n'a que des escaliers, il redescend jusqu'à l'étage qui en a une et
   ressort par là, d'un seul appui.
+* **Chaque bâtiment est meublé jusqu'aux murs.** Les plans sont les
+  mêmes, la matière change : la cabane est en rondins, sol compris ; la
+  maisonnette du couchant a des tomettes, un crépi blanc à poutre et des
+  volets bleus ; celle du levant, des dalles de pierre et du lambris ;
+  l'immeuble, un sol clair, des panneaux de béton et des **baies
+  vitrées** ; la tour du parc, un sol sombre poli et du verre du sol au
+  plafond ; la tour neuve, de la moquette et du béton brut ; le long
+  immeuble, de la brique et une verrière d'atelier ; le hangar du port,
+  des planches et de la tôle ondulée. C'est une ligne par bâtiment dans
+  `STYLES` (`js/scenes.js`) : le sol sur lequel la pièce est posée, et
+  ce que valent les signes de son plan (`#`, `O`, `I`). Monter de la
+  cabane à la tour doit se voir sous les pieds.
   Chaque intérieur est un monde indépendant, avec ses pièces séparées par
   des murs : ses objets lui appartiennent, seules les pièces de monnaie
   sont communes.

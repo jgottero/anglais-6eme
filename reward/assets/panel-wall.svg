@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- The cottage of the rising sun: boards from floor to ceiling -->
+  <rect width="32" height="32" fill="#a9834f"/>
+  <g fill="#b8925c"><rect x="1" width="6" height="32"/><rect x="13" width="6" height="32"/><rect x="25" width="6" height="32"/></g>
+  <g stroke="#8a6a3c" stroke-width="1"><path d="M8 0v32M20 0v32M32 0v32M0 0v32"/></g>
+  <g stroke="#9b7846" stroke-width=".7"><path d="M3 4v24M15 6v22M27 2v26"/></g>
+</svg>

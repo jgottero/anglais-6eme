@@ -20,13 +20,24 @@ const Ground = (function () {
   const TILE = 32;                 // must match the world's tile size
   const FOLDER = "assets/ground/";
 
+  /* Outside, the grounds of the map; inside, one floor per building —
+     the cabin has its logs, the flats their poured floor, the harbour
+     shed its planks. A room names the one it is laid on. */
   const VARIANTS = {
     grass:  ["grass-1.svg", "grass-2.svg", "grass-3.svg", "grass-4.svg"],
     forest: ["forest-1.svg", "forest-2.svg", "forest-3.svg"],
     sand:   ["sand-1.svg", "sand-2.svg", "sand-3.svg"],
     paving: ["paving-1.svg", "paving-2.svg"],
     water:  ["water-1.svg", "water-2.svg"],
-    floor:  ["floor-1.svg", "floor-2.svg"]
+    floor:      ["floor-1.svg", "floor-2.svg"],
+    logs:       ["logs-1.svg", "logs-2.svg"],
+    terracotta: ["terracotta-1.svg", "terracotta-2.svg"],
+    stone:      ["stone-1.svg", "stone-2.svg"],
+    lino:       ["lino-1.svg", "lino-2.svg"],
+    polished:   ["polished-1.svg", "polished-2.svg"],
+    carpet:     ["carpet-1.svg", "carpet-2.svg"],
+    concrete:   ["concrete-1.svg", "concrete-2.svg"],
+    planks:     ["planks-1.svg", "planks-2.svg"]
   };
 
   const WANDER = 2.6;    // how far a ground may stray over its border, in cases

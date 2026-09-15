@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- The cottage of the setting sun: white plaster and a beam -->
+  <rect width="32" height="32" fill="#efe7d6"/>
+  <rect y="13" width="32" height="6" fill="#8f6134" stroke="#5c3d1f" stroke-width="1"/>
+  <g stroke="#7b5230" stroke-width=".8"><path d="M8 13v6M20 13v6"/></g>
+  <g fill="#e2d8c2"><circle cx="6" cy="6" r="2"/><circle cx="25" cy="25" r="2.4"/><circle cx="14" cy="27" r="1.4"/></g>
+</svg>

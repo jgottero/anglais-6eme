@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- The wall of the cabin: whole logs, stacked -->
+  <rect width="32" height="32" fill="#7b5230"/>
+  <g fill="#8f6134" stroke="#5c3d1f" stroke-width="1.2"><rect y="1" width="32" height="9" rx="4.5"/><rect y="12" width="32" height="9" rx="4.5"/><rect y="23" width="32" height="9" rx="4.5"/></g>
+  <g stroke="#6d4a28" stroke-width=".9" fill="none"><path d="M3 5h26M3 16h26M3 27h26"/></g>
+  <g fill="#a9763f"><circle cx="4" cy="5.5" r="2"/><circle cx="28" cy="16.5" r="2"/><circle cx="4" cy="27.5" r="2"/></g>
+</svg>
