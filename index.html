@@ -1127,6 +1127,9 @@ function startRound(lessonId) {
   state.round = picked.map(word => {
     if (state.mode === "mcq") return buildForward(word, pool);
     if (state.mode === "mcqfr") return buildReverse(word, pool);
+    // Writing what is heard means writing it from the sound alone: the
+    // French word would hand the answer over before the first letter.
+    if (state.mode === "spell") return { word, prompt: "" };
     return { word, prompt: word.fr };
   });
   state.index = 0;
@@ -1194,7 +1197,9 @@ function showQuestion() {
   markTrack(null);
   document.getElementById("counter").textContent =
     lessonTitle(state.lesson) + " · " + (state.index + 1) + "/" + state.round.length;
-  document.getElementById("prompt").textContent = state.round[state.index].prompt;
+  const prompt = document.getElementById("prompt");
+  prompt.textContent = state.round[state.index].prompt;
+  prompt.hidden = !prompt.textContent;   // the dictation asks nothing in writing
   if (state.mode === "say") say.render();
   else if (state.mode === "spell") spell.render();
   else mcq.render();
