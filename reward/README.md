@@ -232,15 +232,26 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   écrite par une version antérieure (`version` différente) est **effacée
   et non convertie** : la grille sous elle n'est plus la même.
 
-## Brancher l'application d'apprentissage
+## L'application d'apprentissage
+
+Elle est branchée : `index.html`, à la racine du dépôt, ouvre ce module
+en plein écran dans une iframe quand l'enfant touche **« Ouvrir ma
+propriété »**. Elle lui envoie une seule chose — le **rang** atteint dans
+les exercices — et le module règle tout ce qui n'a pas encore été payé,
+puis répond avec la bourse, que le menu affiche entre deux séries. La
+flèche en haut à droite de la propriété renvoie aux exercices.
+
+`reward/index.html` s'ouvre toujours seul, sans l'application : c'est là
+qu'on essaie le module (la bourse fait alors passer un niveau).
 
 Le module ne connaît ni les points ni les leçons : il reçoit seulement des
-paliers. Deux façons de l'appeler, au choix.
+niveaux. Deux façons de l'appeler, au choix.
 
 Sur la même page (les scripts du module sont chargés) :
 
 ```js
 REWARD.grantTier(level);  // paie le niveau une seule fois, même rappelé
+REWARD.syncLevel(level);  // paie tout ce qui est dû jusqu'à ce niveau
 REWARD.addCoins(50);      // pièces hors niveau
 REWARD.coins();           // solde actuel
 REWARD.level();           // niveau atteint (0 à 100)
@@ -250,9 +261,17 @@ REWARD.reset();           // tout effacer et recommencer
 Dans une iframe :
 
 ```js
+iframe.contentWindow.postMessage({ type: "reward:level", level: rank }, "*");
+// règle tous les niveaux dus jusqu'à celui-là, en une fois
 iframe.contentWindow.postMessage({ type: "reward:tier", tier: rank }, "*");
-// réponse : { type: "reward:state", coins: 1234 }
+// paie un niveau précis
+// réponse : { type: "reward:state", coins: 1234, level: 8 }
 ```
+
+`reward:level` est celui qu'utilise l'application : elle ignore ce qui a
+déjà été payé, le module s'en souvient, et renvoyer le même rang ne coûte
+rien. Le module envoie aussi `reward:state` de lui-même à chaque fois que
+la bourse change, donc la page parente n'a rien à demander.
 
 Le bouton retour prévient la page parente avec
 `{ type: "reward:back" }` ; c'est là que l'application d'apprentissage
@@ -271,9 +290,9 @@ au niveau 1, 1850 au niveau 100, et **70 500 pièces** sur la partie
 entière — de quoi acheter les onze parcelles (46 800) et beaucoup de
 choses à poser dessus, sans pouvoir tout prendre : il faut choisir.
 
-Dans le prototype, **un appui sur la bourse fait passer un niveau** (et
-donc gagner ses pièces et ses nouveautés) : c'est ce qui remplace
-l'application d'apprentissage tant qu'elle n'est pas branchée.
+Quand on ouvre `reward/index.html` tout seul, **un appui sur la bourse
+fait passer un niveau** (et donc gagner ses pièces et ses nouveautés) :
+c'est ce qui permet d'essayer le module sans faire d'exercices.
 
 ## Organisation
 

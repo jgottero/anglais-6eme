@@ -67,7 +67,9 @@
     pickVoice();
 
     PropertyState.subscribe(refresh);
+    PropertyState.subscribe(tellParent);
     refresh();
+    tellParent();
     sceneEl.textContent = PropertyState.scene().name;
     showWayOut(PropertyState.scene());
     const left = PropertyState.plotsForSale().length;
@@ -101,8 +103,10 @@
     document.getElementById("back").addEventListener("click", () => {
       if (window.parent !== window) {
         window.parent.postMessage({ type: "reward:back" }, "*");
+        return;
       }
-      toast("Bientôt : retour aux exercices d'anglais.");
+      // Opened on its own, there is nowhere to go back to.
+      toast("Ici, ce bouton ramène aux exercices d'anglais.");
     });
 
     document.getElementById("cancel-placing")
@@ -151,6 +155,16 @@
     const fresh = CATALOG.newAt(result.level);
     if (!fresh.length) return line + ".";
     return line + " — " + fresh.length + " nouveautés au magasin !";
+  }
+
+  /* Several levels can land at once when the child comes back after a
+     while: one sentence for the lot, counting everything the shop has
+     opened in between. */
+  function caughtUp(result) {
+    const line = "Niveau " + result.level + " ! +" + result.amount + " pièces";
+    const fresh = CATALOG.ITEMS.filter(item =>
+      item.level > result.was && item.level <= result.level).length;
+    return fresh ? line + " — " + fresh + " nouveautés au magasin !" : line + ".";
   }
 
   /* ---- Going from one scene to another ----
@@ -366,6 +380,17 @@
     window.speechSynthesis.speak(said);
   }
 
+  /* The learning app, when there is one, keeps a purse of its own to
+     show between two rounds; it is told at every change. */
+  function tellParent() {
+    if (window.parent === window) return;
+    window.parent.postMessage({
+      type: "reward:state",
+      coins: PropertyState.get().coins,
+      level: PropertyState.level()
+    }, "*");
+  }
+
   /* ---- Messages ---- */
 
   let toastTimer = null;
@@ -382,6 +407,15 @@
     grantTier(tier) {
       const result = PropertyState.grantTier(tier, rewardForTier(tier));
       if (result) toast(levelNews(result));
+      return result;
+    },
+    /* The learning app knows the rank the child has reached, not what
+       this side has already paid for. One message settles everything
+       owed up to that rank, in one go and one sentence. */
+    syncLevel(level) {
+      const top = Math.max(0, Math.min(CATALOG.LAST_LEVEL, Number(level) || 0));
+      const result = PropertyState.grantUpTo(top, rewardForTier);
+      if (result.paid) toast(caughtUp(result));
       return result;
     },
     addCoins(amount) { return PropertyState.addCoins(amount); },
@@ -404,10 +438,15 @@
     const message = event.data;
     if (!message || typeof message !== "object") return;
     if (message.type === "reward:tier") window.REWARD.grantTier(message.tier);
+    else if (message.type === "reward:level") window.REWARD.syncLevel(message.level);
     else if (message.type === "reward:coins") window.REWARD.addCoins(message.amount);
     else return;
     if (event.source) {
-      event.source.postMessage({ type: "reward:state", coins: PropertyState.get().coins }, "*");
+      event.source.postMessage({
+        type: "reward:state",
+        coins: PropertyState.get().coins,
+        level: PropertyState.level()
+      }, "*");
     }
   });
 

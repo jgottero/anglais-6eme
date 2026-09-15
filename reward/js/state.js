@@ -181,6 +181,26 @@ const PropertyState = (function () {
     return data.tiers.length ? Math.max.apply(null, data.tiers) : 0;
   }
 
+  /* Catching up with the learning app, which knows the child's rank but
+     not what has already been paid here: every rank up to that one is
+     settled, the ones already paid are passed over, and the property is
+     redrawn once at the end rather than a hundred times. */
+  function grantUpTo(top, amountFor) {
+    const was = level();
+    let paid = 0;
+    let amount = 0;
+    for (let one = 1; one <= top; one++) {
+      if (data.tiers.indexOf(one) !== -1) continue;
+      data.tiers.push(one);
+      const due = amountFor(one);
+      data.coins += due;
+      amount += due;
+      paid++;
+    }
+    if (paid) changed();
+    return { paid, amount, was, coins: data.coins, level: level() };
+  }
+
 
   /* ---- Buying, moving, selling ---- */
 
@@ -321,7 +341,7 @@ const PropertyState = (function () {
     scene, sceneId, enter, wayOut,
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
-    addCoins, grantTier, level,
+    addCoins, grantTier, grantUpTo, level,
     buyAt, move, turn, mirror, sell, reset
   };
 })();
