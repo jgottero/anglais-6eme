@@ -502,10 +502,10 @@ const World = (function () {
     return true;
   }
 
-  // The same, the other way round.
+  // The same, the other way round. Always possible: a flip takes up
+  // exactly the same tiles.
   function mirrorHeld() {
-    const item = heldItem();
-    if (!item || !item.mirrors) return false;
+    if (!heldItem()) return false;
     placing.m = placing.m ? 0 : 1;
     hideGhost();
     if (hooks.onPlacingChange) hooks.onPlacingChange(placing);

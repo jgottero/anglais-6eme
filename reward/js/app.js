@@ -187,7 +187,7 @@
     document.getElementById("hand-sub").textContent = item.fr;
     document.getElementById("hand-price").textContent = item.price;
     document.getElementById("turn-held").hidden = !item.turns;
-    document.getElementById("mirror-held").hidden = !item.mirrors;
+    document.getElementById("mirror-held").hidden = false;
   }
 
   function onPlaced(item) {
@@ -225,7 +225,7 @@
       '<p class="hint">Glisse pour déplacer</p>' +
       sayButton(item.en) +
       (item.turns ? '<button class="turn-btn" data-action="turn" title="Tourner">↻ Tourner</button>' : "") +
-      (item.mirrors ? '<button class="turn-btn" data-action="mirror" title="Miroir">⇄ Miroir</button>' : "") +
+      '<button class="turn-btn" data-action="mirror" title="Miroir">⇄ Miroir</button>' +
       '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>';
   }
 

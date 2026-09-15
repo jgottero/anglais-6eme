@@ -194,11 +194,11 @@ const PropertyState = (function () {
   }
 
   /* Flipped left to right, where it stands. The footprint does not
-     change, so this can never be refused. */
+     change, so this can never be refused — every object can be flipped,
+     even those whose drawing looks the same either way. */
   function mirror(uid) {
     const entry = scene().placed.find(one => one.uid === uid);
-    const item = entry && CATALOG.item(entry.id);
-    if (!item || !item.mirrors) return false;
+    if (!entry || !CATALOG.item(entry.id)) return false;
     if (entry.m) delete entry.m;
     else entry.m = 1;
     changed();
