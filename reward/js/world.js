@@ -122,10 +122,10 @@ const World = (function () {
     applyCamera();
   }
 
-  /* What the camera frames: the ground that belongs to the child. The
-     plot on sale is part of the scene, and can be panned to, but it must
-     not push the property off to one side. */
-  function ownedBox() {
+  /* What the camera frames: the whole of the scene, the land bought and
+     the land still under its veil alike. The child is meant to see the
+     country their property sits in, and where it can grow. */
+  function sceneBox() {
     const place = PropertyState.scene();
     const plots = place.plots && place.plots.length
       ? place.plots : [{ x: 0, y: 0, w: place.land.cols, h: place.land.rows }];
@@ -140,7 +140,7 @@ const World = (function () {
      Fitting alone leaves the objects tiny on a phone, filling alone
      shows only a corner. */
   function fitCamera() {
-    const box = ownedBox();
+    const box = sceneBox();
     const vw = viewport.clientWidth;
     const vh = viewport.clientHeight;
     const fit = Math.min(vw / (box.w * TILE + 60), vh / (box.h * TILE + 60));

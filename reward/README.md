@@ -51,24 +51,37 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Chaque intérieur est un monde indépendant, avec ses pièces séparées par
   des murs : ses objets lui appartiennent, seules les pièces de monnaie
   sont communes.
-* **Toute la carte est là dès le premier jour** : les six parcelles sont
+* **Toute la carte est là dès le premier jour** : les onze parcelles sont
   dessinées, avec leurs décors et leurs bâtiments, et celles qui n'ont pas
   été achetées sont sous un voile sombre — on devine ce qu'il y a, et on
   voit le prix. On en touche une, sa barre dit ce qu'elle coûte (ou ce qui
   manque), et elle s'éclaire. **Elles s'achètent dans l'ordre qu'on
-  veut**, dès que la bourse suit :
+  veut**, dès que la bourse suit.
 
-  | Parcelle | Prix | Ce qu'elle apporte |
-  | --- | --- | --- |
-  | Ton terrain | — | la maison de départ (3 pièces) |
-  | Le pré | 300 | de la place, tout simplement |
-  | Le bosquet | 700 | sol de forêt, grands sapins, une **cabane** |
-  | La plage | 1500 | du sable et la mer (où l'on ne bâtit pas) |
-  | Le hameau | 3000 | **deux maisonnettes**, chacune son intérieur |
-  | L'immeuble | 6000 | une cour pavée et **trois étages** à aménager |
+  Le pays s'organise autour du terrain de départ, qui est au milieu : la
+  ville occupe tout l'ouest, le port est en dessous d'elle, là où la ville
+  touche la mer ; la mer longe tout le sud, derrière la plage et la
+  crique ; la forêt est au nord-ouest, le lac au nord-est.
+
+  | Parcelle | Où | Prix | Ce qu'elle apporte |
+  | --- | --- | --- | --- |
+  | Ton terrain | centre | — | la maison de départ (3 pièces) |
+  | Le pré | nord | 300 | de la place, tout simplement |
+  | Le bosquet | nord-ouest | 700 | sol de forêt, grands sapins, une **cabane** |
+  | Le verger | est | 1400 | une grande parcelle, des pommiers, un bois |
+  | Le lac | nord-est | 2200 | un **lac** bordé de sable et son ponton |
+  | Le hameau | sud | 3200 | une place pavée et **deux maisonnettes** |
+  | La plage | sud | 4500 | du sable et la mer (où l'on ne bâtit pas) |
+  | La ville | ouest | 6000 | un parc, un **immeuble** (3 étages) et une **tour** (3 étages) |
+  | La crique | sud-est | 7500 | du sable, la mer et la pointe aux sapins |
+  | Le quartier neuf | ouest | 9000 | une **tour** (2 étages) et un **long immeuble** (2 étages) |
+  | Le port | sud-ouest | 12000 | le quai, la jetée et le **hangar** du port |
 
   On ne peut rien poser sur une parcelle qui n'est pas achetée, ni sur la
-  mer ; et on n'entre pas dans une cabane qu'on ne possède pas.
+  mer ; et on n'entre pas dans une cabane qu'on ne possède pas. Les
+  bâtiments ont des formes différentes — l'immeuble large, la tour étroite
+  et haute, le long immeuble bas, le hangar du port — et chacun a son
+  plan : on retrouve le quai en sortant, l'escalier mène à l'étage.
 * **Un seul monde** : les parcelles achetées n'ont aucune bordure entre
   elles, et le sol est peint **case par case** (`js/ground.js`), chacune
   tirée au sort parmi les variantes de son biome — herbe, sous-bois,
@@ -77,8 +90,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   s'arrêter au cordeau, et le rivage dessine une vraie côte. Les règles
   posent la même question que le dessin, donc ce qui ressemble à de l'eau
   est exactement ce sur quoi on ne peut pas bâtir.
-* Une parcelle peut aussi porter des **taches d'un autre sol** : la cour
-  pavée de l'immeuble, la place du hameau, la clairière du bosquet.
+* Une parcelle peut aussi porter des **taches d'un autre sol** : le parc
+  de la ville, la place du hameau, la clairière du bosquet, le bois du
+  verger, le sable autour du lac. Quand deux taches se recouvrent, la
+  première l'emporte : c'est ainsi que le ponton du lac et la jetée du
+  port passent par-dessus l'eau au lieu d'être avalés par elle.
 * **Magasin** : il s'ouvre en plein écran, les familles restent visibles
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
   place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
@@ -194,7 +210,9 @@ reward/
     floor.svg wall.svg door.svg window.svg window-side.svg  (les intérieurs)
     back.svg exit.svg cart.svg                (les icônes des boutons)
     ground/           (les sols, plusieurs variantes par biome)
-    cabin.svg cottage.svg apartment.svg stairs-*.svg
+    cabin.svg cottage.svg apartment.svg           (les bâtiments à visiter)
+    tower-tall.svg block-long.svg warehouse.svg   (la ville et le port)
+    stairs-up.svg stairs-down.svg
     items/            un fichier par objet du magasin
 ```
 

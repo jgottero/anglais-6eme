@@ -21,11 +21,12 @@
 const PropertyState = (function () {
 
   const KEY = "reward-property-v1";
+  const VERSION = 6;   // the shape of the save; an older one is dropped
   const START_COINS = 150;
 
   function blank() {
     return {
-      version: 5,
+      version: VERSION,
       coins: START_COINS,
       current: SCENES.first,
       owned: [SCENES.FIRST_PLOT],  // plots bought, in the order they were
@@ -58,7 +59,7 @@ const PropertyState = (function () {
       const raw = localStorage.getItem(KEY);
       if (!raw) return blank();
       const saved = JSON.parse(raw);
-      if (!saved || saved.version !== 5) return blank();
+      if (!saved || saved.version !== VERSION) return blank();
       const fresh = blank();
       fresh.coins = saved.coins || 0;
       fresh.tiers = saved.tiers || [];

@@ -14,21 +14,25 @@
               offers there.
      land     size in tiles of everything the camera may show.
      patches  optional pieces of another ground inside a plot — a paved
-              yard, a clearing — given from the corner of the plot.
+              yard, a clearing, a lake — given from the corner of the
+              plot. The first patch covering a tile wins, so a jetty
+              laid before the water is read before it.
      plots    the pieces of ground the scene is made of. Outside, every
               plot of the map is there from the start, each saying
               whether it has been bought; inside, the single floor of
               the room. What has not been bought is drawn under a veil,
               can be looked at, and can be bought at any time.
      blocks   what is built in and cannot be bought, moved or sold: the
-              house, the walls, the sea, the stairs. A block takes both
-              layers of its tiles, so nothing can be put on it, and a
-              block with `to` leads to another scene.
+              house, the walls, the towers, the stairs. A block takes
+              both layers of its tiles, so nothing can be put on it, and
+              a block with `to` leads to another scene.
    ===================================================================== */
 const SCENES = (function () {
 
   /* What a block looks like and what it does. `tile` is repeated over
-     the whole block, `sprite` is drawn once across it. */
+     the whole block, `sprite` is drawn once across it, so a sprite is
+     drawn to the shape of its footprint: the tower is tall and narrow,
+     the long block wide and low. */
   const BLOCKS = {
     house:       { fr: "Ta maison",   en: "your house",  sprite: "assets/house.svg",        action: "Entrer" },
     wall:        { fr: "Un mur",      en: "a wall",      tile: "assets/wall.svg" },
@@ -38,7 +42,11 @@ const SCENES = (function () {
     cabin:       { fr: "La cabane",   en: "the cabin",   sprite: "assets/cabin.svg",        action: "Entrer" },
     cottage:     { fr: "La maisonnette", en: "the cottage", sprite: "assets/cottage.svg",   action: "Entrer" },
     tower:       { fr: "L'immeuble",  en: "the block of flats", sprite: "assets/apartment.svg", action: "Entrer" },
+    spire:       { fr: "La tour",     en: "the tower",   sprite: "assets/tower-tall.svg",   action: "Entrer" },
+    row:         { fr: "Le long immeuble", en: "the long block", sprite: "assets/block-long.svg", action: "Entrer" },
+    shed:        { fr: "Le hangar",   en: "the harbour shed", sprite: "assets/warehouse.svg", action: "Entrer" },
     tree:        { fr: "Un grand sapin", en: "a tall pine", sprite: "assets/items/pine-tree.svg" },
+    apple:       { fr: "Un pommier",  en: "an apple tree", sprite: "assets/items/apple-tree.svg" },
     stairs_up:   { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-up.svg",    action: "Monter" },
     stairs_down: { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-down.svg",  action: "Descendre" }
   };
@@ -152,6 +160,108 @@ const SCENES = (function () {
     ]
   };
 
+  /* The tall towers of the town: a narrow flat on every floor, two
+     rooms and a landing. */
+  const FLAT_PLANS = {
+    ground: [
+      "##OO####OO##",
+      "#....#.....#",
+      "#....#.....#",
+      "I....#.....I",
+      "I....#..UU.I",
+      "#....#..UU.#",
+      "#..........#",
+      "#..........#",
+      "I..........I",
+      "I..........I",
+      "#....#.....#",
+      "#....#.....#",
+      "#....#.....#",
+      "###DD#######"
+    ],
+    middle: [
+      "##OO####OO##",
+      "#....#.....#",
+      "#....#.....#",
+      "I....#..UU.I",
+      "I....#..UU.I",
+      "#....#.....#",
+      "#..........#",
+      "#..........#",
+      "I....#..WW.I",
+      "I....#..WW.I",
+      "#....#.....#",
+      "#....#.....#",
+      "#....#.....#",
+      "###OO###OO##"
+    ],
+    top: [
+      "##OO####OO##",
+      "#....#.....#",
+      "#....#.....#",
+      "I....#.....I",
+      "I....#.....I",
+      "#....#.....#",
+      "#..........#",
+      "#..........#",
+      "I....#..WW.I",
+      "I....#..WW.I",
+      "#....#.....#",
+      "#....#.....#",
+      "#....#.....#",
+      "###OO###OO##"
+    ]
+  };
+
+  /* The long block: three rooms side by side and a corridor across the
+     middle, on both of its floors. */
+  const LOFT_PLANS = {
+    ground: [
+      "###OO#####OO#####OO#########",
+      "#........#........#........#",
+      "#........#........#..UU....#",
+      "I........#........#..UU....I",
+      "I........#........#........I",
+      "#..........................#",
+      "#..........................#",
+      "I........#........#........I",
+      "I........#........#........I",
+      "#........#........#........#",
+      "#........#........#........#",
+      "############DD##############"
+    ],
+    top: [
+      "###OO#####OO#####OO#########",
+      "#........#........#........#",
+      "#........#........#..WW....#",
+      "I........#........#..WW....I",
+      "I........#........#........I",
+      "#..........................#",
+      "#..........................#",
+      "I........#........#........I",
+      "I........#........#........I",
+      "#........#........#........#",
+      "#........#........#........#",
+      "#####OO#######OO####OO######"
+    ]
+  };
+
+  // The harbour shed: one hall, nothing in the way.
+  const SHED_PLAN = [
+    "####OO########OO########",
+    "#......................#",
+    "#......................#",
+    "I......................I",
+    "I......................I",
+    "I......................I",
+    "I......................I",
+    "#......................#",
+    "#......................#",
+    "#......................#",
+    "#......................#",
+    "##########DD############"
+  ];
+
   /* A plan becomes as few rectangles as possible: runs of the same sign
      on a row, then rows stacked when they line up. A doorway two tiles
      wide is one door, a square of stairs is one staircase. */
@@ -186,28 +296,32 @@ const SCENES = (function () {
   }
 
   /* ---- The plots ----
-     They are bought in this order, each one bigger news than the last:
-     room to spread out, then a wood with a cabin, the seaside, a hamlet
-     of two little houses, and finally a block of flats whose three
-     floors are three worlds of their own. Each sits next to the ones
-     before it, so the property stays in one piece.
+     The land lies around the starting plot like a small country: the
+     wood in the north-west, the meadow to the north, the lake and the
+     orchard to the east, the hamlet to the south. The town holds the
+     whole west side, two plots one above the other, and the harbour is
+     below it, where the town meets the sea. Along the whole southern
+     edge runs the sea, with the beach and the cove in front of it.
 
-     Coordinates inside `blocks` are given from the corner of the plot;
-     build() places them on the property. */
+     They can be bought in any order, as soon as the purse allows, and
+     each one is a bigger piece of news than the last.
+
+     Coordinates inside `blocks` and `patches` are given from the corner
+     of the plot; build() places them on the property. */
   const PLOTS = [
     {
       id: "home",
       name: "Ton terrain",
-      x: 0, y: 0, w: 28, h: 20,
+      x: 28, y: 16, w: 28, h: 20,
       ground: "grass",
       price: 0,
-      blocks: [{ x: 10, y: 0, w: 8, h: 6, kind: "house", to: "house" }],
+      blocks: [{ x: 10, y: 2, w: 8, h: 6, kind: "house", to: "house" }],
       rooms: [() => room("house", "Ta maison", HOUSE_PLAN, { D: "outside" })]
     },
     {
       id: "meadow",
       name: "Le pré",
-      x: 28, y: 0, w: 20, h: 20,
+      x: 28, y: 0, w: 28, h: 16,
       ground: "grass",
       price: 300,
       blocks: []
@@ -215,40 +329,62 @@ const SCENES = (function () {
     {
       id: "grove",
       name: "Le bosquet",
-      x: 0, y: 20, w: 28, h: 16,
+      x: 0, y: 0, w: 28, h: 16,
       ground: "forest",
-      patches: [{ x: 16, y: 8, w: 10, h: 6, ground: "grass" }],   // a clearing
+      patches: [{ x: 14, y: 8, w: 10, h: 6, ground: "grass" }],   // a clearing
       price: 700,
       blocks: [
-        { x: 2, y: 2, w: 4, h: 4, kind: "cabin", to: "cabin" },
-        { x: 10, y: 0, w: 4, h: 4, kind: "tree" },
-        { x: 18, y: 2, w: 4, h: 4, kind: "tree" },
-        { x: 24, y: 8, w: 4, h: 4, kind: "tree" },
-        { x: 12, y: 10, w: 4, h: 4, kind: "tree" }
+        { x: 2, y: 3, w: 4, h: 4, kind: "cabin", to: "cabin" },
+        { x: 9, y: 1, w: 4, h: 4, kind: "tree" },
+        { x: 17, y: 2, w: 4, h: 4, kind: "tree" },
+        { x: 24, y: 2, w: 4, h: 4, kind: "tree" },
+        { x: 8, y: 11, w: 4, h: 4, kind: "tree" }
       ],
       rooms: [() => room("cabin", "La cabane", CABIN_PLAN, { D: "outside" })]
     },
     {
-      id: "beach",
-      name: "La plage",
-      x: 28, y: 20, w: 20, h: 16,
-      ground: "sand",
-      // The sea is painted with the ground, so its edge wanders like any
-      // other: see js/ground.js. Nothing is built on it.
-      patches: [{ x: 0, y: 12, w: 20, h: 6, ground: "water" }],
-      price: 1500,
+      id: "orchard",
+      name: "Le verger",
+      x: 56, y: 16, w: 24, h: 36,
+      ground: "grass",
+      patches: [{ x: 15, y: 0, w: 9, h: 9, ground: "forest" }],   // a copse below the lake
+      price: 1400,
+      blocks: [
+        { x: 16, y: 1, w: 4, h: 4, kind: "tree" },
+        { x: 20, y: 5, w: 4, h: 4, kind: "tree" },
+        { x: 3, y: 4, w: 4, h: 4, kind: "apple" },
+        { x: 9, y: 9, w: 4, h: 4, kind: "apple" },
+        { x: 2, y: 16, w: 4, h: 4, kind: "apple" },
+        { x: 10, y: 20, w: 4, h: 4, kind: "apple" },
+        { x: 4, y: 28, w: 4, h: 4, kind: "apple" },
+        { x: 14, y: 26, w: 4, h: 4, kind: "apple" }
+      ]
+    },
+    {
+      id: "lake",
+      name: "Le lac",
+      x: 56, y: 0, w: 24, h: 16,
+      ground: "grass",
+      /* The pontoon is read before the water it stands on, and the
+         water before the sandy shore around it. */
+      patches: [
+        { x: 11, y: 9, w: 2, h: 6, ground: "paving" },
+        { x: 5, y: 4, w: 14, h: 9, ground: "water" },
+        { x: 3, y: 2, w: 18, h: 13, ground: "sand" }
+      ],
+      price: 2200,
       blocks: []
     },
     {
       id: "hamlet",
       name: "Le hameau",
-      x: 0, y: 36, w: 48, h: 16,
+      x: 28, y: 36, w: 28, h: 16,
       ground: "grass",
-      patches: [{ x: 16, y: 4, w: 12, h: 8, ground: "paving" }],  // the village square
-      price: 3000,
+      patches: [{ x: 11, y: 5, w: 8, h: 7, ground: "paving" }],   // the village square
+      price: 3200,
       blocks: [
-        { x: 4, y: 4, w: 6, h: 4, kind: "cottage", to: "cottage_west" },
-        { x: 30, y: 4, w: 6, h: 4, kind: "cottage", to: "cottage_east" }
+        { x: 3, y: 3, w: 6, h: 4, kind: "cottage", to: "cottage_west" },
+        { x: 19, y: 3, w: 6, h: 4, kind: "cottage", to: "cottage_east" }
       ],
       rooms: [
         () => room("cottage_west", "La maisonnette du couchant", COTTAGE_PLAN, { D: "outside" }),
@@ -256,18 +392,83 @@ const SCENES = (function () {
       ]
     },
     {
-      id: "tower",
-      name: "L'immeuble",
-      x: 48, y: 0, w: 16, h: 52,
-      ground: "grass",
-      patches: [{ x: 0, y: 2, w: 16, h: 14, ground: "paving" }],  // the yard
+      id: "beach",
+      name: "La plage",
+      x: 28, y: 52, w: 28, h: 16,
+      ground: "sand",
+      // The sea is painted with the ground, so its edge wanders like any
+      // other: see js/ground.js. Nothing is built on it.
+      patches: [{ x: 0, y: 8, w: 28, h: 10, ground: "water" }],
+      price: 4500,
+      blocks: []
+    },
+    {
+      id: "town",
+      name: "La ville",
+      x: 0, y: 16, w: 28, h: 18,
+      ground: "paving",
+      patches: [{ x: 2, y: 11, w: 14, h: 6, ground: "grass" }],   // the park
       price: 6000,
-      blocks: [{ x: 2, y: 4, w: 10, h: 8, kind: "tower", to: "flat_1" }],
+      blocks: [
+        { x: 2, y: 2, w: 10, h: 8, kind: "tower", to: "flat_1" },
+        { x: 20, y: 2, w: 6, h: 12, kind: "spire", to: "tower_a1" }
+      ],
       rooms: [
         () => room("flat_1", "Immeuble — 1er étage", FLOOR_PLANS.ground, { D: "outside", U: "flat_2" }),
         () => room("flat_2", "Immeuble — 2e étage", FLOOR_PLANS.middle, { U: "flat_3", W: "flat_1" }),
-        () => room("flat_3", "Immeuble — 3e étage", FLOOR_PLANS.top, { W: "flat_2" })
+        () => room("flat_3", "Immeuble — 3e étage", FLOOR_PLANS.top, { W: "flat_2" }),
+        () => room("tower_a1", "La tour du parc — 1er étage", FLAT_PLANS.ground, { D: "outside", U: "tower_a2" }),
+        () => room("tower_a2", "La tour du parc — 2e étage", FLAT_PLANS.middle, { U: "tower_a3", W: "tower_a1" }),
+        () => room("tower_a3", "La tour du parc — 3e étage", FLAT_PLANS.top, { W: "tower_a2" })
       ]
+    },
+    {
+      id: "cove",
+      name: "La crique",
+      x: 56, y: 52, w: 24, h: 16,
+      ground: "sand",
+      patches: [
+        { x: 16, y: 0, w: 8, h: 7, ground: "forest" },            // the pines on the point
+        { x: 0, y: 8, w: 24, h: 10, ground: "water" }
+      ],
+      price: 7500,
+      blocks: [
+        { x: 16, y: 1, w: 4, h: 4, kind: "tree" },
+        { x: 20, y: 4, w: 4, h: 4, kind: "tree" }
+      ]
+    },
+    {
+      id: "quarter",
+      name: "Le quartier neuf",
+      x: 0, y: 34, w: 28, h: 18,
+      ground: "paving",
+      patches: [{ x: 10, y: 11, w: 16, h: 6, ground: "grass" }],  // the green in front
+      price: 9000,
+      blocks: [
+        { x: 2, y: 3, w: 6, h: 12, kind: "spire", to: "tower_b1" },
+        { x: 10, y: 3, w: 16, h: 6, kind: "row", to: "loft_1" }
+      ],
+      rooms: [
+        () => room("tower_b1", "La tour neuve — 1er étage", FLAT_PLANS.ground, { D: "outside", U: "tower_b2" }),
+        () => room("tower_b2", "La tour neuve — 2e étage", FLAT_PLANS.top, { W: "tower_b1" }),
+        () => room("loft_1", "Le long immeuble — 1er étage", LOFT_PLANS.ground, { D: "outside", U: "loft_2" }),
+        () => room("loft_2", "Le long immeuble — 2e étage", LOFT_PLANS.top, { W: "loft_1" })
+      ]
+    },
+    {
+      id: "port",
+      name: "Le port",
+      x: 0, y: 52, w: 28, h: 16,
+      ground: "paving",
+      /* The jetty is laid before the water, so it runs out into the sea
+         instead of being swallowed by it. */
+      patches: [
+        { x: 17, y: 8, w: 4, h: 5, ground: "paving" },
+        { x: 0, y: 8, w: 28, h: 10, ground: "water" }
+      ],
+      price: 12000,
+      blocks: [{ x: 3, y: 1, w: 12, h: 6, kind: "shed", to: "shed" }],
+      rooms: [() => room("shed", "Le hangar du port", SHED_PLAN, { D: "outside" })]
     }
   ];
 
