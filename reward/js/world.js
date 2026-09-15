@@ -264,11 +264,33 @@ const World = (function () {
   }
 
   /* ---- Objects that join up ----
-     A fence put beside a fence is one fence: each post stays where it
-     was put, and a piece of rail is drawn between it and its
-     neighbour. Which tile holds what is read once per drawing, and a
-     rail is drawn to the right and downwards only, so the rail between
-     two posts is drawn once and not twice. */
+     A fence put beside a fence is one fence, and a pool tile laid
+     beside another is one pool. Which tile holds what is read once per
+     drawing, and each object is then given the pieces it needs.
+
+     Two ways of joining. Between: a piece of rail is drawn from one
+     post to the next, to the right and downwards only, so the rail
+     between two posts is drawn once and not twice. Around: a piece of
+     edging is drawn on every side where the shape stops, with a corner
+     wherever two such sides meet and a notch wherever the shape turns
+     back on itself — that is the surround of slabs around a pool. */
+
+  /* The four sides of a tile, and its four corners named by the two
+     sides that meet there and the tile across from it. Every piece is
+     drawn for the top edge, or the top-left corner, and turned a
+     quarter at a time for the other three. */
+  const SIDES = [
+    { dx: 0, dy: -1, turn: 0 },
+    { dx: 1, dy: 0, turn: 1 },
+    { dx: 0, dy: 1, turn: 2 },
+    { dx: -1, dy: 0, turn: 3 }
+  ];
+  const CORNERS = [
+    { a: [0, -1], b: [-1, 0], across: [-1, -1], turn: 0 },
+    { a: [0, -1], b: [1, 0], across: [1, -1], turn: 1 },
+    { a: [1, 0], b: [0, 1], across: [1, 1], turn: 2 },
+    { a: [0, 1], b: [-1, 0], across: [-1, 1], turn: 3 }
+  ];
 
   function joinMarks(place) {
     const marks = {};
@@ -286,19 +308,45 @@ const World = (function () {
     return marks;
   }
 
-  /* The rails leaving one tile. Each is half a tile off its own square,
-     so it runs from the middle of this post to the middle of the next:
-     both its ends end up hidden under the posts themselves. */
+  /* What one tile of a joining object has to draw. A rail is half a
+     tile off its own square, so it runs from the middle of this post to
+     the middle of the next and both its ends end up hidden under the
+     posts themselves; a piece of edging stays on its own square, along
+     the side it closes. */
   function joinArt(marks, join, x, y, everySide) {
     const joined = (dx, dy) => marks[(x + dx) + "," + (y + dy)] === join.group;
-    const piece = (file, dx, dy) =>
+    const piece = (file, dx, dy, turn) =>
       '<img class="join" src="' + CATALOG.pieceUrl(file) + '" alt="" draggable="false"' +
-      ' style="left:' + (dx * TILE) / 2 + 'px;top:' + (dy * TILE) / 2 + 'px">';
+      ' style="left:' + (dx * TILE) / 2 + 'px;top:' + (dy * TILE) / 2 + 'px' +
+      (turn ? ';transform:rotate(' + turn * 90 + 'deg)' : '') + '">';
     let html = "";
-    if (joined(1, 0)) html += piece(join.across, 1, 0);
-    if (joined(0, 1)) html += piece(join.down, 0, 1);
-    if (everySide && joined(-1, 0)) html += piece(join.across, -1, 0);
-    if (everySide && joined(0, -1)) html += piece(join.down, 0, -1);
+
+    if (join.across) {
+      if (joined(1, 0)) html += piece(join.across, 1, 0);
+      if (everySide && joined(-1, 0)) html += piece(join.across, -1, 0);
+    }
+    if (join.down) {
+      if (joined(0, 1)) html += piece(join.down, 0, 1);
+      if (everySide && joined(0, -1)) html += piece(join.down, 0, -1);
+    }
+
+    /* The edging comes first and the corners over it, so a corner
+       covers the two ends of edging that run into it. */
+    if (join.edge) {
+      SIDES.forEach(side => {
+        if (!joined(side.dx, side.dy)) html += piece(join.edge, 0, 0, side.turn);
+      });
+      CORNERS.forEach(corner => {
+        const a = joined(corner.a[0], corner.a[1]);
+        const b = joined(corner.b[0], corner.b[1]);
+        if (!a && !b && join.corner) html += piece(join.corner, 0, 0, corner.turn);
+        // Both sides carry on, but the tile across the corner is missing:
+        // the surround has to turn round the inside of the angle.
+        else if (a && b && join.inner && !joined(corner.across[0], corner.across[1])) {
+          html += piece(join.inner, 0, 0, corner.turn);
+        }
+      });
+    }
     return html;
   }
 

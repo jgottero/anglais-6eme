@@ -154,8 +154,14 @@ button { font: inherit; cursor: pointer; }
 /* Only the picked object can be dragged; the rest of the plot pans. */
 .ob { cursor: pointer; touch-action: none; }
 .ob.is-selected { cursor: grab; }
-/* Ground tiles cover their square edge to edge. */
-.ob.is-ground img { object-fit: fill; }
+/* Ground tiles cover their square edge to edge, and a hair beyond: at
+   a zoom that lands between two pixels, two tiles side by side would
+   otherwise leave a thread of grass showing between them. */
+.ob.is-ground img {
+  object-fit: fill;
+  width: calc(100% + 1px);
+  height: calc(100% + 1px);
+}
 
 .ob.is-selected {
   outline: 3px dashed #fff;

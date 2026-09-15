@@ -25,10 +25,18 @@
               hand, when the object on the ground is only a piece of
               itself. A fence post sells as a length of fence.
      joins    optional: this object joins up with its own kind. `group`
-              says with what (its own kind, not another), `across` is
-              the piece drawn between two neighbours side by side, and
-              `down` the piece drawn between one above and one below.
-              The pieces are in assets/items/ too, one tile each.
+              says with what (its own kind, not another), and the rest
+              says what to draw. Two ways of joining:
+                between  `across` is the piece drawn between two
+                         neighbours side by side, `down` the one drawn
+                         between one above and one below (the fence).
+                around   `edge` is the piece drawn along a side with no
+                         neighbour, `corner` the outside corner where
+                         two such sides meet, `inner` the notch where
+                         the shape turns back on itself (the pool).
+              The pieces are in assets/items/ too, one tile each, drawn
+              for the top edge and the top-left corner: the others are
+              the same drawing turned a quarter at a time.
    ===================================================================== */
 const CATALOG = (function () {
 
@@ -46,6 +54,8 @@ const CATALOG = (function () {
     { id: "path",  fr: "Chemin", en: "a path",  price: 15, w: 2, h: 2, layer: "ground", category: "ground", asset: "path.svg" },
     { id: "field", fr: "Champ",  en: "a field", price: 25, w: 2, h: 2, layer: "ground", category: "ground", asset: "field.svg" },
     { id: "tiles", fr: "Carrelage", en: "tiles", price: 20, w: 2, h: 2, layer: "ground", category: "ground", where: "in", asset: "tiles.svg" },
+    { id: "pool",  fr: "Piscine", en: "a swimming pool", price: 25, w: 1, h: 1, layer: "ground", category: "ground", asset: "pool.svg", card: "pool-card.svg",
+      joins: { group: "pool", edge: "pool-edge.svg", corner: "pool-corner.svg", inner: "pool-inner.svg" } },
     { id: "rug",   fr: "Tapis",     en: "a rug", price: 120, w: 4, h: 4, layer: "ground", category: "ground", where: "in", asset: "rug.svg" },
 
     // ---------- animals ----------

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- The inside corner, where the pool turns back on itself: the slab
+       that fills the notch, and the lip carried round it -->
+  <rect width="4.4" height="4.4" fill="#ece5d5"/>
+  <path d="M4.4 0v4.4H0" fill="none" stroke="#c9bfa8" stroke-width=".9"/>
+</svg>

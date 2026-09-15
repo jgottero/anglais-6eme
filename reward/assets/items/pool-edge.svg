@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- The slabs along one side of the pool; turned a quarter at a time
+       for the other three -->
+  <rect width="16" height="4.4" fill="#ece5d5"/>
+  <g stroke="#d3c9b2" stroke-width=".8"><path d="M5.3 0v4.4M10.7 0v4.4"/></g>
+  <path d="M0 4.4h16" stroke="#c9bfa8" stroke-width=".9"/>
+</svg>

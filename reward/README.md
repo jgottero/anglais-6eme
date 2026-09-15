@@ -98,7 +98,7 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   port passent par-dessus l'eau au lieu d'être avalés par elle.
 * **Magasin** : il s'ouvre en plein écran, les familles restent visibles
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
-  place là où l'enfant se trouve — 31 objets dehors (terrain, animaux,
+  place là où l'enfant se trouve — 32 objets dehors (terrain, animaux,
   nature, jardin, bâtiments), 17 dedans (meubles, porte, carrelage, tapis,
   et le chat et le chien qui vont des deux côtés). Chaque fiche annonce
   d'abord le **nom anglais**, en gras, le nom français en gris dessous, et
@@ -120,6 +120,13 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   assez de pièces pour le suivant.
 * Rien n'est débité si la case est prise. Un glisser garde son sens
   habituel même avec un objet en main : il déplace la caméra.
+* **La piscine se construit case par case** : c'est un terrain, qui se
+  raccorde comme la barrière mais dans l'autre sens — au lieu d'un
+  morceau entre deux voisines, **des dalles sur chaque côté où la
+  piscine s'arrête**, avec l'angle qu'il faut à chaque coin et le
+  raccord qui tourne quand la forme revient sur elle-même. On dessine
+  donc un bassin de la forme qu'on veut, même en L, et il est toujours
+  entouré de sa margelle ; au milieu, il n'y a que de l'eau.
 * **Les barrières se rejoignent** : une barrière occupe **une case** et
   se pose comme un poteau. Dès qu'une deuxième est posée à côté — à
   droite, à gauche, au-dessus ou en dessous — les deux ne font plus
@@ -143,7 +150,7 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   posé. L'emprise ne change pas, donc c'est toujours possible, et les
   deux se combinent : une porte peut être tournée puis retournée. Sur un
   dessin symétrique, cela ne se voit simplement pas.
-* **Deux couches** : le *terrain* (chemin, champ) se pose sur le sol, tout
+* **Deux couches** : le *terrain* (chemin, champ, piscine) se pose sur le sol, tout
   le reste se pose dessus. Une case ne peut porter qu'un seul terrain et
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
   et un chien aussi, mais la poule se pose sans problème sur le chemin.
@@ -243,13 +250,23 @@ reward/
    `turns: true` pour ce qui peut être orienté ; le miroir, lui, marche
    sans rien déclarer). L'objet apparaît aussitôt en magasin, du bon côté
    des murs.
-3. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` :
-   `group` (avec quoi il s'assemble), `across` (le morceau dessiné entre
-   deux voisins côte à côte) et `down` (entre celui du dessus et celui du
-   dessous). Chaque morceau est un SVG d'une case, dessiné comme s'il
-   allait d'un milieu de case au suivant. `card` permet enfin de montrer
-   autre chose en magasin que ce qui est posé au sol — la barrière se
-   vend en longueur et se pose en poteau.
+3. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` avec
+   `group` (avec quoi il s'assemble) et, au choix, l'une des deux
+   manières :
+   * *entre deux voisins* — `across` (le morceau dessiné entre deux
+     voisins côte à côte) et `down` (entre celui du dessus et celui du
+     dessous), dessinés comme s'ils allaient d'un milieu de case au
+     suivant : la barrière ;
+   * *tout autour* — `edge` (le bord dessiné sur un côté sans voisin),
+     `corner` (l'angle extérieur où deux de ces côtés se rencontrent) et
+     `inner` (le raccord quand la forme revient sur elle-même) : la
+     piscine.
+
+   Chaque morceau est un SVG d'une case, dessiné pour le côté du haut ou
+   pour le coin haut-gauche ; les autres sont le même dessin tourné d'un
+   quart de tour. `card` permet enfin de montrer autre chose en magasin
+   que ce qui est posé au sol — la barrière se vend en longueur et se
+   pose en poteau, la piscine se montre en bassin.
 
 Ne jamais renommer un `id` déjà utilisé : c'est lui qui est écrit dans la
 sauvegarde.

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- What the shop shows: a pool with its slabs all round -->
+  <rect width="32" height="32" fill="#ece5d5"/>
+  <g stroke="#d9d1bf" stroke-width=".8">
+    <path d="M10.7 0v4.4M21.3 0v4.4M10.7 27.6V32M21.3 27.6V32M0 10.7h4.4M0 21.3h4.4M27.6 10.7H32M27.6 21.3H32"/>
+  </g>
+  <rect x="4.4" y="4.4" width="23.2" height="23.2" fill="#47b3df" stroke="#c9bfa8" stroke-width=".9"/>
+  <g stroke="#a9e2f6" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".8">
+    <path d="M7 11c1.8-1.8 3.6 1.8 5.4 0"/>
+    <path d="M17 20c1.8-1.8 3.6 1.8 5.4 0"/>
+  </g>
+</svg>
