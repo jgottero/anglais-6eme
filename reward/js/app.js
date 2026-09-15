@@ -181,7 +181,7 @@
     handEl.hidden = !item;
     if (!item) return;
     const art = document.getElementById("hand-art");
-    art.src = CATALOG.assetUrl(item.id);
+    art.src = CATALOG.cardUrl(item.id);
     art.alt = item.fr;
     // The drawing in the corner is posed like the object it stands for.
     const poses = [];
@@ -241,7 +241,7 @@
     const entry = PropertyState.scene().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) return null;
-    return nameCard(CATALOG.assetUrl(item.id), item.en, item.fr) +
+    return nameCard(CATALOG.cardUrl(item.id), item.en, item.fr) +
       '<p class="hint">Glisse pour déplacer</p>' +
       sayButton(item.en) +
       (item.turns ? '<button class="turn-btn" data-action="turn" title="Tourner">↻ Tourner</button>' : "") +

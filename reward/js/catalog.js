@@ -16,11 +16,19 @@
               what a later version will read out loud to teach the word.
      price    what it costs, and what it is sold back for.
      w / h    footprint on the grid, in tiles. The grid is fine: a hen
-              takes 2 x 2 of them, a fence only 2 x 1. A drawing must
-              have the proportions of its footprint — 16 px of SVG per
-              tile — so a 2 x 2 object is drawn in a 32 x 32 viewBox.
+              takes 2 x 2 of them, a fence post only 1 x 1. A drawing
+              must have the proportions of its footprint — 16 px of SVG
+              per tile — so a 2 x 2 object is drawn in a 32 x 32 viewBox.
      category one of CATEGORIES below.
      asset    file name inside assets/items/.
+     card     optional: the drawing shown on the shop card and in the
+              hand, when the object on the ground is only a piece of
+              itself. A fence post sells as a length of fence.
+     joins    optional: this object joins up with its own kind. `group`
+              says with what (its own kind, not another), `across` is
+              the piece drawn between two neighbours side by side, and
+              `down` the piece drawn between one above and one below.
+              The pieces are in assets/items/ too, one tile each.
    ===================================================================== */
 const CATALOG = (function () {
 
@@ -61,7 +69,8 @@ const CATALOG = (function () {
     { id: "pond",       fr: "Mare",       en: "a pond",         price: 260, w: 4, h: 4, category: "nature", asset: "pond.svg" },
 
     // ---------- garden ----------
-    { id: "fence",        fr: "Barrière",           en: "a fence",         price: 20,  w: 2, h: 1, turns: true, category: "garden", asset: "fence.svg" },
+    { id: "fence",        fr: "Barrière",           en: "a fence",         price: 10,  w: 1, h: 1, category: "garden", asset: "fence.svg", card: "fence-run.svg",
+      joins: { group: "fence", across: "fence-rail.svg", down: "fence-beam.svg" } },
     { id: "sign",         fr: "Panneau",            en: "a sign",          price: 40,  w: 2, h: 2, turns: true, category: "garden", asset: "sign.svg" },
     { id: "barrel",       fr: "Tonneau",            en: "a barrel",        price: 50,  w: 2, h: 2, category: "garden", asset: "barrel.svg" },
     { id: "mailbox",      fr: "Boîte aux lettres",  en: "a mailbox",       price: 60,  w: 2, h: 2, category: "garden", asset: "mailbox.svg" },
@@ -93,6 +102,8 @@ const CATALOG = (function () {
     { id: "greenhouse", fr: "Serre",      en: "a greenhouse",   price: 600, w: 6, h: 4, turns: true, category: "buildings", asset: "greenhouse.svg" }
   ];
 
+  const FOLDER = "assets/items/";
+
   const BY_ID = {};
   ITEMS.forEach(item => { BY_ID[item.id] = item; });
 
@@ -113,9 +124,17 @@ const CATALOG = (function () {
       if (item.where === "both") return true;
       return item.where === "in" ? !!indoor : !indoor;
     },
+    // What an object joins up with, or nothing at all.
+    joinsOf(item) { return (item && item.joins) || null; },
     assetUrl(id) {
       const item = BY_ID[id];
-      return item ? "assets/items/" + item.asset : "";
-    }
+      return item ? FOLDER + item.asset : "";
+    },
+    // What to show when the object is named rather than put down.
+    cardUrl(id) {
+      const item = BY_ID[id];
+      return item ? FOLDER + (item.card || item.asset) : "";
+    },
+    pieceUrl(file) { return FOLDER + file; }
   };
 })();

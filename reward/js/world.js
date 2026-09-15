@@ -214,11 +214,15 @@ const World = (function () {
       world.appendChild(node);
     });
 
-    /* The ground (paths, fields, rugs) is laid down first, then
-       everything that stands on it, each layer from the back of the
-       scene to the front so that what is lower overlaps what is
-       behind it. */
+    /* The ground (paths, fields, rugs) is laid down first, then the
+       rails that join objects to their neighbours, then everything that
+       stands, each layer from the back of the scene to the front so
+       that what is lower overlaps what is behind it. The rails go in
+       between so they run over the ground and under the posts. */
     const rank = entry => CATALOG.layerOf(CATALOG.item(entry.id)) === "ground" ? 0 : 1;
+    const marks = joinMarks(place);
+    const links = document.createElement("div");
+    const standing = [];
     place.placed.slice().sort((a, b) => rank(a) - rank(b) || a.y - b.y).forEach(entry => {
       const item = CATALOG.item(entry.id);
       if (!item) return;
@@ -230,8 +234,12 @@ const World = (function () {
       node.dataset.uid = entry.uid;
       node.style.cssText = box(entry.x, entry.y, size.w, size.h);
       node.innerHTML = art(item, entry.r, entry.m);
-      world.appendChild(node);
+      linkCells(marks, item, entry, size).forEach(cell => links.appendChild(cell));
+      if (rank(entry)) standing.push(node);
+      else world.appendChild(node);
     });
+    world.appendChild(links);
+    standing.forEach(node => world.appendChild(node));
 
     world.appendChild(ghost);
     applyCamera();
@@ -253,6 +261,64 @@ const World = (function () {
   function box(x, y, w, h) {
     return "left:" + x * TILE + "px;top:" + y * TILE + "px;" +
            "width:" + w * TILE + "px;height:" + h * TILE + "px;";
+  }
+
+  /* ---- Objects that join up ----
+     A fence put beside a fence is one fence: each post stays where it
+     was put, and a piece of rail is drawn between it and its
+     neighbour. Which tile holds what is read once per drawing, and a
+     rail is drawn to the right and downwards only, so the rail between
+     two posts is drawn once and not twice. */
+
+  function joinMarks(place) {
+    const marks = {};
+    place.placed.forEach(entry => {
+      const item = CATALOG.item(entry.id);
+      const join = CATALOG.joinsOf(item);
+      if (!join) return;
+      const size = CATALOG.footprint(item, entry.r);
+      for (let dy = 0; dy < size.h; dy++) {
+        for (let dx = 0; dx < size.w; dx++) {
+          marks[(entry.x + dx) + "," + (entry.y + dy)] = join.group;
+        }
+      }
+    });
+    return marks;
+  }
+
+  /* The rails leaving one tile. Each is half a tile off its own square,
+     so it runs from the middle of this post to the middle of the next:
+     both its ends end up hidden under the posts themselves. */
+  function joinArt(marks, join, x, y, everySide) {
+    const joined = (dx, dy) => marks[(x + dx) + "," + (y + dy)] === join.group;
+    const piece = (file, dx, dy) =>
+      '<img class="join" src="' + CATALOG.pieceUrl(file) + '" alt="" draggable="false"' +
+      ' style="left:' + (dx * TILE) / 2 + 'px;top:' + (dy * TILE) / 2 + 'px">';
+    let html = "";
+    if (joined(1, 0)) html += piece(join.across, 1, 0);
+    if (joined(0, 1)) html += piece(join.down, 0, 1);
+    if (everySide && joined(-1, 0)) html += piece(join.across, -1, 0);
+    if (everySide && joined(0, -1)) html += piece(join.down, 0, -1);
+    return html;
+  }
+
+  // One square per tile the object covers, holding the rails it sends out.
+  function linkCells(marks, item, entry, size) {
+    const join = CATALOG.joinsOf(item);
+    if (!join) return [];
+    const cells = [];
+    for (let dy = 0; dy < size.h; dy++) {
+      for (let dx = 0; dx < size.w; dx++) {
+        const html = joinArt(marks, join, entry.x + dx, entry.y + dy, false);
+        if (!html) continue;
+        const cell = document.createElement("div");
+        cell.className = "join-cell";
+        cell.style.cssText = box(entry.x + dx, entry.y + dy, 1, 1);
+        cell.innerHTML = html;
+        cells.push(cell);
+      }
+    }
+    return cells;
   }
 
   /* The drawing keeps its own width and height and is posed inside the
@@ -277,10 +343,16 @@ const World = (function () {
 
   function showGhost(x, y, item, pose, valid, withArt) {
     const size = CATALOG.footprint(item, pose.r);
+    const join = CATALOG.joinsOf(item);
     ghost.hidden = false;
     ghost.style.cssText = box(x, y, size.w, size.h);
     ghost.classList.toggle("is-bad", !valid);
-    ghost.innerHTML = withArt ? art(item, pose.r, pose.m) : "";
+    /* An object in hand shows what it is about to join: the rails on
+       every side, not only the two a drawn object carries. */
+    ghost.innerHTML = withArt
+      ? (join ? joinArt(joinMarks(PropertyState.scene()), join, x, y, true) : "") +
+        art(item, pose.r, pose.m)
+      : "";
   }
 
   function hideGhost() {

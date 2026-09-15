@@ -90,7 +90,7 @@ const Shop = (function () {
         const affordable = coins >= item.price;
         return '<button class="card' + (affordable ? "" : " is-locked") + '" data-pick="' + item.id + '">' +
           '<span class="card-art">' +
-            '<img src="' + CATALOG.assetUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
+            '<img src="' + CATALOG.cardUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
             (owned ? '<span class="owned" title="Déjà posé ici">×' + owned + '</span>' : '') +
           '</span>' +
           '<span class="name">' + item.en + '</span>' +

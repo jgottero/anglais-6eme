@@ -114,13 +114,20 @@ button { font: inherit; cursor: pointer; }
 
 .blk, .ob, .ghost { position: absolute; }
 
-.blk img, .ob img, .ghost img {
+.blk img, .ob img, .ghost img, .join-cell img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   pointer-events: none;
   -webkit-user-drag: none;
 }
+
+/* An object that joins up with its neighbours sends a piece of itself
+   into the next tile: the rail between two fence posts. The square is
+   one tile, the rail inside it is shifted half a tile, and the whole
+   layer is drawn between the ground and the objects that stand on it. */
+.join-cell { position: absolute; pointer-events: none; }
+.join-cell img.join, .ghost img.join { position: absolute; }
 
 /* A turned drawing keeps its own size and spins around the middle of the
    tiles it covers, which is why it is placed rather than stretched. */

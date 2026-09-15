@@ -24,10 +24,11 @@ zéro, `REWARD.reset()` dans la console du navigateur.
 La propriété occupe tout l'écran ; le reste flotte par-dessus.
 
 * Une maison et un terrain vus de dessus, posés sur une grille fine : un
-  objet courant (poule, chaise, chemin) occupe 2 × 2 cases, une barrière
-  ou une porte seulement 2 × 1. Les murs des intérieurs font une case, et
-  chaque pièce compte un nombre pair de cases dans les deux sens, pour
-  qu'un sol puisse la couvrir entièrement.
+  objet courant (poule, chaise, chemin) occupe 2 × 2 cases, une porte
+  seulement 2 × 1, un poteau de barrière une seule case. Les murs des
+  intérieurs font une case, et chaque pièce compte un nombre pair de
+  cases dans les deux sens, pour qu'un sol puisse la couvrir
+  entièrement.
 * **Caméra** : glisser n'importe où sur le terrain la déplace (sauf sur
   l'objet sélectionné, qui suit alors le doigt), deux doigts (ou la
   molette) zooment. On ne peut pas dézoomer au-delà du terrain entier ;
@@ -119,8 +120,20 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   assez de pièces pour le suivant.
 * Rien n'est débité si la case est prise. Un glisser garde son sens
   habituel même avec un objet en main : il déplace la caméra.
+* **Les barrières se rejoignent** : une barrière occupe **une case** et
+  se pose comme un poteau. Dès qu'une deuxième est posée à côté — à
+  droite, à gauche, au-dessus ou en dessous — les deux ne font plus
+  qu'une : les poteaux restent où ils sont et un morceau de barrière est
+  dessiné entre eux, deux traverses côte à côte, un tronc de haut en
+  bas. On prolonge la ligne dans n'importe quel sens, on tourne les
+  angles, et vendre un poteau du milieu recoupe la barrière en deux. Le
+  morceau part du milieu d'un poteau au milieu du suivant, si bien que
+  ses deux bouts disparaissent sous eux. L'objet en main montre déjà, en
+  transparence, les traverses qu'il va rejoindre. C'est une propriété du
+  catalogue (`joins`), pas un cas particulier du code : un autre objet
+  pourra s'assembler de la même façon.
 * **Tourner** : ce qui a une direction (lit, canapé, table, chaise,
-  armoire, cheminée, porte, barrière, banc, panneau, poulailler, serre…)
+  armoire, cheminée, porte, banc, panneau, poulailler, serre…)
   porte un bouton ↻ — dans le coin, pour orienter l'objet avant de le
   poser, et dans sa barre une fois posé. Un quart de tour à la fois ;
   l'emprise tourne avec le dessin, et un objet qui ne rentrerait plus en
@@ -221,14 +234,22 @@ reward/
 1. Déposer un SVG dans `assets/items/`. L'échelle est de **16 px par
    case**, et le dessin doit avoir les proportions de son emprise : un
    objet de 2 × 2 cases (la taille courante) se dessine dans un `viewBox`
-   de `0 0 32 32`, une barrière de 2 × 1 dans `0 0 32 16`, un banc de
-   4 × 2 dans `0 0 64 32`. Un terrain remplit son cadre bord à bord.
+   de `0 0 32 32`, une porte de 2 × 1 dans `0 0 32 16`, un banc de
+   4 × 2 dans `0 0 64 32`, un poteau de 1 × 1 dans `0 0 16 16`. Un
+   terrain remplit son cadre bord à bord.
 2. Ajouter une ligne dans `js/catalog.js` (`id`, `fr`, `en`, `price`,
    `w`, `h`, `category`, `asset`, plus `layer: "ground"` pour un terrain,
    `where: "in"` ou `"both"` pour ce qui se vend dans la maison,
    `turns: true` pour ce qui peut être orienté ; le miroir, lui, marche
    sans rien déclarer). L'objet apparaît aussitôt en magasin, du bon côté
    des murs.
+3. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` :
+   `group` (avec quoi il s'assemble), `across` (le morceau dessiné entre
+   deux voisins côte à côte) et `down` (entre celui du dessus et celui du
+   dessous). Chaque morceau est un SVG d'une case, dessiné comme s'il
+   allait d'un milieu de case au suivant. `card` permet enfin de montrer
+   autre chose en magasin que ce qui est posé au sol — la barrière se
+   vend en longueur et se pose en poteau.
 
 Ne jamais renommer un `id` déjà utilisé : c'est lui qui est écrit dans la
 sauvegarde.

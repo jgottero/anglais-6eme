@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" width="32" height="16">
+  <!-- A length of fence: what the shop sells, drawn as it looks once two
+       posts stand side by side -->
+  <rect x="2" y="5" width="28" height="2.4" fill="#a6763f" stroke="#6d4a28" stroke-width=".8"/>
+  <rect x="2" y="9.4" width="28" height="2.4" fill="#a6763f" stroke="#6d4a28" stroke-width=".8"/>
+  <g fill="#b8874d" stroke="#6d4a28" stroke-width=".9">
+    <rect x="1.8" y="3.6" width="6.4" height="8.8" rx="1.4"/>
+    <rect x="23.8" y="3.6" width="6.4" height="8.8" rx="1.4"/>
+  </g>
+  <g stroke="#96683a" stroke-width=".8"><path d="M5 4.8v6.4M27 4.8v6.4"/></g>
+  <g stroke="#cda06a" stroke-width=".9"><path d="M2.4 4.6h5.2M24.4 4.6h5.2"/></g>
+</svg>

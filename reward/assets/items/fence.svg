@@ -1,8 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" width="32" height="16">
-  <!-- A run of fence, half a tile deep -->
-  <rect x="-1" y="4" width="34" height="2.6" fill="#a6763f" stroke="#6d4a28" stroke-width=".8"/>
-  <rect x="-1" y="9" width="34" height="2.6" fill="#a6763f" stroke="#6d4a28" stroke-width=".8"/>
-  <rect x="2" y="1" width="4" height="14" rx="1" fill="#b8874d" stroke="#6d4a28" stroke-width=".9"/>
-  <rect x="26" y="1" width="4" height="14" rx="1" fill="#b8874d" stroke="#6d4a28" stroke-width=".9"/>
-  <path d="M4 2.5v11M28 2.5v11" stroke="#96683a" stroke-width=".8"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- One fence post. The rails to its neighbours are drawn apart, so a
+       post put down on its own stays a post -->
+  <rect x="4.8" y="3.6" width="6.4" height="8.8" rx="1.4" fill="#b8874d" stroke="#6d4a28" stroke-width=".9"/>
+  <path d="M8 4.8v6.4" stroke="#96683a" stroke-width=".8"/>
+  <path d="M5.4 4.6h5.2" stroke="#cda06a" stroke-width=".9"/>
 </svg>
