@@ -18,8 +18,15 @@
 </div>
 
 <div class="hud">
+  <!-- One round button in the corner: the way back to the exercises
+       outside, the way out of the building once inside. -->
   <div class="hud-top-left">
-    <button id="back" class="round-btn" title="Retour aux exercices" aria-label="Retour aux exercices">←</button>
+    <button id="back" class="round-btn" title="Retour aux exercices" aria-label="Retour aux exercices">
+      <img class="btn-icon" src="assets/back.svg" alt="">
+    </button>
+    <button id="exit" class="round-btn" title="Sortir" aria-label="Sortir" hidden>
+      <img class="btn-icon" src="assets/exit.svg" alt="">
+    </button>
     <button id="dev-toggle" class="round-btn small" title="Panneau parent" aria-label="Panneau parent">⚙</button>
   </div>
 
@@ -29,8 +36,9 @@
   </button>
 
   <div class="hud-bottom" id="hud-bottom">
-    <button class="big-btn" id="exit" hidden><span aria-hidden="true">🚪</span> Sortir</button>
-    <button class="big-btn" data-panel="shop"><span aria-hidden="true">🛒</span> Magasin</button>
+    <button class="round-btn round-btn-shop" data-panel="shop" title="Magasin" aria-label="Magasin">
+      <img class="btn-icon" src="assets/cart.svg" alt="">
+    </button>
   </div>
 
   <!-- What the child is carrying, waiting for a free tile. -->

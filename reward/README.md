@@ -34,10 +34,13 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   en revanche la scène se déplace librement **jusqu'à ce qu'un de ses
   bords atteigne le milieu de l'écran**, de quoi amener un coin de pièce
   au centre pour y construire.
-* **Overlay permanent** : les pièces en haut à droite, un bouton retour en
-  haut à gauche (il préviendra l'application d'apprentissage), et le
-  bouton **Magasin** en bas. Toucher les pièces en ajoute 100 — raccourci
-  de prototype.
+* **Overlay permanent** : les pièces en haut à droite, un bouton rond en
+  haut à gauche et le **magasin** (icône de caddie) en bas à gauche.
+  Toucher les pièces en ajoute 100 — raccourci de prototype.
+* Le bouton du coin haut-gauche change avec le lieu : dehors c'est le
+  **retour aux exercices** (flèche), dans un bâtiment c'est la **sortie**
+  (porte), au même endroit et à la même taille. En bas à gauche, le
+  magasin laisse la place à l'objet pris en main tant qu'on en tient un.
 * **Des lieux, pas un seul** : la propriété dehors, et l'intérieur de
   chaque bâtiment. Toucher un bâtiment propose **Entrer** ; la porte (ou
   le bouton **Sortir**) ramène dehors, et un escalier mène à l'étage.
@@ -170,6 +173,7 @@ reward/
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
     floor.svg wall.svg door.svg window.svg window-side.svg  (les intérieurs)
+    back.svg exit.svg cart.svg                (les icônes des boutons)
     grass.svg forest.svg sand.svg paving.svg  (les sols des parcelles)
     water.svg cabin.svg cottage.svg apartment.svg stairs-*.svg
     items/            un fichier par objet du magasin

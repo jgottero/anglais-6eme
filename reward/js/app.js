@@ -24,7 +24,7 @@
   const COINS_PER_TAP = 100; // prototype only: tapping the purse pays
 
   let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, bottomEl, barEl, toastEl;
-  let sceneEl, exitEl;
+  let sceneEl, exitEl, backEl;
   let shopOpen = false;
   let shownCoins = null;
 
@@ -39,6 +39,7 @@
     toastEl = document.getElementById("toast");
     sceneEl = document.getElementById("scene-name");
     exitEl = document.getElementById("exit");
+    backEl = document.getElementById("back");
 
     World.init({
       onSelect: renderActionBar,
@@ -67,7 +68,7 @@
     PropertyState.subscribe(refresh);
     refresh();
     sceneEl.textContent = PropertyState.scene().name;
-    exitEl.hidden = !wayOut(PropertyState.scene());
+    showWayOut(PropertyState.scene());
     const sale = PropertyState.plotForSale();
     toast(sale
       ? "Glisse pour te déplacer, pince pour zoomer. «\u00A0" + sale.name + "\u00A0» est à vendre à côté."
@@ -142,14 +143,21 @@
   function onScene(place) {
     World.fitCamera();
     sceneEl.textContent = place.name;
-    // Only a scene one can walk out of shows the way out in the overlay.
-    exitEl.hidden = !wayOut(place);
+    showWayOut(place);
     openShop(false);
     toast(place.indoor ? "Te voilà chez toi." : "Te voilà dehors.");
   }
 
   function wayOut(place) {
     return place.indoor ? place.blocks.find(block => block.to) : null;
+  }
+
+  /* The corner holds one button: inside a building it is the way out,
+     everywhere else the way back to the exercises. */
+  function showWayOut(place) {
+    const inside = !!wayOut(place);
+    exitEl.hidden = !inside;
+    backEl.hidden = inside;
   }
 
   function leaveScene() {

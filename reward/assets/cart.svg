@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- The shop trolley -->
+  <g fill="none" stroke="#3a2b1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2.5 3h2.6l2.3 10.6a2 2 0 0 0 2 1.6h7.4a2 2 0 0 0 2-1.5L21.5 7H6"/>
+  </g>
+  <circle cx="10" cy="19.5" r="1.9" fill="#3a2b1c"/>
+  <circle cx="17.5" cy="19.5" r="1.9" fill="#3a2b1c"/>
+</svg>
