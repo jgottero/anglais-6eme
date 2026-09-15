@@ -21,7 +21,7 @@
 const PropertyState = (function () {
 
   const KEY = "reward-property-v1";
-  const VERSION = 7;   // the shape of the save
+  const VERSION = 8;   // the shape of the save
   const START_COINS = 150;
 
   function blank() {
@@ -32,6 +32,7 @@ const PropertyState = (function () {
       owned: [SCENES.FIRST_PLOT],  // plots bought, in the order they were
       placed: {},                  // what stands in each scene, by scene id
       tiers: [],                   // ranks already rewarded, never paid twice
+      stamps: 0,                   // days of practice already rewarded
       nextUid: 1
     };
   }
@@ -39,7 +40,13 @@ const PropertyState = (function () {
   /* STEPS[n] turns a save of version n into one of version n + 1. Add
      one here the day the shape changes — never a wipe. It is declared
      before the save is read, which is why it sits this far up. */
-  const STEPS = {};
+  const STEPS = {
+    /* 8 pays for the days of practice as well as the ranks. A property
+       from before simply has none of them counted yet, so the first
+       sync pays for the stamps already in the book — the regularity was
+       real, it just had nothing to buy at the time. */
+    7: saved => Object.assign({}, saved, { stamps: 0, version: 8 })
+  };
 
   let carried = 0;    // coins handed back while reading an older save
 
@@ -112,6 +119,7 @@ const PropertyState = (function () {
     fresh.tiers = (Array.isArray(saved.tiers) ? saved.tiers : [])
       .filter(one => typeof one === "number" && one > 0);
     fresh.nextUid = Math.max(1, Number(saved.nextUid) || 1);
+    fresh.stamps = Math.max(0, Math.round(Number(saved.stamps) || 0));
     const owned = (Array.isArray(saved.owned) ? saved.owned : []).filter(id => SCENES.plot(id));
     fresh.owned = owned.length ? owned : [SCENES.FIRST_PLOT];
     fresh.placed = saved.placed && typeof saved.placed === "object" ? saved.placed : {};
@@ -286,6 +294,22 @@ const PropertyState = (function () {
     return data.tiers.length ? Math.max.apply(null, data.tiers) : 0;
   }
 
+  /* The days of practice, paid the same way: the learning app knows how
+     many stamps are in the book, this side knows how many it has paid
+     for, and the difference is what is owed. A stamp is worth less than
+     a rank — it is the habit that is being rewarded, not the climb. */
+  function grantStamps(count, amountFor) {
+    const top = Math.max(0, Math.round(Number(count) || 0));
+    const owed = top - data.stamps;
+    if (owed <= 0) return { paid: 0, amount: 0, stamps: data.stamps, coins: data.coins };
+    let amount = 0;
+    for (let one = 0; one < owed; one++) amount += amountFor(level());
+    data.stamps = top;
+    data.coins += amount;
+    changed();
+    return { paid: owed, amount, stamps: data.stamps, coins: data.coins };
+  }
+
   /* Catching up with the learning app, which knows the child's rank but
      not what has already been paid here: every rank up to that one is
      settled, the ones already paid are passed over, and the property is
@@ -438,6 +462,9 @@ const PropertyState = (function () {
   // What the last load had to pay back, so the child can be told.
   function mendedCoins() { return mended; }
 
+  // Days of practice already paid for.
+  function stamps() { return data.stamps; }
+
   function subscribe(fn) {
     listeners.push(fn);
     return () => {
@@ -451,7 +478,7 @@ const PropertyState = (function () {
     scene, sceneId, enter, wayOut,
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
-    addCoins, grantTier, grantUpTo, level, mendedCoins,
+    addCoins, grantTier, grantUpTo, grantStamps, level, stamps, mendedCoins,
     buyAt, move, turn, mirror, sell, reset
   };
 })();

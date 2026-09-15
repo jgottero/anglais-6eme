@@ -26,6 +26,14 @@
       (level % 10 === 0 ? 500 : 0);
   }
 
+  /* What a day of practice is worth — a stamp in the book of the
+     learning app. Coming back tomorrow is the habit worth paying for,
+     so it pays every day and not only when a rank falls; it stays well
+     under a rank, though, so the climb is still what carries. */
+  function rewardForStamp(level) {
+    return 30 + 2 * level;
+  }
+
   let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, barEl, toastEl;
   let sceneEl, exitEl, backEl;
   let shopOpen = false;
@@ -398,7 +406,8 @@
     window.parent.postMessage({
       type: "reward:state",
       coins: PropertyState.get().coins,
-      level: PropertyState.level()
+      level: PropertyState.level(),
+      stamps: PropertyState.stamps()
     }, "*");
   }
 
@@ -423,6 +432,16 @@
     /* The learning app knows the rank the child has reached, not what
        this side has already paid for. One message settles everything
        owed up to that rank, in one go and one sentence. */
+    /* The days of practice, told the same way as the rank: a running
+       count, and this side settles what it has not paid for. */
+    syncStamps(count) {
+      const result = PropertyState.grantStamps(count, rewardForStamp);
+      if (result.paid === 1) toast("Objectif du jour tenu ! +" + result.amount + " pièces.");
+      else if (result.paid > 1) {
+        toast(result.paid + " jours de travail récompensés : +" + result.amount + " pièces.");
+      }
+      return result;
+    },
     syncLevel(level) {
       const top = Math.max(0, Math.min(CATALOG.LAST_LEVEL, Number(level) || 0));
       const result = PropertyState.grantUpTo(top, rewardForTier);
@@ -432,6 +451,7 @@
     addCoins(amount) { return PropertyState.addCoins(amount); },
     coins() { return PropertyState.get().coins; },
     level() { return PropertyState.level(); },
+    stamps() { return PropertyState.stamps(); },
     // Starting the property over, from the console or from the main app.
     reset() {
       PropertyState.reset();
@@ -440,7 +460,7 @@
       World.fitCamera();
       onScene(PropertyState.scene());
     },
-    rewardForTier
+    rewardForTier, rewardForStamp
   };
 
   // Same bridge for the case where the module is shown inside an iframe.
@@ -450,13 +470,15 @@
     if (!message || typeof message !== "object") return;
     if (message.type === "reward:tier") window.REWARD.grantTier(message.tier);
     else if (message.type === "reward:level") window.REWARD.syncLevel(message.level);
+    else if (message.type === "reward:stamps") window.REWARD.syncStamps(message.stamps);
     else if (message.type === "reward:coins") window.REWARD.addCoins(message.amount);
     else return;
     if (event.source) {
       event.source.postMessage({
         type: "reward:state",
         coins: PropertyState.get().coins,
-        level: PropertyState.level()
+        level: PropertyState.level(),
+        stamps: PropertyState.stamps()
       }, "*");
     }
   });

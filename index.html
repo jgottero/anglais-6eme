@@ -404,7 +404,7 @@ function isAccepted(word, attempt) {
        words: { "lessonId:Mot francais": { level, seen, ok, last } },
        days:  { "2026-09-10": { n: 12, goal: 15, stamp: 3, p: 54 } },
        today: { date: "2026-09-10", keys: ["greetings:Salut"] },
-       reward: { coins: 1560, level: 8 }
+       reward: { coins: 1560, level: 8, stamps: 34 }
      }
 
    The reward — the property, its coins and everything put down on it —
@@ -444,7 +444,7 @@ function emptyProgress() {
      the menu can show the purse without opening it. The property itself
      — coins, land, everything put down — is saved by the module. */
   return { version: 3, points: 0, words: {}, days: {}, today: { date: dayKey(), keys: [] },
-           reward: { coins: 0, level: 0 } };
+           reward: { coins: 0, level: 0, stamps: 0 } };
 }
 
 const Store = {
@@ -480,6 +480,7 @@ const Store = {
     if (data.reward) {
       fresh.reward.coins = data.reward.coins || 0;
       fresh.reward.level = data.reward.level || 0;
+      fresh.reward.stamps = data.reward.stamps || 0;
     }
     if (data.today && data.today.date === dayKey()) fresh.today = data.today;
     return fresh;
@@ -503,6 +504,7 @@ const Store = {
     const theirs = (remote && remote.reward) || {};
     merged.reward.coins = Math.max(merged.reward.coins, theirs.coins || 0);
     merged.reward.level = Math.max(merged.reward.level, theirs.level || 0);
+    merged.reward.stamps = Math.max(merged.reward.stamps, theirs.stamps || 0);
     return merged;
   }
 };
@@ -591,9 +593,11 @@ function addPoints(amount) {
 
 /* ---- The property ----
    The reward module is a page of its own, shown full screen in a frame.
-   The app tells it one thing — the rank reached — and it answers with
-   the purse, which the menu shows between two rounds. Paying is settled
-   on its side and never twice, so sending the rank again costs nothing.
+   The app tells it two things — the rank reached and the number of days
+   stamped — and it answers with the purse, which the menu shows between
+   two rounds. A rank pays for the climb, a stamp for coming back: both
+   are settled on its side and never twice, so sending the same figures
+   again costs nothing.
 
    Nothing is sent while the demonstration mode is on: a made-up rank
    must not buy a real property. */
@@ -622,8 +626,9 @@ function closeProperty() {
 
 function syncProperty() {
   if (DEMO_RANK || !propertyFrame || !propertyFrame.contentWindow) return;
-  propertyFrame.contentWindow.postMessage(
-    { type: "reward:level", level: rankOf(progress.points).index }, "*");
+  const to = propertyFrame.contentWindow;
+  to.postMessage({ type: "reward:level", level: rankOf(progress.points).index }, "*");
+  to.postMessage({ type: "reward:stamps", stamps: earnedStamps().length }, "*");
 }
 
 window.addEventListener("message", event => {
@@ -631,7 +636,11 @@ window.addEventListener("message", event => {
   if (!message || typeof message !== "object") return;
   if (message.type === "reward:back") { closeProperty(); return; }
   if (message.type !== "reward:state") return;
-  progress.reward = { coins: message.coins || 0, level: message.level || 0 };
+  progress.reward = {
+    coins: message.coins || 0,
+    level: message.level || 0,
+    stamps: message.stamps || 0
+  };
   Store.save(progress);
   // The menu shows the purse; redraw it if that is what is on screen.
   if (document.getElementById("property").hidden) renderMenu();
@@ -994,13 +1003,15 @@ function rankBanner() {
    written down twice. */
 function propertyCard() {
   const rank = rankOf(progress.points).index;
-  const purse = progress.reward || { coins: 0, level: 0 };
-  const owed = !DEMO_RANK && rank > purse.level;
+  const purse = progress.reward || { coins: 0, level: 0, stamps: 0 };
+  const stamps = earnedStamps().length;
+  const owed = !DEMO_RANK && (rank > purse.level || stamps > (purse.stamps || 0));
   const known = purse.level > 0 || purse.coins > 0;
   return '<section class="card' + (owed ? ' rank' : '') + '">' +
       (owed
         ? '<p class="rank-up">Des pièces t\'attendent</p>' +
-          '<p class="label" style="margin:0">Ta propriété paie le rang ' + rank +
+          '<p class="label" style="margin:0">Ta propriété paie ' +
+            (rank > purse.level ? 'le rang ' + rank : 'tes jours de travail') +
             ' dès que tu y passes.</p>'
         : '<p class="label" style="margin-bottom:2px">Ma propriété</p>' +
           '<p class="purse">' + (known
@@ -1643,6 +1654,7 @@ function showScore() {
 
   const rank = rankOf(progress.points);
   const gained = rank.index > state.rankBefore;
+  const paying = gained || state.stampEarned;
   const rankUp = gained
     ? '<p class="rank-up">Rang ' + rank.index + ' — ' + esc(rank.name) + '</p>' +
       '<p class="label" style="margin:2px 0 0">Des pièces t\'attendent sur ta propriété.</p>'
@@ -1653,7 +1665,8 @@ function showScore() {
     ? '<div class="row" style="display:flex;align-items:center;gap:16px;margin-top:20px">' +
         stampSvg(goal.stamp, 88) +
         '<span><b>Objectif du jour atteint.</b>' +
-        '<span class="done">Un tampon de plus au carnet.</span></span>' +
+        '<span class="done">Un tampon de plus au carnet, et des pièces ' +
+          'pour ta propriété.</span></span>' +
       '</div>'
     : '';
 
@@ -1665,14 +1678,14 @@ function showScore() {
       stamp +
       weakList +
       '<div class="actions">' +
-        (gained
+        (paying
           ? '<button class="text primary" id="see-property">Voir ma propriété</button>'
           : '') +
-        '<button class="text' + (gained ? '' : ' primary') + '" id="again">Recommencer</button>' +
+        '<button class="text' + (paying ? '' : ' primary') + '" id="again">Recommencer</button>' +
         '<button class="text" id="menu">Changer de liste</button>' +
       '</div>' +
     '</section>';
-  if (gained) {
+  if (paying) {
     document.getElementById("see-property").addEventListener("click", openProperty);
   }
   document.getElementById("again").addEventListener("click", () => startRound(state.lesson));

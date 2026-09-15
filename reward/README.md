@@ -248,10 +248,15 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 
 Elle est branchée : `index.html`, à la racine du dépôt, ouvre ce module
 en plein écran dans une iframe quand l'enfant touche **« Ouvrir ma
-propriété »**. Elle lui envoie une seule chose — le **rang** atteint dans
-les exercices — et le module règle tout ce qui n'a pas encore été payé,
-puis répond avec la bourse, que le menu affiche entre deux séries. La
-flèche en haut à droite de la propriété renvoie aux exercices.
+propriété »**. Elle lui envoie deux chiffres — le **rang** atteint dans
+les exercices et le **nombre de tampons** du carnet, un par journée où
+l'objectif a été tenu — et le module règle tout ce qui n'a pas encore
+été payé, puis répond avec la bourse, que le menu affiche entre deux
+séries. La flèche en haut à droite de la propriété renvoie aux
+exercices.
+
+Le rang paie la progression, le tampon paie **la régularité** : revenir
+demain rapporte, même sans changer de rang.
 
 `reward/index.html` s'ouvre toujours seul, sans l'application : c'est là
 qu'on essaie le module (la bourse fait alors passer un niveau).
@@ -264,6 +269,7 @@ Sur la même page (les scripts du module sont chargés) :
 ```js
 REWARD.grantTier(level);  // paie le niveau une seule fois, même rappelé
 REWARD.syncLevel(level);  // paie tout ce qui est dû jusqu'à ce niveau
+REWARD.syncStamps(count); // paie les journées de travail pas encore payées
 REWARD.addCoins(50);      // pièces hors niveau
 REWARD.coins();           // solde actuel
 REWARD.level();           // niveau atteint (0 à 100)
@@ -275,9 +281,11 @@ Dans une iframe :
 ```js
 iframe.contentWindow.postMessage({ type: "reward:level", level: rank }, "*");
 // règle tous les niveaux dus jusqu'à celui-là, en une fois
+iframe.contentWindow.postMessage({ type: "reward:stamps", stamps: 34 }, "*");
+// règle toutes les journées de travail pas encore payées
 iframe.contentWindow.postMessage({ type: "reward:tier", tier: rank }, "*");
 // paie un niveau précis
-// réponse : { type: "reward:state", coins: 1234, level: 8 }
+// réponse : { type: "reward:state", coins: 1234, level: 8, stamps: 34 }
 ```
 
 `reward:level` est celui qu'utilise l'application : elle ignore ce qui a
@@ -301,6 +309,13 @@ plus 250 tous les cinq niveaux et 500 tous les dix. Cela fait 110 pièces
 au niveau 1, 1850 au niveau 100, et **70 500 pièces** sur la partie
 entière — de quoi acheter les onze parcelles (46 800) et beaucoup de
 choses à poser dessus, sans pouvoir tout prendre : il faut choisir.
+
+Un tampon vaut moins (`rewardForStamp`) : **30 + 2 × niveau**, soit 32
+pièces au début et 230 à la fin. Une année de travail régulier (autour
+de 140 journées) ajoute ainsi quelques milliers de pièces sans voler la
+vedette aux rangs — c'est un revenu d'habitude, pas une seconde échelle.
+Un compteur unique suffit à ne jamais payer deux fois : le module retient
+combien de journées il a réglées, l'application dit combien il y en a.
 
 Quand on ouvre `reward/index.html` tout seul, **un appui sur la bourse
 fait passer un niveau** (et donc gagner ses pièces et ses nouveautés) :
