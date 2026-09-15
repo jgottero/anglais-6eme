@@ -91,8 +91,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   une place prise.
 * Il n'y a pas de réserve : un objet est payé là où il se pose, et revendu
   de là où il est.
-* Les murs, la maison et la porte d'entrée sont *bâtis* : on ne peut ni
-  les acheter, ni les déplacer, ni les vendre, et rien ne se pose dessus.
+* Les murs, les fenêtres, la maison et la porte d'entrée sont *bâtis* :
+  on ne peut ni les acheter, ni les déplacer, ni les vendre, et rien ne
+  se pose dessus. Chaque intérieur a ses fenêtres percées dans les murs
+  extérieurs — deux cases de large dans un mur horizontal, deux de haut
+  dans un mur latéral.
   La porte du magasin, elle, est un objet comme un autre : on l'achète,
   on la pose dans une embrasure, on la tourne, on la revend.
 * Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. La
@@ -146,7 +149,7 @@ reward/
   js/app.js           overlay, objet en main, panneau parent, pont avec l'app
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
-    floor.svg wall.svg door.svg               (les intérieurs)
+    floor.svg wall.svg door.svg window.svg window-side.svg  (les intérieurs)
     grass.svg forest.svg sand.svg paving.svg  (les sols des parcelles)
     water.svg cabin.svg cottage.svg apartment.svg stairs-*.svg
     items/            un fichier par objet du magasin

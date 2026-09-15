@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 32" width="16" height="32">
+  <!-- The same window, in a wall running top to bottom -->
+  <rect width="16" height="32" fill="#9b8b7a"/>
+  <rect x="3" y="1" width="10" height="30" rx="1.5" fill="#f3ead6" stroke="#8d7e6d" stroke-width="1.2"/>
+  <rect x="5" y="3" width="6" height="26" rx="1" fill="#9fd6f0"/>
+  <path d="M5 3h3v26H5z" fill="#bde6f7"/>
+  <path d="M5 16h6" stroke="#f3ead6" stroke-width="1.4"/>
+  <path d="M8 3v26" stroke="#f3ead6" stroke-width="1"/>
+  <rect x="12" y="1" width="2.4" height="30" rx="1" fill="#ded0b4" stroke="#8d7e6d" stroke-width=".8"/>
+</svg>

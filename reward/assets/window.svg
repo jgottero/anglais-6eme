@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 16" width="32" height="16">
+  <!-- A window in a wall running left to right, seen from inside -->
+  <rect width="32" height="16" fill="#9b8b7a"/>
+  <rect x="1" y="3" width="30" height="10" rx="1.5" fill="#f3ead6" stroke="#8d7e6d" stroke-width="1.2"/>
+  <rect x="3" y="5" width="26" height="6" rx="1" fill="#9fd6f0"/>
+  <path d="M3 5h26v3H3z" fill="#bde6f7"/>
+  <path d="M16 5v6" stroke="#f3ead6" stroke-width="1.4"/>
+  <path d="M3 8h26" stroke="#f3ead6" stroke-width="1"/>
+  <rect x="1" y="12" width="30" height="2.4" rx="1" fill="#ded0b4" stroke="#8d7e6d" stroke-width=".8"/>
+</svg>
