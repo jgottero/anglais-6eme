@@ -37,7 +37,9 @@ const Ground = (function () {
     polished:   ["polished-1.svg", "polished-2.svg"],
     carpet:     ["carpet-1.svg", "carpet-2.svg"],
     concrete:   ["concrete-1.svg", "concrete-2.svg"],
-    planks:     ["planks-1.svg", "planks-2.svg"]
+    planks:     ["planks-1.svg", "planks-2.svg"],
+    // Out on a balcony: paving slabs, weathered by the open air.
+    balcony:    ["balcony-1.svg", "balcony-2.svg"]
   };
 
   const WANDER = 2.6;    // how far a ground may stray over its border, in cases
@@ -120,6 +122,11 @@ const Ground = (function () {
   function look(place, x, y) {
     const plots = place.plots || [];
     if (!plotAt(plots, x, y)) return null;
+    /* The wandering line belongs outdoors, where sand should mouth into
+       grass and a shore should look like a shore. Indoors everything is
+       built: a balcony stops at its wall, in a straight line, and a
+       drifting edge would only look like a mistake. */
+    if (place.indoor) return groundAt(plots, x, y);
     const drift = (salt) => (noise(x * GRAIN, y * GRAIN, salt) - 0.5) * 2 * WANDER;
     return groundAt(plots, Math.round(x + drift(1)), Math.round(y + drift(2))) ||
       groundAt(plots, x, y);

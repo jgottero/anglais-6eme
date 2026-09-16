@@ -499,6 +499,36 @@ const PropertyState = (function () {
     return null;
   }
 
+  /* The floors of the building one is standing in, from the street up.
+     Found by following the stairs down as far as they go and then back
+     up: the plans are what say how a building is stacked, and nothing
+     has to be written down twice. A building of one floor answers with
+     nothing — there is no floor to choose. */
+  function floors(id) {
+    const start = id || data.current;
+    if (!built[start] || !built[start].indoor) return [];
+
+    const climbed = {};
+    let bottom = start;
+    while (!climbed[bottom]) {
+      climbed[bottom] = true;
+      const down = built[bottom].blocks.find(one => one.kind === "stairs_down" && one.to);
+      if (!down || !built[down.to]) break;
+      bottom = down.to;
+    }
+
+    const stack = [];
+    const walked = {};
+    let at = bottom;
+    while (at && built[at] && !walked[at]) {
+      walked[at] = true;
+      stack.push({ id: at, name: built[at].name, here: at === start });
+      const up = built[at].blocks.find(one => one.kind === "stairs_up" && one.to);
+      at = up && built[up.to] ? up.to : null;
+    }
+    return stack.length > 1 ? stack : [];
+  }
+
   function enter(id) {
     if (!built[id] || id === data.current) return false;
     data.current = id;
@@ -555,7 +585,7 @@ const PropertyState = (function () {
 
   return {
     get, subscribe,
-    scene, sceneId, enter, wayOut,
+    scene, sceneId, enter, wayOut, floors,
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
     addCoins, grantTier, grantUpTo, grantStamps, level, stamps, mendedCoins,

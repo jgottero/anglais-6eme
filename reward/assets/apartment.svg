@@ -1,16 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 128" width="160" height="128">
-  <!-- The block of flats: three floors, each its own world -->
+  <!-- The block of flats: three floors inside, three rows of windows
+       out, and a balcony on each of the two above the street. -->
   <ellipse cx="80" cy="122" rx="66" ry="6" fill="#000" opacity=".18"/>
   <path d="M6 30L80 6l74 24z" fill="#8d969e" stroke="#6f7880" stroke-width="2.5"/>
   <path d="M16 27L80 9l64 18z" fill="#a9b5bd"/>
   <rect x="12" y="30" width="136" height="90" rx="3" fill="#d9b06a" stroke="#6d4a28" stroke-width="2.5"/>
   <g stroke="#c09a56" stroke-width="2"><path d="M12 60h136M12 90h136"/></g>
+
+  <!-- second floor -->
   <g fill="#9fd6f0" stroke="#5c3d1f" stroke-width="2">
-    <rect x="24" y="38" width="22" height="16" rx="2"/><rect x="60" y="38" width="22" height="16" rx="2"/>
-    <rect x="96" y="38" width="22" height="16" rx="2"/><rect x="126" y="38" width="16" height="16" rx="2"/>
-    <rect x="24" y="68" width="22" height="16" rx="2"/><rect x="60" y="68" width="22" height="16" rx="2"/>
-    <rect x="96" y="68" width="22" height="16" rx="2"/><rect x="126" y="68" width="16" height="16" rx="2"/>
-    <rect x="24" y="98" width="22" height="14" rx="2"/><rect x="114" y="98" width="28" height="14" rx="2"/>
+    <rect x="24" y="36" width="22" height="16" rx="2"/><rect x="60" y="36" width="22" height="16" rx="2"/>
+    <rect x="96" y="36" width="22" height="16" rx="2"/><rect x="126" y="36" width="16" height="16" rx="2"/>
+  </g>
+  <g fill="#c7ced3" stroke="#7d868d" stroke-width="1.6">
+    <rect x="20" y="51" width="102" height="8" rx="2"/>
+  </g>
+  <g stroke="#9aa3ab" stroke-width="1.4"><path d="M27 52v6M41 52v6M55 52v6M69 52v6M83 52v6M97 52v6M111 52v6"/></g>
+
+  <!-- first floor -->
+  <g fill="#9fd6f0" stroke="#5c3d1f" stroke-width="2">
+    <rect x="24" y="66" width="22" height="16" rx="2"/><rect x="60" y="66" width="22" height="16" rx="2"/>
+    <rect x="96" y="66" width="22" height="16" rx="2"/><rect x="126" y="66" width="16" height="16" rx="2"/>
+  </g>
+  <g fill="#c7ced3" stroke="#7d868d" stroke-width="1.6">
+    <rect x="20" y="81" width="102" height="8" rx="2"/>
+  </g>
+  <g stroke="#9aa3ab" stroke-width="1.4"><path d="M27 82v6M41 82v6M55 82v6M69 82v6M83 82v6M97 82v6M111 82v6"/></g>
+
+  <!-- the street floor, with the way in -->
+  <g fill="#9fd6f0" stroke="#5c3d1f" stroke-width="2">
+    <rect x="24" y="98" width="28" height="14" rx="2"/><rect x="114" y="98" width="28" height="14" rx="2"/>
   </g>
   <rect x="62" y="94" width="34" height="26" rx="2" fill="#7b5230" stroke="#4a3320" stroke-width="2"/>
   <path d="M79 94v26" stroke="#5c3d1f" stroke-width="1.6"/>

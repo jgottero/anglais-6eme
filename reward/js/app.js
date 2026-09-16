@@ -37,7 +37,7 @@
   }
 
   let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, barEl, toastEl;
-  let visitingEl, shareEl;
+  let visitingEl, shareEl, floorsEl;
   let sceneEl, exitEl, backEl;
   let shopOpen = false;
   let shownCoins = null;
@@ -48,6 +48,7 @@
     purseEl = document.getElementById("purse");
     shopEl = document.getElementById("panel-shop");
     visitingEl = document.getElementById("visiting");
+    floorsEl = document.getElementById("floors");
     shareEl = document.getElementById("share");
     handEl = document.getElementById("hand");
     barEl = document.getElementById("action-bar");
@@ -187,6 +188,11 @@
 
     exitEl.addEventListener("click", () => leaveScene());
 
+    floorsEl.addEventListener("click", event => {
+      const button = event.target.closest("[data-floor]");
+      if (button) PropertyState.enter(button.dataset.floor);
+    });
+
     barEl.addEventListener("click", onActionBarClick);
   }
 
@@ -264,6 +270,29 @@
     const inside = !!wayOut(place);
     exitEl.hidden = !inside;
     backEl.hidden = inside;
+    showFloors(place);
+  }
+
+  /* In a building of several floors, one button per floor beside the
+     way out: hunting for the staircase to go up one and down again is
+     no fun, and a child knows perfectly well which floor they want. */
+  function floorLabel(index) {
+    if (!index) return "RDC";
+    return index === 1 ? "1er" : index + "e";
+  }
+
+  function showFloors(place) {
+    const stack = PropertyState.floors(place.id);
+    floorsEl.hidden = !stack.length;
+    document.body.classList.toggle("has-floors", !!stack.length);
+    if (!stack.length) { floorsEl.innerHTML = ""; return; }
+    floorsEl.innerHTML = stack.map((floor, index) =>
+      '<button class="floor-btn' + (floor.here ? " is-on" : "") + '"' +
+      ' data-floor="' + floor.id + '"' +
+      ' title="' + floor.name + '" aria-label="' + floor.name + '"' +
+      (floor.here ? ' aria-current="true"' : "") + '>' +
+      floorLabel(index) + '</button>'
+    ).join("");
   }
 
   function leaveScene() {

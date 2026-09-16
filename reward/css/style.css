@@ -563,6 +563,46 @@ button { font: inherit; cursor: pointer; }
 .card .price .coin { width: 19px; height: 19px; }
 .card.is-locked .price { color: var(--ink-soft); }
 
+/* ---- The floors of a building ----
+   Beside the way out, one button a floor, the one underfoot marked.
+   They stack downwards on a narrow screen so a tall tower never pushes
+   the way out off the edge. */
+
+.floors {
+  position: absolute;
+  top: calc(64px + env(safe-area-inset-top));
+  right: calc(12px + env(safe-area-inset-right));
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: min(70vw, 300px);
+}
+
+.floor-btn {
+  min-width: 42px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  border: 2px solid var(--wood-dark);
+  background: var(--panel);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.88rem;
+  line-height: 1;
+  box-shadow: var(--lift);
+  touch-action: manipulation;
+}
+.floor-btn.is-on {
+  background: var(--wood-dark);
+  color: #fdf6e7;
+  border-color: var(--wood-dark);
+}
+.floor-btn:active { transform: scale(0.94); }
+
+/* The floor buttons take a line of their own under the way out, so the
+   name of the room goes below them rather than behind them. */
+body.has-floors .top-stack { top: calc(122px + env(safe-area-inset-top)); }
+
 /* ---- Visiting a world someone sent ----
    The banner sits where the toast does, above everything, and says the
    one thing that matters: this is not your property, and here is the

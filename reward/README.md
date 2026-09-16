@@ -55,6 +55,24 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Le bouton **Sortir** cherche vraiment la porte : depuis un étage, qui
   n'a que des escaliers, il redescend jusqu'à l'étage qui en a une et
   ressort par là, d'un seul appui.
+* **Un bouton par étage** : dans un bâtiment qui en a plusieurs, une
+  rangée **RDC · 1er · 2e · 3e** s'affiche sous le bouton Sortir, celui
+  où l'on se trouve marqué. Un appui y va directement — chercher
+  l'escalier pour monter d'un étage puis redescendre n'a rien
+  d'amusant, et un enfant sait très bien à quel étage il veut aller. La
+  rangée se construit **en suivant les escaliers** du plan : rien n'est
+  écrit deux fois, et un bâtiment d'un seul niveau n'affiche rien.
+* **La ville se mérite, et se voit** : les bâtiments de la ville et du
+  quartier neuf sont des récompenses tardives, donc les plus vastes du
+  jeu — l'immeuble fait 520 cases, le long immeuble 480, chaque tour
+  400, quand la maison de départ en fait 357. Les étages du dessus ont
+  un **balcon** sur la rue : une avancée pavée, bordée d'un
+  garde-corps, où l'on pose ce qu'on veut comme à l'intérieur.
+* **Une façade ne ment pas sur ses étages** : l'immeuble en a trois
+  dedans et trois rangées de fenêtres dehors, les tours quatre, le long
+  immeuble trois. Le compte est écrit dans `BLOCKS` (`floors`), à côté
+  du dessin, et une suite de tests tient les plans à cette promesse :
+  changer le nombre d'étages oblige à changer le dessin.
 * **Chaque bâtiment est meublé jusqu'aux murs.** Les plans sont les
   mêmes, la matière change : la cabane est en rondins, sol compris ; la
   maisonnette du couchant a des tomettes, un crépi blanc à poutre et des
@@ -65,7 +83,14 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   immeuble, de la brique et une verrière d'atelier ; le hangar du port,
   des planches et de la tôle ondulée. C'est une ligne par bâtiment dans
   `STYLES` (`js/scenes.js`) : le sol sur lequel la pièce est posée, et
-  ce que valent les signes de son plan (`#`, `O`, `I`). Monter de la
+  ce que valent les signes de son plan.
+
+  Les signes d'un plan : `#` mur, `O` fenêtre dans un mur horizontal,
+  `I` fenêtre dans un mur latéral, `D` porte, `U` escalier qui monte,
+  `W` escalier qui descend, `.` sol — et pour un balcon, `B` son
+  dallage, `R` le garde-corps qui court, `L` celui qui descend. La
+  porte, les escaliers et le garde-corps sont les mêmes partout ; le
+  reste appartient au style du bâtiment. Monter de la
   cabane à la tour doit se voir sous les pieds.
   Chaque intérieur est un monde indépendant, avec ses pièces séparées par
   des murs : ses objets lui appartiennent, seules les pièces de monnaie
@@ -92,9 +117,9 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   | Le lac | nord-est | 2200 | un **lac** bordé de sable et son ponton |
   | Le hameau | sud | 3200 | une place pavée et **deux maisonnettes** |
   | La plage | sud | 4500 | du sable et la mer (où l'on ne bâtit pas) |
-  | La ville | ouest | 6000 | un parc, un **immeuble** (3 étages) et une **tour** (3 étages) |
+  | La ville | ouest | 6000 | un parc, un **immeuble** (3 étages) et une **tour** (4 étages) |
   | La crique | sud-est | 7500 | du sable, la mer et la pointe aux sapins |
-  | Le quartier neuf | ouest | 9000 | une **tour** (2 étages) et un **long immeuble** (2 étages) |
+  | Le quartier neuf | ouest | 9000 | une **tour** (4 étages) et un **long immeuble** (3 étages) |
   | Le port | sud-ouest | 12000 | le quai, la jetée et le **hangar** du port |
 
   On ne peut rien poser sur une parcelle qui n'est pas achetée, ni sur la
@@ -102,6 +127,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   bâtiments ont des formes différentes — l'immeuble large, la tour étroite
   et haute, le long immeuble bas, le hangar du port — et chacun a son
   plan : on retrouve le quai en sortant, l'escalier mène à l'étage.
+* **Dehors la limite serpente, dedans elle est droite** : la ligne qui
+  sépare deux sols est lue un peu à côté, ce qui donne au sable et à
+  l'eau des bords vivants. Cette dérive s'arrête à la porte : à
+  l'intérieur tout est bâti, un balcon s'arrête net à son mur, et une
+  limite qui ondulerait ressemblerait à une erreur.
 * **Un seul monde** : les parcelles achetées n'ont aucune bordure entre
   elles, et le sol est peint **case par case** (`js/ground.js`), chacune
   tirée au sort parmi les variantes de son biome — herbe, sous-bois,

@@ -1,22 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 192" width="96" height="192">
-  <!-- The tall tower of the new quarter: narrow, five floors of windows -->
+  <!-- The tall tower: four floors inside, four rows of windows out, and
+       a balcony on each of the three above the street. -->
   <ellipse cx="48" cy="185" rx="42" ry="6" fill="#000" opacity=".18"/>
   <rect x="14" y="20" width="68" height="162" rx="3" fill="#e4e8ec" stroke="#6f7880" stroke-width="2.5"/>
-  <rect x="14" y="20" width="14" height="162" fill="#cfd6dc"/>
+  <rect x="14" y="20" width="12" height="162" fill="#cfd6dc"/>
   <path d="M10 20h76v-8H10z" fill="#9aa3ab" stroke="#6f7880" stroke-width="2"/>
   <rect x="40" y="2" width="12" height="12" rx="2" fill="#9aa3ab" stroke="#6f7880" stroke-width="1.8"/>
-  <g stroke="#c2cad1" stroke-width="1.8"><path d="M14 52h68M14 84h68M14 116h68M14 148h68"/></g>
+  <g stroke="#c2cad1" stroke-width="1.8"><path d="M14 60h68M14 100h68M14 140h68"/></g>
+
+  <!-- third, second and first floors, each with its balcony -->
   <g fill="#9fd6f0" stroke="#4d6373" stroke-width="2">
-    <rect x="34" y="28" width="18" height="16" rx="2"/><rect x="58" y="28" width="16" height="16" rx="2"/>
-    <rect x="34" y="60" width="18" height="16" rx="2"/><rect x="58" y="60" width="16" height="16" rx="2"/>
-    <rect x="34" y="92" width="18" height="16" rx="2"/><rect x="58" y="92" width="16" height="16" rx="2"/>
-    <rect x="34" y="124" width="18" height="16" rx="2"/><rect x="58" y="124" width="16" height="16" rx="2"/>
-    <rect x="34" y="156" width="18" height="14" rx="2"/>
+    <rect x="32" y="28" width="20" height="18" rx="2"/><rect x="58" y="28" width="18" height="18" rx="2"/>
+    <rect x="32" y="68" width="20" height="18" rx="2"/><rect x="58" y="68" width="18" height="18" rx="2"/>
+    <rect x="32" y="108" width="20" height="18" rx="2"/><rect x="58" y="108" width="18" height="18" rx="2"/>
   </g>
-  <g fill="#b7c3cb" stroke="#6f7880" stroke-width="1.6">
-    <rect x="16" y="44" width="14" height="6" rx="1.5"/><rect x="16" y="76" width="14" height="6" rx="1.5"/>
-    <rect x="16" y="108" width="14" height="6" rx="1.5"/><rect x="16" y="140" width="14" height="6" rx="1.5"/>
+  <g fill="#c7ced3" stroke="#7d868d" stroke-width="1.6">
+    <rect x="28" y="45" width="52" height="8" rx="2"/>
+    <rect x="28" y="85" width="52" height="8" rx="2"/>
+    <rect x="28" y="125" width="52" height="8" rx="2"/>
   </g>
+  <g stroke="#9aa3ab" stroke-width="1.3">
+    <path d="M35 46v6M45 46v6M55 46v6M65 46v6M75 46v6"/>
+    <path d="M35 86v6M45 86v6M55 86v6M65 86v6M75 86v6"/>
+    <path d="M35 126v6M45 126v6M55 126v6M65 126v6M75 126v6"/>
+  </g>
+
+  <!-- the street floor, with the way in -->
+  <rect x="32" y="148" width="20" height="16" rx="2" fill="#9fd6f0" stroke="#4d6373" stroke-width="2"/>
   <rect x="56" y="156" width="22" height="26" rx="2" fill="#3f6f8f" stroke="#2f5266" stroke-width="2"/>
   <path d="M67 156v26" stroke="#2f5266" stroke-width="1.4"/>
   <circle cx="63" cy="170" r="1.8" fill="#e0a41f"/><circle cx="71" cy="170" r="1.8" fill="#e0a41f"/>
