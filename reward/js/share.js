@@ -210,9 +210,13 @@ const Share = (function () {
       return at === -1 ? null : String(href).slice(at + MARK.length);
     },
 
-    // The address to send, built from the one the page was opened at.
+    /* The address to send, built from the one the page was opened at.
+       Whatever this page was told about itself is left behind — which
+       profile is playing above all: the world is what travels, not the
+       telephone it came from, and a visitor must land on their own
+       property when they leave. */
     address(here, text) {
-      const clean = String(here || "").split("#")[0];
+      const clean = String(here || "").split("#")[0].split("?")[0];
       return clean + MARK + text;
     }
   };

@@ -21,7 +21,19 @@
    ===================================================================== */
 const PropertyState = (function () {
 
-  const KEY = "reward-property-v1";
+  /* Whose property this is. The learning app opens the module with
+     ?p=<profile> so that two children on one telephone each keep their
+     own; opened on its own, with no profile named, the plain key
+     stands and everything that already worked goes on working. */
+  const PLAIN = "reward-property-v1";
+  const KEY = (function () {
+    try {
+      const who = new URLSearchParams(location.search).get("p");
+      return who ? PLAIN + ":" + who : PLAIN;
+    } catch (err) {
+      return PLAIN;
+    }
+  })();
   const VERSION = 9;   // the shape of the save
   const START_COINS = 150;
 

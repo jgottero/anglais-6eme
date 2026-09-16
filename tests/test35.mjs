@@ -16,6 +16,11 @@ await page.evaluate(() => localStorage.clear());
 await page.reload();
 await page.waitForTimeout(500);
 
+/* Profiles came along: the app opens by asking who is holding the
+   telephone, so somebody has to be there before the menu exists. */
+await page.evaluate(() => startAs(PROFILES.create('Test', '6eme').id));
+await page.waitForTimeout(400);
+
 // What a day of practice is worth, next to a rank.
 await page.goto(SITE + '/reward/index.html');
 await page.waitForTimeout(600);
@@ -53,6 +58,11 @@ console.log('one more day:', JSON.stringify(await page.evaluate(() => {
 await page.goto(SITE + '/index.html');
 await page.evaluate(() => { localStorage.clear(); });
 await page.reload();
+await page.waitForTimeout(400);
+
+/* Profiles came along: the app opens by asking who is holding the
+   telephone, so somebody has to be there before the menu exists. */
+await page.evaluate(() => startAs(PROFILES.create('Test', '6eme').id));
 await page.waitForTimeout(400);
 await page.evaluate(() => {
   // A fortnight of days, all stamped, and a rank already settled.

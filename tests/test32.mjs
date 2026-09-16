@@ -16,6 +16,11 @@ await page.evaluate(() => localStorage.clear());
 await page.reload();
 await page.waitForTimeout(600);
 
+/* Profiles came along: the app opens by asking who is holding the
+   telephone, so somebody has to be there before the menu exists. */
+await page.evaluate(() => startAs(PROFILES.create('Test', '6eme').id));
+await page.waitForTimeout(400);
+
 // Play a real round of the daily words and end it.
 await page.click('#daily');
 await page.waitForTimeout(400);

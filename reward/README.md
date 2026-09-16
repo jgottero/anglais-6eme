@@ -315,6 +315,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   rien dire veut dire « la couleur dans laquelle il est dessiné » — ce
   que portait déjà tout ce qui était en place. Rien à convertir, rien à
   rembourser.
+* **Une propriété par enfant** : l'application d'apprentissage ouvre le
+  module avec `reward/index.html?p=<profil>`, et la sauvegarde prend ce
+  nom-là (`reward-property-v1:p1`). Ouvert tout seul, sans profil nommé,
+  le module retombe sur la clé simple : rien de ce qui marchait avant ne
+  s'arrête. Voir `PROFILS.md` à la racine.
 * Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. La
   sauvegarde ne contient que les pièces, les parcelles achetées et les
   objets de chaque lieu : **la carte n'est jamais sauvegardée**, elle est

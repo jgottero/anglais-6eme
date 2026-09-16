@@ -120,6 +120,21 @@
   .choice .sub { display: block; color: var(--ink-soft); font-size: 0.85rem; }
   .choice[aria-pressed="true"] { border-color: var(--ink); background: var(--right-bg); }
 
+  /* The school year, beside a name: small, quiet, and enough to tell
+     two children apart at a glance. */
+  .grade {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1.5px solid var(--card-edge);
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+  .choice .grade { float: right; margin-left: 0; }
+
   .bar { display: block; height: 6px; border-radius: 3px; background: var(--card-edge); margin-top: 10px; }
   .bar span { display: block; height: 100%; border-radius: 3px; background: var(--right); }
   .done { display: block; color: var(--ink-soft); font-size: 0.85rem; margin-top: 6px; }
@@ -319,6 +334,7 @@
 <body>
 <script src="words.js"></script>
 <script src="ranks.js"></script>
+<script src="profiles.js"></script>
 
 <main class="sheet">
   <h1 id="heading">My English</h1>
@@ -353,6 +369,7 @@ const ROUND_LENGTH = 15;
 
 // ---- Helpers ----
 const screen = document.getElementById("screen");
+const headingEl = document.getElementById("heading");
 
 function shuffle(list) {
   const copy = list.slice();
@@ -412,7 +429,15 @@ function isAccepted(word, attempt) {
    kept above is only the last purse it reported, so the menu can show it
    without opening it.
    ===================================================================== */
-const STORE_KEY = "anglais-progress-v1";
+/* Whose progress is being read and written. The app opens on the
+   profile screen and nothing is loaded until one is chosen, so this is
+   never null once the exercises are on screen. */
+let PROFILE = null;
+
+const STORE_PLAIN = "anglais-progress-v1";
+function storeKey() {
+  return PROFILES.keyFor(STORE_PLAIN, PROFILE && PROFILE.id);
+}
 const MAX_LEVEL = 5;
 
 /* Demonstration mode: index.html?demo=40 shows what the app looks like at
@@ -450,7 +475,7 @@ function emptyProgress() {
 const Store = {
   async load() {
     try {
-      const raw = localStorage.getItem(STORE_KEY);
+      const raw = localStorage.getItem(storeKey());
       return Store.adopt(raw ? JSON.parse(raw) : null);
     } catch (error) {
       return emptyProgress();
@@ -460,7 +485,7 @@ const Store = {
   async save(data) {
     if (DEMO_RANK) return false;
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      localStorage.setItem(storeKey(), JSON.stringify(data));
       return true;
     } catch (error) {
       return false;
@@ -611,11 +636,24 @@ function openProperty() {
     propertyFrame = document.createElement("iframe");
     propertyFrame.title = "Ma propriété";
     propertyFrame.addEventListener("load", syncProperty);
-    propertyFrame.src = "reward/index.html";
+    /* The property belongs to the profile, so the module is told which
+       one it is opening: it keeps its save under a key of its own. */
+    propertyFrame.src = "reward/index.html" +
+      (PROFILE ? "?p=" + encodeURIComponent(PROFILE.id) : "");
     panel.appendChild(propertyFrame);
   } else {
     syncProperty();
   }
+}
+
+/* Throws the property away without opening it, so the next child to
+   ask for it gets their own rather than the one before's. */
+function dropProperty() {
+  const panel = document.getElementById("property");
+  panel.hidden = true;
+  panel.innerHTML = "";
+  propertyFrame = null;
+  document.body.classList.remove("is-away");
 }
 
 function closeProperty() {
@@ -875,6 +913,124 @@ function lessonTitle(lessonId) {
 }
 
 // ---- Menu ----
+/* =====================================================================
+   THE PROFILE SCREEN — the first thing the app shows.
+
+   A telephone is shared, so the first question is who is holding it.
+   Nothing is read from storage before that is answered: the progress,
+   the property and the daily goal all belong to whoever is named here.
+   ===================================================================== */
+
+function gradeBadge(grade) {
+  return '<span class="grade">' + esc(PROFILES.gradeOf(grade).fr) + '</span>';
+}
+
+function renderProfiles(options) {
+  const asking = (options || {}).asking;
+  const trouble = (options || {}).trouble;
+  const people = PROFILES.all();
+  /* Nobody is holding the telephone at this point: the heading goes
+     back to the name of the app, rather than keeping whoever it was
+     that just put it down. */
+  PROFILE = null;
+  headingEl.textContent = "My English";
+
+  if (asking || !people.length) { renderNewProfile(trouble, people.length); return; }
+
+  screen.innerHTML =
+    '<section class="card">' +
+      '<p class="label">Qui travaille aujourd\'hui ?</p>' +
+      '<div class="stack">' +
+        people.map(one =>
+          '<button class="choice" data-profile="' + esc(one.id) + '">' +
+            esc(one.name) + gradeBadge(one.grade) +
+          '</button>'
+        ).join("") +
+      '</div>' +
+      '<p style="margin:22px 0 0">' +
+        '<button class="text" data-new-profile>Nouveau profil</button>' +
+      '</p>' +
+    '</section>';
+
+  screen.querySelectorAll("[data-profile]").forEach(button => {
+    button.addEventListener("click", () => startAs(button.dataset.profile));
+  });
+  screen.querySelector("[data-new-profile]")
+    .addEventListener("click", () => renderProfiles({ asking: true }));
+}
+
+function renderNewProfile(trouble, howMany) {
+  /* The very first profile on a telephone that has been used before
+     takes over what is already saved, rather than leaving it stranded
+     under a key nobody reads any more. */
+  const inherits = !howMany && PROFILES.legacy();
+
+  screen.innerHTML =
+    '<section class="card">' +
+      '<p class="label">' + (howMany ? "Nouveau profil" : "Bienvenue !") + '</p>' +
+      '<p class="label">Comment t\'appelles-tu ?</p>' +
+      '<p class="spell"><input id="profile-name" type="text" autocomplete="given-name" ' +
+        'maxlength="20" placeholder="Ton prénom" aria-label="Ton prénom"></p>' +
+      '<p class="label">Tu es en...</p>' +
+      '<div class="stack" id="profile-grades">' +
+        PROFILES.GRADES.map((grade, index) =>
+          '<button class="choice" data-grade="' + esc(grade.id) + '"' +
+            (index === PROFILES.GRADES.length - 1 ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' +
+            esc(grade.fr) + '<span class="sub">' + esc(grade.sub) + '</span>' +
+          '</button>'
+        ).join("") +
+      '</div>' +
+      (inherits
+        ? '<p class="label" style="margin-top:22px">La progression déjà enregistrée sur ce ' +
+          'téléphone — les rangs, les mots, la propriété — sera la tienne.</p>'
+        : '') +
+      (trouble ? '<p class="notice">' + esc(trouble) + '</p>' : '') +
+      '<p style="margin:22px 0 0">' +
+        '<button class="text primary" data-make>C\'est parti</button>' +
+        (howMany ? ' <button class="text" data-cancel>Annuler</button>' : '') +
+      '</p>' +
+    '</section>';
+
+  const grades = screen.querySelector("#profile-grades");
+  grades.addEventListener("click", event => {
+    const button = event.target.closest("[data-grade]");
+    if (!button) return;
+    grades.querySelectorAll("[data-grade]").forEach(one => {
+      one.setAttribute("aria-pressed", String(one === button));
+    });
+  });
+
+  const field = screen.querySelector("#profile-name");
+  const make = () => {
+    const chosen = grades.querySelector('[aria-pressed="true"]');
+    const profile = PROFILES.create(field.value, chosen && chosen.dataset.grade);
+    if (!profile) {
+      renderProfiles({ asking: true, trouble: "Il manque le prénom." });
+      screen.querySelector("#profile-name").focus();
+      return;
+    }
+    startAs(profile.id);
+  };
+  screen.querySelector("[data-make]").addEventListener("click", make);
+  field.addEventListener("keydown", event => { if (event.key === "Enter") make(); });
+  const cancel = screen.querySelector("[data-cancel]");
+  if (cancel) cancel.addEventListener("click", () => renderProfiles());
+  field.focus();
+}
+
+/* Takes up a profile and opens its menu. Everything that was on screen
+   belonged to whoever came before, so it is all read again. */
+async function startAs(id) {
+  const profile = PROFILES.choose(id);
+  if (!profile) { renderProfiles(); return; }
+  PROFILE = profile;
+  headingEl.textContent = profile.name;
+  progress = DEMO_RANK ? demoProgress(DEMO_RANK) : await Store.load();
+  // The property belongs to the profile too: the next open reloads it.
+  dropProperty();
+  renderMenu();
+}
+
 function renderMenu() {
   if (listening) recognition.stop();
 
@@ -950,6 +1106,9 @@ function renderMenu() {
     '<section class="card">' +
       '<p class="label">Choisis l\'exercice</p>' +
       '<div class="modes">' + modes + '</div>' +
+      '<p class="label" style="margin-top:6px">' +
+        esc(PROFILE.name) + gradeBadge(PROFILE.grade) +
+        ' <button class="link" data-switch>Changer de profil</button></p>' +
       '<p class="label">Choisis la liste</p>' +
       '<div class="stack">' + lessons +
         '<button class="choice" data-lesson="*">Tous les mots<span class="sub">Les ' +
@@ -964,6 +1123,8 @@ function renderMenu() {
       '</p>' +
     '</section>';
 
+  screen.querySelector("[data-switch]")
+    .addEventListener("click", () => renderProfiles());
   document.getElementById("report").addEventListener("click", renderReport);
   document.getElementById("stamps").addEventListener("click", renderStamps);
   document.getElementById("open-property").addEventListener("click", openProperty);
@@ -1758,8 +1919,14 @@ function demoProgress(rank) {
     return;
   }
   keyLessons();
-  progress = DEMO_RANK ? demoProgress(DEMO_RANK) : await Store.load();
-  renderMenu();
+
+  /* Who is holding the telephone comes before anything else: the
+     progress, the property and the daily goal all belong to a profile,
+     and none of them is read until one is chosen. The one who
+     practised last is offered first, but never taken for granted — a
+     brother picking up his sister's telephone should not find himself
+     answering in her place. */
+  renderProfiles();
 })();
 </script>
 </body>

@@ -28,6 +28,11 @@ await page.goto(SITE + '/index.html');
 await page.evaluate(() => { localStorage.clear(); });
 await page.reload();
 await page.waitForTimeout(500);
+
+/* Profiles came along: the app opens by asking who is holding the
+   telephone, so somebody has to be there before the menu exists. */
+await page.evaluate(() => startAs(PROFILES.create('Test', '6eme').id));
+await page.waitForTimeout(400);
 await page.evaluate(() => { progress.points = RANKS.THRESHOLDS[9] + 5; Store.save(progress); renderMenu(); });
 await page.click('#open-property');
 await page.waitForTimeout(1600);
