@@ -374,6 +374,20 @@ depuis l'application, le même appui ne fait rien d'autre que rappeler
 que les pièces se gagnent dans les exercices — un raccourci d'essai n'a
 pas à devenir une machine à pièces.
 
+## Vérifier que rien n'est cassé
+
+Les suites Playwright du dépôt ouvrent vraiment le module dans un
+navigateur et regardent ce qu'il fait :
+
+```sh
+npm install && npx playwright install chromium   # une seule fois
+npm test                                          # les trente-six
+npm test -- 36                                    # une seule
+```
+
+Voir `tests/README.md`. Une nouveauté du module mérite sa suite, à
+copier sur la dernière.
+
 ## Organisation
 
 ```

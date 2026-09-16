@@ -566,42 +566,63 @@ button { font: inherit; cursor: pointer; }
 /* ---- The pots of paint ----
    The same row of colours wherever a colour is chosen: under a card in
    the shop, beside the object in hand, on the bar of a selected object.
-   The one being worn is ringed, so it reads at a glance which it is. */
+   The one being worn is ringed, so it reads at a glance which it is.
+
+   They are meant for a child's finger, so they are big: 30 px across,
+   and the space between two of them counts as target too, which puts a
+   good 38 px under every colour. On a shop card they come down to 26
+   px, cards being narrow — two of them share the width of a telephone.
+
+   A row too long for its card folds onto a second line, and that is
+   the right way round: a row that fits is worth less than a row one
+   can hit. Nothing here ever shrinks a pot to keep a line whole. */
 
 .swatches {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .swatch {
-  width: 17px;
-  height: 17px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border-radius: 999px;
-  border: 2px solid rgba(0, 0, 0, 0.22);
-  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.16);
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.16);
   cursor: pointer;
+  /* No waiting to see whether a tap was the first of two. */
+  touch-action: manipulation;
 }
 .swatch.is-on {
   border-color: var(--ink);
-  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink);
+  box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--ink),
+              inset 0 -3px 5px rgba(0, 0, 0, 0.16);
 }
-.swatch:active { transform: scale(0.88); }
+.swatch:active { transform: scale(0.9); }
 
 /* On a card, the row is part of a button: it must not be squeezed
-   between the name and the price. */
-.card .swatches { margin: 2px 0 4px; }
+   between the name and the price, and the ring of the chosen one needs
+   room around it. */
+.card .swatches { margin: 6px 0 8px; gap: 6px; }
+.card .swatch { width: 26px; height: 26px; }
 
 /* On the bar of a selected object the row takes a line to itself,
-   rather than squeezing in between the buttons. */
-.action-bar .swatches { flex-basis: 100%; }
+   rather than squeezing in between the buttons. The bar is only as
+   wide as what it holds, so the row has to ask for its own width —
+   without it the bar would stay narrow and fold the last pot under
+   the others. */
+.action-bar .swatches {
+  flex-basis: 100%;
+  min-width: max-content;
+  margin: 2px 0;
+}
 
 /* The hand card lets nothing through by default; these pots do. */
 .hand-swatches {
   justify-content: flex-start;
-  margin-top: 5px;
+  margin-top: 7px;
   pointer-events: auto;
 }
 
