@@ -34,7 +34,7 @@ async function enterVia(selector, label) {
   await page.click('#action-bar .enter-btn');
   await page.waitForTimeout(400);
   console.log('   entered:', await page.evaluate(() => PropertyState.scene().name));
-  await page.screenshot({ path: 'v10-' + label + '.png' });
+  await page.screenshot({ path: SHOTS + 'v10-' + label + '.png' });
   await page.evaluate(() => PropertyState.enter('outside'));
   await page.waitForTimeout(300);
   await page.evaluate(() => World.fitCamera());

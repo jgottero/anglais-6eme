@@ -1,3 +1,6 @@
 node_modules/
 package-lock.json
+# Screenshots a test run leaves behind: tests/shots/ is where they are
+# meant to go, the loose ones are a suite that forgot to say so.
 tests/shots/
+tests/*.png
