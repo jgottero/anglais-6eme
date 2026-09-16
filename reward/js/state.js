@@ -57,6 +57,10 @@ const PropertyState = (function () {
   };
 
   let carried = 0;    // coins handed back while reading an older save
+  /* While a world someone else sent is on show, the child's own
+     property is kept here untouched and nothing at all is written to
+     storage. Everything that would change a property asks this first. */
+  let away = null;
 
   let data = load();
   let built = null;   // the scenes, rebuilt from the plots owned
@@ -192,11 +196,49 @@ const PropertyState = (function () {
   }
 
   function save() {
+    // A visit writes nothing, ever: this is the one gate that guarantees
+    // a link from someone else cannot cost the child their property.
+    if (away) return;
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
     } catch (err) {
       /* A full or blocked storage must not break the game. */
     }
+  }
+
+  /* ---- Visiting a world someone sent ----
+     The property on show is someone else's: it can be walked through
+     and looked at, and nothing more. Every way of changing a property
+     refuses while a visit is on, and the child's own world waits
+     exactly as they left it. */
+
+  function visiting() { return !!away; }
+
+  function visit(world) {
+    if (!world || !Array.isArray(world.owned) || !world.owned.length) return false;
+    if (!away) away = { data, built };
+    data = Object.assign(blank(), {
+      coins: 0,
+      owned: world.owned.filter(id => SCENES.plot(id)),
+      placed: world.placed || {},
+      tiers: world.level ? [world.level] : []
+    });
+    if (!data.owned.length) { goHome(); return false; }
+    data.current = SCENES.first;
+    rebuild();
+    mend();                 // what no longer fits is dropped, not paid for
+    listeners.forEach(fn => fn(data));
+    return true;
+  }
+
+  function goHome() {
+    if (!away) return false;
+    data = away.data;
+    built = away.built;
+    away = null;
+    rebuild();
+    listeners.forEach(fn => fn(data));
+    return true;
   }
 
   function changed() {
@@ -278,6 +320,7 @@ const PropertyState = (function () {
   /* ---- Coins ---- */
 
   function addCoins(amount) {
+    if (away) return data.coins;
     data.coins = Math.max(0, data.coins + amount);
     changed();
     return data.coins;
@@ -288,6 +331,7 @@ const PropertyState = (function () {
      The answer says which level the child was on and which one they are
      on now, because a level is what opens the shop's next shelf. */
   function grantTier(tier, amount) {
+    if (away) return null;
     if (data.tiers.indexOf(tier) !== -1) return null;
     const was = level();
     data.tiers.push(tier);
@@ -307,6 +351,7 @@ const PropertyState = (function () {
      for, and the difference is what is owed. A stamp is worth less than
      a rank — it is the habit that is being rewarded, not the climb. */
   function grantStamps(count, amountFor) {
+    if (away) return { paid: 0, amount: 0, stamps: data.stamps, coins: data.coins };
     const top = Math.max(0, Math.round(Number(count) || 0));
     const owed = top - data.stamps;
     if (owed <= 0) return { paid: 0, amount: 0, stamps: data.stamps, coins: data.coins };
@@ -323,6 +368,7 @@ const PropertyState = (function () {
      settled, the ones already paid are passed over, and the property is
      redrawn once at the end rather than a hundred times. */
   function grantUpTo(top, amountFor) {
+    if (away) return { paid: 0, amount: 0, was: level(), coins: data.coins, level: level() };
     const was = level();
     let paid = 0;
     let amount = 0;
@@ -345,6 +391,7 @@ const PropertyState = (function () {
      puts it down, so the payment and the placement cannot come apart.
      Nothing is paid when the purse is short or the spot is taken. */
   function buyAt(id, x, y, turn, mirror, colour) {
+    if (away) return null;
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
     if (!CATALOG.unlocked(item, level())) return null;   // not yet earned
@@ -363,6 +410,7 @@ const PropertyState = (function () {
   }
 
   function move(uid, x, y) {
+    if (away) return false;
     const entry = scene().placed.find(one => one.uid === uid);
     if (!entry) return false;
     const item = CATALOG.item(entry.id);
@@ -377,6 +425,7 @@ const PropertyState = (function () {
      change, so this can never be refused — every object can be flipped,
      even those whose drawing looks the same either way. */
   function mirror(uid) {
+    if (away) return false;
     const entry = scene().placed.find(one => one.uid === uid);
     if (!entry || !CATALOG.item(entry.id)) return false;
     if (entry.m) delete entry.m;
@@ -391,6 +440,7 @@ const PropertyState = (function () {
      leaves no mark on the save at all. Nothing is charged: the colour
      is part of choosing the object, not a second object. */
   function paint(uid, colour) {
+    if (away) return false;
     const entry = scene().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item || !CATALOG.paintsOf(item)) return false;
@@ -404,6 +454,7 @@ const PropertyState = (function () {
   /* A quarter turn clockwise, on the spot. A bed that would no longer
      fit sideways stays as it was. */
   function turn(uid) {
+    if (away) return false;
     const entry = scene().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item || !item.turns) return false;
@@ -416,6 +467,7 @@ const PropertyState = (function () {
 
   // Sold back at the price it was bought for.
   function sell(uid) {
+    if (away) return null;
     const list = scene().placed;
     const index = list.findIndex(entry => entry.uid === uid);
     if (index === -1) return null;
@@ -467,6 +519,7 @@ const PropertyState = (function () {
   /* Any plot of the map can be bought, in any order, as soon as the
      purse allows: the whole map is on show from the first day. */
   function buyPlot(id) {
+    if (away) return null;
     const plot = SCENES.plot(id);
     if (!plot || data.owned.indexOf(id) !== -1) return null;
     if (data.coins < plot.price) return null;
@@ -478,6 +531,7 @@ const PropertyState = (function () {
   }
 
   function reset() {
+    away = null;
     data = blank();
     rebuild();
     mended = 0;
@@ -505,6 +559,7 @@ const PropertyState = (function () {
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
     addCoins, grantTier, grantUpTo, grantStamps, level, stamps, mendedCoins,
-    buyAt, move, turn, mirror, paint, sell, reset
+    buyAt, move, turn, mirror, paint, sell, reset,
+    visit, goHome, visiting
   };
 })();

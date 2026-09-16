@@ -563,6 +563,38 @@ button { font: inherit; cursor: pointer; }
 .card .price .coin { width: 19px; height: 19px; }
 .card.is-locked .price { color: var(--ink-soft); }
 
+/* ---- Visiting a world someone sent ----
+   The banner sits where the toast does, above everything, and says the
+   one thing that matters: this is not your property, and here is the
+   way back. The purse and the shop go away with it — there is nothing
+   to spend and nothing to buy in a world that is not yours. */
+
+.visiting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px 7px 14px;
+  background: var(--wood-dark);
+  color: #fdf6e7;
+  border-radius: 999px;
+  box-shadow: var(--lift);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+.visiting-btn {
+  border: 2px solid #fdf6e7;
+  background: transparent;
+  color: #fdf6e7;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+body.is-visiting #purse,
+body.is-visiting [data-panel],
+body.is-visiting #share { display: none; }
+
 /* ---- The pots of paint ----
    The same row of colours wherever a colour is chosen: under a card in
    the shop, beside the object in hand, on the bar of a selected object.

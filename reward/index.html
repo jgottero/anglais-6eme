@@ -29,6 +29,9 @@
     <button class="round-btn" data-panel="shop" title="Magasin" aria-label="Magasin">
       <img class="btn-icon" src="assets/cart.svg" alt="">
     </button>
+    <button id="share" class="round-btn" title="Partager mon monde" aria-label="Partager mon monde">
+      <img class="btn-icon" src="assets/share.svg" alt="">
+    </button>
   </div>
 
   <div class="hud-top-right">
@@ -58,6 +61,10 @@
   </div>
 
   <div class="top-stack">
+    <div id="visiting" class="visiting" hidden>
+      <span id="visiting-what"></span>
+      <button id="go-home" class="visiting-btn">Revenir chez moi</button>
+    </div>
     <div id="scene-name" class="scene-pill"></div>
     <div id="toast" class="toast" hidden></div>
   </div>
@@ -83,6 +90,7 @@
 </section>
 
 <script src="js/catalog.js"></script>
+<script src="js/share.js"></script>
 <script src="js/scenes.js"></script>
 <script src="js/ground.js"></script>
 <script src="js/state.js"></script>

@@ -374,6 +374,60 @@ depuis l'application, le même appui ne fait rien d'autre que rappeler
 que les pièces se gagnent dans les exercices — un raccourci d'essai n'a
 pas à devenir une machine à pièces.
 
+* **Envoyer son monde** : le bouton de partage (en haut à gauche)
+  écrit toute la propriété **dans l'adresse de la page**, après le
+  `#` — la partie qu'aucun serveur ne voit jamais. Rien n'est envoyé
+  nulle part, rien n'est stocké, il n'y a pas de compte : le lien se
+  colle dans un SMS, un message ou un mail, et il marche aussi
+  longtemps que la page qu'il désigne. Le téléphone propose son menu
+  de partage habituel quand il en a un, sinon le lien est copié.
+
+  Ce qui voyage : les parcelles achetées et chaque objet posé, avec sa
+  case, son quart de tour, son miroir et sa couleur. Ce qui ne voyage
+  pas : la bourse, les rangs, les tampons. On montre un monde, on ne le
+  donne pas — le niveau suit seulement pour que le visiteur sache où en
+  est son propriétaire.
+
+  **Le lien porte son propre dictionnaire** : les noms qu'il utilise
+  (parcelles, lieux, objets) sont écrits une fois en tête, et le corps
+  y renvoie par position — quatre octets par objet, le même objet nommé
+  une seule fois quel que soit le nombre de fois qu'il est posé. Un
+  lien garde donc son sens même si le catalogue est réorganisé ensuite,
+  et n'exige que ce que la sauvegarde exige déjà : **ne jamais renommer
+  un `id`**. Le tout est compressé (`CompressionStream`, présent dans le
+  navigateur) puis écrit en base64 sûr pour une adresse.
+
+  | objets posés | longueur du lien |
+  | --- | --- |
+  | 60 | ~470 caractères |
+  | 300 | ~1 300 caractères |
+  | 800 | ~3 400 caractères |
+  | ~1 700 (carte saturée) | ~5 500 caractères |
+
+  Les navigateurs et les messageries n'ont aucun mal avec ces
+  longueurs. Le SMS est le point serré : 160 caractères par segment,
+  donc un lien de 1 300 caractères en occupe une poignée — ça passe,
+  mais une propriété gigantesque fera un SMS encombrant.
+* **Visiter, sans rien pouvoir abîmer** : ouvrir un lien reçu montre le
+  monde de l'autre **en lecture seule**. On s'y promène, on entre dans
+  les maisons, on touche un objet pour entendre son nom anglais — et
+  c'est tout. Le magasin, la bourse et le bouton de partage
+  disparaissent, la barre d'un objet ne propose plus ni vendre, ni
+  tourner, ni repeindre, et une bannière rappelle chez qui l'on est
+  avec un bouton **Revenir chez moi**.
+
+  **La propriété du visiteur n'est jamais touchée** : pendant une
+  visite, l'écriture dans `localStorage` est purement et simplement
+  refusée (`save()` sort immédiatement), et chaque fonction qui
+  change quelque chose — acheter, vendre, déplacer, tourner, retourner,
+  repeindre, acheter une parcelle, ajouter des pièces, payer un rang —
+  refuse aussi. C'est un seul verrou, à l'endroit qui détient les
+  règles, plutôt qu'une précaution répétée dans les vues.
+
+  Un lien illisible (abîmé par une messagerie, écrit par une version
+  plus récente) le dit et ne fait rien d'autre. Un objet que cette
+  version ne connaît pas est simplement omis.
+
 ## Vérifier que rien n'est cassé
 
 Les suites Playwright du dépôt ouvrent vraiment le module dans un
@@ -395,6 +449,7 @@ reward/
   index.html          structure de la page, les deux onglets
   css/style.css       toute la mise en forme
   js/catalog.js       la liste des objets (données seules)
+  js/share.js         un monde écrit dans un lien, et relu
   js/scenes.js        les parcelles et les lieux : plans, murs, portes, escaliers
   js/ground.js        la peinture du sol, case par case, et la limite des biomes
   js/state.js         pièces, objets posés par lieu, sauvegarde, règles

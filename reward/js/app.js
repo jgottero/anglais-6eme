@@ -37,15 +37,18 @@
   }
 
   let coinsEl, shopCoinsEl, purseEl, shopEl, handEl, barEl, toastEl;
+  let visitingEl, shareEl;
   let sceneEl, exitEl, backEl;
   let shopOpen = false;
   let shownCoins = null;
 
-  function ready() {
+  async function ready() {
     coinsEl = document.getElementById("coins");
     shopCoinsEl = document.getElementById("shop-coins");
     purseEl = document.getElementById("purse");
     shopEl = document.getElementById("panel-shop");
+    visitingEl = document.getElementById("visiting");
+    shareEl = document.getElementById("share");
     handEl = document.getElementById("hand");
     barEl = document.getElementById("action-bar");
     toastEl = document.getElementById("toast");
@@ -86,6 +89,14 @@
     tellParent();
     sceneEl.textContent = PropertyState.scene().name;
     showWayOut(PropertyState.scene());
+
+    /* An address carrying a world wins over everything below: the child
+       came here to look at it, not to be told about their own — and if
+       the link is unreadable, that is what needs saying, not the usual
+       word of welcome. */
+    if (await openSharedWorld()) return;
+    if (Share.inAddress(location.href)) return;
+
     /* What the save could not keep came back as coins; saying so is
        better than letting the child hunt for a missing bench. */
     const paid = PropertyState.mendedCoins();
@@ -113,6 +124,10 @@
        opened on its own, to try it out. Inside the learning app the
        levels are earned in the exercises and nowhere else. */
     purseEl.addEventListener("click", () => {
+      if (PropertyState.visiting()) {
+        toast("Tu regardes le monde de quelqu'un d'autre.");
+        return;
+      }
       if (window.parent !== window) {
         toast("Les pièces se gagnent dans les exercices d'anglais.");
         return;
@@ -132,6 +147,28 @@
       }
       // Opened on its own, there is nowhere to go back to.
       toast("Ici, ce bouton ramène aux exercices d'anglais.");
+    });
+
+    shareEl.addEventListener("click", () => shareWorld());
+
+    /* Following a link to this same page only changes the part after
+       the "#": the page is never reloaded and nothing would happen. So
+       the address is watched as well as read on the way in. */
+    window.addEventListener("hashchange", () => {
+      if (Share.inAddress(location.href)) openSharedWorld();
+    });
+
+    document.getElementById("go-home").addEventListener("click", () => {
+      PropertyState.goHome();
+      // The address goes back to being a plain one: reloading the page
+      // must not drop the child into the visit all over again.
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", location.pathname + location.search);
+      }
+      World.clearSelection();
+      World.fitCamera();
+      showVisiting();
+      toast("Te voilà revenu chez toi.");
     });
 
     document.getElementById("cancel-placing")
@@ -154,6 +191,11 @@
   }
 
   function openShop(open) {
+    // There is nothing to buy in a world that is not yours.
+    if (open && PropertyState.visiting()) {
+      toast("Tu regardes le monde de quelqu'un d'autre.");
+      return;
+    }
     shopOpen = open;
     shopEl.hidden = !open;
     document.querySelectorAll("[data-panel]").forEach(button => {
@@ -326,6 +368,12 @@
     const entry = PropertyState.scene().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) return null;
+    // Someone else's world is read: the name and the voice, nothing
+    // that would move, paint or sell what is not yours.
+    if (PropertyState.visiting()) {
+      return nameCard(CATALOG.cardUrl(item.id, entry.c), item.en, item.fr) +
+        sayButton(item.en);
+    }
     const colours = swatches(item, entry.c);
     return nameCard(CATALOG.cardUrl(item.id, entry.c), item.en, item.fr) +
       '<p class="hint">Glisse pour déplacer</p>' +
@@ -352,6 +400,9 @@
   function plotBar(id) {
     const plot = SCENES.plot(id);
     if (!plot) return null;
+    if (PropertyState.visiting()) {
+      return nameCard("assets/coin.svg", plot.name, "une parcelle qu'il n'a pas achetée");
+    }
     const missing = plot.price - PropertyState.get().coins;
     return nameCard("assets/coin.svg", plot.name, "une parcelle à acheter") +
       (missing > 0
@@ -399,6 +450,77 @@
     const refund = PropertyState.sell(uid);
     World.clearSelection();
     if (refund !== null) flyCoins(refund, spot);
+  }
+
+  /* ---- Sending a world, and looking at someone else's ----
+
+     The whole property goes into the part of the address after the
+     "#", which never leaves the telephone until the child sends it: no
+     account, no server, nothing kept anywhere. Sending it is whatever
+     the telephone already knows how to do — the sharing sheet where
+     there is one, the clipboard otherwise. */
+
+  async function shareWorld() {
+    if (PropertyState.visiting()) {
+      toast("Tu regardes le monde de quelqu'un d'autre.");
+      return;
+    }
+    let link;
+    try {
+      const text = await Share.write(PropertyState.get(), PropertyState.level());
+      link = Share.address(location.href, text);
+    } catch (err) {
+      toast("Ton monde n'a pas pu être préparé.");
+      return;
+    }
+
+    const words = "Regarde ma propriété !";
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Ma propriété", text: words, url: link });
+        return;
+      } catch (err) {
+        // Sharing turned down, or not allowed here: fall back to copying.
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      toast("Lien copié ! Colle-le dans un message.");
+    } catch (err) {
+      // No clipboard either: show it, so it can be copied by hand.
+      window.prompt("Copie ce lien pour envoyer ton monde :", link);
+    }
+  }
+
+  /* A world in the address is shown instead of the child's own, and
+     only shown: nothing on this page can change it, and nothing of it
+     is ever written down. */
+  async function openSharedWorld() {
+    const text = Share.inAddress(location.href);
+    if (!text) return false;
+    const world = await Share.read(text);
+    if (!world || !PropertyState.visit(world)) {
+      toast("Ce lien ne contient pas de monde lisible.");
+      return false;
+    }
+    World.clearSelection();
+    World.fitCamera();
+    showVisiting();
+    toast("Tu visites le monde de quelqu'un d'autre.");
+    return true;
+  }
+
+  /* The overlay while a visit is on: the banner says whose world it is
+     and how to leave, and everything that spends or earns goes away. */
+  function showVisiting() {
+    const away = PropertyState.visiting();
+    visitingEl.hidden = !away;
+    document.body.classList.toggle("is-visiting", away);
+    if (away) {
+      const level = PropertyState.level();
+      document.getElementById("visiting-what").textContent =
+        level ? "Un monde de niveau " + level : "Le monde d'un ami";
+    }
   }
 
   /* ---- Saying the name out loud ----

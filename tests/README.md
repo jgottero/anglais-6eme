@@ -48,3 +48,15 @@ suivi par git.
 Copier la dernière, changer ce qu'elle regarde. Les trois constantes en
 tête (`BROWSER`, `SITE`, `SHOTS`) sont ce qui permet à la suite de
 tourner aussi bien ici que sur une autre machine : les garder.
+
+## Le site publié
+
+`.github/workflows/pages.yml` publie le dépôt tel quel sur GitHub Pages
+à chaque poussée sur `main` — c'est ce qui donne une adresse aux mondes
+partagés. Il n'y a rien à construire : l'application est faite de
+fichiers que le navigateur ouvre directement.
+
+Pour que cela démarre, il faut activer Pages **une fois** dans les
+réglages du dépôt : *Settings → Pages → Source : GitHub Actions*. Le
+site apparaît alors à `https://jgottero.github.io/anglais-6eme/`, et
+c'est cette adresse-là que les liens de partage porteront.
