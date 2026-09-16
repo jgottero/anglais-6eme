@@ -60,8 +60,8 @@
     });
 
     Shop.init({
-      onPick: item => {
-        World.startPlacing(item.id);
+      onPick: (item, colour) => {
+        World.startPlacing(item.id, colour);
         openShop(false);
       },
       onRefused: toast
@@ -136,6 +136,11 @@
 
     document.getElementById("mirror-held")
       .addEventListener("click", () => World.mirrorHeld());
+
+    document.getElementById("hand-colours").addEventListener("click", event => {
+      const dab = event.target.closest("[data-colour]");
+      if (dab) World.paintHeld(dab.dataset.colour);
+    });
 
     exitEl.addEventListener("click", () => leaveScene());
 
@@ -236,7 +241,7 @@
     handEl.hidden = !item;
     if (!item) return;
     const art = document.getElementById("hand-art");
-    art.src = CATALOG.cardUrl(item.id);
+    art.src = CATALOG.cardUrl(item.id, held.c);
     art.alt = item.fr;
     // The drawing in the corner is posed like the object it stands for.
     const poses = [];
@@ -248,6 +253,25 @@
     document.getElementById("hand-price").textContent = item.price;
     document.getElementById("turn-held").hidden = !item.turns;
     document.getElementById("mirror-held").hidden = false;
+    // The colour can still be changed with the object in hand.
+    document.getElementById("hand-colours").innerHTML = swatches(item, held.c);
+  }
+
+  /* The colours an object comes in, as a row of pots. The same row is
+     offered in hand and on the bar of a selected object, so changing
+     one's mind before and after putting something down is the same
+     gesture. */
+  function swatches(item, colour) {
+    const colours = CATALOG.paintsOf(item);
+    if (!colours) return "";
+    const worn = CATALOG.paintOf(item, colour);
+    return colours.map(one =>
+      '<button class="swatch' + (one === worn ? " is-on" : "") + '"' +
+      ' data-action="paint" data-colour="' + one + '"' +
+      ' title="' + CATALOG.colourName(one) + '"' +
+      ' aria-label="' + CATALOG.colourName(one) + '"' +
+      ' style="background:' + CATALOG.swatch(one) + '"></button>'
+    ).join("");
   }
 
   function onPlaced(item, spot) {
@@ -296,9 +320,11 @@
     const entry = PropertyState.scene().placed.find(one => one.uid === uid);
     const item = entry && CATALOG.item(entry.id);
     if (!item) return null;
-    return nameCard(CATALOG.cardUrl(item.id), item.en, item.fr) +
+    const colours = swatches(item, entry.c);
+    return nameCard(CATALOG.cardUrl(item.id, entry.c), item.en, item.fr) +
       '<p class="hint">Glisse pour déplacer</p>' +
       sayButton(item.en) +
+      (colours ? '<span class="swatches">' + colours + '</span>' : "") +
       (item.turns ? '<button class="turn-btn" data-action="turn" title="Tourner">↻ Tourner</button>' : "") +
       '<button class="turn-btn" data-action="mirror" title="Miroir">⇄ Miroir</button>' +
       '<button class="sell-btn" data-action="sell" data-uid="' + uid + '">Vendre +' + item.price + '</button>';
@@ -340,6 +366,10 @@
     }
     if (button.dataset.action === "mirror") {
       World.mirrorSelected();
+      return;
+    }
+    if (button.dataset.action === "paint") {
+      World.paintSelected(button.dataset.colour);
       return;
     }
     if (button.dataset.action === "say") {

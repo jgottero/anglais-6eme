@@ -13,6 +13,12 @@
    to learn — and keeps the French one underneath to say which object it
    is.
 
+   What comes in more than one colour shows its colours under the
+   drawing. Touching one is not buying: it repaints the card there and
+   then, and that is the colour the object leaves the shop in. The
+   choice is remembered for the rest of the visit, so a row of blue
+   chairs takes one tap each.
+
    What is on the shelves depends on the level reached in the lessons:
    everything earned so far, and then, greyed out at the end of each
    family, the batch the next levels will bring. Seeing what is coming
@@ -29,6 +35,7 @@ const Shop = (function () {
   let category = OPENS_ON.outdoor;
   let shownScene = null;
   let hooks = {};
+  const chosen = {};   // the colour picked for an object, by object id
 
   function init(options) {
     hooks = options || {};
@@ -49,6 +56,13 @@ const Shop = (function () {
       if (!card) return;
       const item = CATALOG.item(card.dataset.pick);
       if (!item) return;
+      // A colour under the drawing repaints the card; it never buys.
+      const dab = event.target.closest("[data-colour]");
+      if (dab) {
+        chosen[item.id] = dab.dataset.colour;
+        repaint(card, item);
+        return;
+      }
       if (!CATALOG.unlocked(item, PropertyState.level())) {
         if (hooks.onRefused) {
           hooks.onRefused("« " + item.fr + " » arrive au niveau " + item.level + ".");
@@ -59,10 +73,38 @@ const Shop = (function () {
         if (hooks.onRefused) hooks.onRefused("Il te manque des pièces pour « " + item.fr + " ».");
         return;
       }
-      if (hooks.onPick) hooks.onPick(item);
+      if (hooks.onPick) hooks.onPick(item, colourOf(item));
     });
 
     render();
+  }
+
+  /* The colour an object is on show in: the one last touched for it,
+     or the one it is drawn in. */
+  function colourOf(item) {
+    return CATALOG.paintOf(item, chosen[item.id]);
+  }
+
+  /* A colour picked repaints its card where it stands, rather than
+     redrawing the whole shelf — the list keeps its place. */
+  function repaint(card, item) {
+    const colour = colourOf(item);
+    const art = card.querySelector(".card-art img");
+    if (art) art.src = CATALOG.cardUrl(item.id, colour);
+    card.querySelectorAll("[data-colour]").forEach(dab => {
+      dab.classList.toggle("is-on", dab.dataset.colour === colour);
+    });
+  }
+
+  /* The colours an object comes in, as a row of pots under it. */
+  function swatches(item, colour) {
+    const colours = CATALOG.paintsOf(item);
+    if (!colours) return "";
+    return '<span class="swatches">' + colours.map(one =>
+      '<span class="swatch' + (one === colour ? " is-on" : "") + '"' +
+      ' data-colour="' + one + '" title="' + CATALOG.colourName(one) + '"' +
+      ' style="background:' + CATALOG.swatch(one) + '"></span>'
+    ).join("") + '</span>';
   }
 
   function ownedCount(id) {
@@ -82,17 +124,20 @@ const Shop = (function () {
     const coming = !CATALOG.unlocked(item, level);
     const owned = coming ? 0 : ownedCount(item.id);
     const affordable = coins >= item.price;
+    const colour = colourOf(item);
     return '<button class="card' +
       (coming ? " is-coming" : affordable ? "" : " is-locked") +
       '" data-pick="' + item.id + '">' +
       '<span class="card-art">' +
-        '<img src="' + CATALOG.cardUrl(item.id) + '" alt="' + item.fr + '" draggable="false">' +
+        '<img src="' + CATALOG.cardUrl(item.id, colour) + '" alt="' + item.fr + '" draggable="false">' +
         (owned ? '<span class="owned" title="Déjà posé ici">×' + owned + '</span>' : '') +
         (coming ? '<span class="coming">niv. ' + item.level + '</span>' : '') +
       '</span>' +
       '<span class="name">' + item.en + '</span>' +
       '<span class="sub">' + item.fr + '</span>' +
       '<span class="size">' + (CATALOG.layerOf(item) === "ground" ? "terrain" : "") + '</span>' +
+      // Nothing to choose from on something one cannot buy yet.
+      (coming ? "" : swatches(item, colour)) +
       '<span class="price">' +
         '<img class="coin" src="assets/coin.svg" alt="pièces"> ' + item.price +
       '</span>' +

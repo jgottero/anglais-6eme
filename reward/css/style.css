@@ -563,6 +563,48 @@ button { font: inherit; cursor: pointer; }
 .card .price .coin { width: 19px; height: 19px; }
 .card.is-locked .price { color: var(--ink-soft); }
 
+/* ---- The pots of paint ----
+   The same row of colours wherever a colour is chosen: under a card in
+   the shop, beside the object in hand, on the bar of a selected object.
+   The one being worn is ringed, so it reads at a glance which it is. */
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+
+.swatch {
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+}
+.swatch.is-on {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink);
+}
+.swatch:active { transform: scale(0.88); }
+
+/* On a card, the row is part of a button: it must not be squeezed
+   between the name and the price. */
+.card .swatches { margin: 2px 0 4px; }
+
+/* On the bar of a selected object the row takes a line to itself,
+   rather than squeezing in between the buttons. */
+.action-bar .swatches { flex-basis: 100%; }
+
+/* The hand card lets nothing through by default; these pots do. */
+.hand-swatches {
+  justify-content: flex-start;
+  margin-top: 5px;
+  pointer-events: auto;
+}
+
 /* ---- Coins flying off an object ---- */
 
 .coin-fly {

@@ -238,7 +238,7 @@ const World = (function () {
         (isSelected("object", entry.uid) ? " is-selected" : "");
       node.dataset.uid = entry.uid;
       node.style.cssText = box(entry.x, entry.y, size.w, size.h);
-      node.innerHTML = art(item, entry.r, entry.m);
+      node.innerHTML = art(item, entry.r, entry.m, entry.c);
       linkCells(marks, item, entry, size).forEach(cell => links.appendChild(cell));
       if (rank(entry)) standing.push(node);
       else world.appendChild(node);
@@ -379,16 +379,16 @@ const World = (function () {
      flipped over is the same hen looking the other way. The flip comes
      first, so it reads as the object itself being back to front however
      it is turned. */
-  function art(item, turn, mirror) {
+  function art(item, turn, mirror, colour) {
     const quarter = (turn || 0) % 4;
     if (!quarter && !mirror) {
-      return '<img src="' + CATALOG.assetUrl(item.id) +
+      return '<img src="' + CATALOG.assetUrl(item.id, colour) +
         '" alt="' + item.fr + '" draggable="false">';
     }
     const poses = ["translate(-50%,-50%)"];
     if (quarter) poses.push("rotate(" + quarter * 90 + "deg)");
     if (mirror) poses.push("scaleX(-1)");
-    return '<img class="is-turned" src="' + CATALOG.assetUrl(item.id) +
+    return '<img class="is-turned" src="' + CATALOG.assetUrl(item.id, colour) +
       '" alt="' + item.fr + '" draggable="false"' +
       ' style="width:' + item.w * TILE + 'px;height:' + item.h * TILE + 'px;' +
       'transform:' + poses.join(" ") + '">';
@@ -404,7 +404,7 @@ const World = (function () {
        every side, not only the two a drawn object carries. */
     ghost.innerHTML = withArt
       ? (join ? joinArt(joinMarks(PropertyState.scene()), join, x, y, true) : "") +
-        art(item, pose.r, pose.m)
+        art(item, pose.r, pose.m, pose.c)
       : "";
   }
 
@@ -640,9 +640,12 @@ const World = (function () {
      of fields can be laid one tap after another, and is paid for each
      time it lands. */
 
-  function startPlacing(id) {
-    if (!CATALOG.item(id)) return;
-    placing = { id, r: 0, m: 0 };
+  /* Taken in hand in a colour: the shop says which, and an object that
+     comes in one colour only says nothing. */
+  function startPlacing(id, colour) {
+    const item = CATALOG.item(id);
+    if (!item) return;
+    placing = { id, r: 0, m: 0, c: CATALOG.paintOf(item, colour) };
     clearSelection();
     if (hooks.onPlacingChange) hooks.onPlacingChange(placing);
   }
@@ -680,6 +683,22 @@ const World = (function () {
     return PropertyState.mirror(selected.uid);
   }
 
+  // The colour of what is in hand, changed before it is put down.
+  function paintHeld(colour) {
+    const item = heldItem();
+    if (!item || !CATALOG.paintsOf(item)) return false;
+    placing.c = CATALOG.paintOf(item, colour);
+    hideGhost();
+    if (hooks.onPlacingChange) hooks.onPlacingChange(placing);
+    return true;
+  }
+
+  // The colour of what is selected, changed where it stands.
+  function paintSelected(colour) {
+    if (!selected || selected.kind !== "object") return false;
+    return PropertyState.paint(selected.uid, colour);
+  }
+
   function cancelPlacing() {
     if (!placing) return;
     placing = null;
@@ -706,7 +725,7 @@ const World = (function () {
     if (!item) { cancelPlacing(); return; }
     const target = centredTarget(event.clientX, event.clientY, item, placing.r);
     hideGhost();
-    if (PropertyState.buyAt(item.id, target.x, target.y, placing.r, placing.m)) {
+    if (PropertyState.buyAt(item.id, target.x, target.y, placing.r, placing.m, placing.c)) {
       const size = CATALOG.footprint(item, placing.r);
       if (hooks.onPlaced) hooks.onPlaced(item, screenOf(target.x, target.y, size.w, size.h));
     } else if (PropertyState.get().coins < item.price) {
@@ -761,7 +780,7 @@ const World = (function () {
   return {
     init, render, fitCamera, screenOf,
     startPlacing, cancelPlacing,
-    turnHeld, mirrorHeld, turnSelected, mirrorSelected,
+    turnHeld, mirrorHeld, turnSelected, mirrorSelected, paintHeld, paintSelected,
     select, clearSelection,
     isPlacing() { return placing; },
     held() { return placing; },

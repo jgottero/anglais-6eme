@@ -151,6 +151,32 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Chaque fiche annonce d'abord le **nom anglais**, en gras, le nom
   français en gris dessous, et le prix — la taille se devine au dessin,
   elle n'est pas écrite.
+* **Choisir la couleur** : cinquante objets se vendent en
+  plusieurs couleurs — la couette du **lit**, le tissu du **canapé** et
+  du **fauteuil**, le **tapis**, le carrelage, la **chaise** et la
+  **table** repeintes, le **tracteur**, la **remorque** et la
+  **grange**, le **parasol**, le **transat**, la **cabine de plage**, la
+  **serviette**, le **vélo**, la **trottinette**, le **ballon**, le
+  **cerf-volant**, le **toboggan**, le **trampoline**, la **boîte aux
+  lettres**, la **poubelle**, les **fleurs**, la **montgolfière**…
+  Chaque fiche du magasin porte, sous le nom, une rangée de pastilles :
+  toucher l'une d'elles **repeint la fiche sur place** — cela n'achète
+  rien, et la liste ne bouge pas. La couleur choisie est celle que
+  l'objet emporte, et elle reste choisie pour la visite : une rangée de
+  chaises bleues se pose d'un appui chacune.
+
+  La même rangée suit l'objet **en main** (on peut encore changer d'avis
+  avant de le poser) et **dans la barre d'un objet posé** : repeindre ce
+  qui est déjà chez soi est gratuit et immédiat, comme tourner ou
+  retourner. Revenir à la couleur d'origine ne laisse aucune trace dans
+  la sauvegarde.
+
+  Ce ne sont pas des filtres : chaque couleur est **son propre fichier
+  SVG** (`bed.svg`, `bed-blue.svg`, `bed-green.svg`…), écrit une fois
+  pour toutes par `tools/recolour.js` à partir de la table `PAINT` de
+  `js/catalog.js`. Le dessin garde ses ombres et ses reflets — le tissu
+  bleu a les mêmes plis que le rouge —, et rien n'est recalculé pendant
+  le jeu.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
   Un appui sur le terrain le pose et débite les pièces, **centré au plus
@@ -247,6 +273,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   aussi est remboursé, l'enfant est prévenu (« +350 pièces rendues »), et
   le fichier est réécrit aussitôt pour qu'un remboursement ne soit jamais
   payé deux fois.
+  La dernière étape en date (`8`) est celle des couleurs : un objet posé
+  ne dit rien de sa couleur tant qu'on ne lui en a pas donné une, et ne
+  rien dire veut dire « la couleur dans laquelle il est dessiné » — ce
+  que portait déjà tout ce qui était en place. Rien à convertir, rien à
+  rembourser.
 * Tout est sauvegardé dans `localStorage`, clé `reward-property-v1`. La
   sauvegarde ne contient que les pièces, les parcelles achetées et les
   objets de chaque lieu : **la carte n'est jamais sauvegardée**, elle est
@@ -349,6 +380,7 @@ reward/
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
   js/shop.js          l'écran magasin
   js/app.js           overlay, objet en main, voix, pont avec l'app
+  tools/recolour.js   écrit un dessin par couleur (hors du jeu, une fois)
   assets/             les dessins, un fichier SVG par élément
     house.svg grass.svg coin.svg
     floor.svg wall.svg door.svg window.svg window-side.svg  (les intérieurs)
@@ -357,7 +389,8 @@ reward/
     cabin.svg cottage.svg apartment.svg           (les bâtiments à visiter)
     tower-tall.svg block-long.svg warehouse.svg   (la ville et le port)
     stairs-up.svg stairs-down.svg
-    items/            un fichier par objet du magasin
+    items/            un fichier par objet du magasin,
+                      plus un par couleur (bed-blue.svg…)
 ```
 
 ## Ajouter un objet
@@ -396,8 +429,41 @@ reward/
    que ce qui est posé au sol — la barrière se vend en longueur et se
    pose en poteau, la piscine se montre en bassin.
 
+## Donner des couleurs à un objet
+
+1. Ajouter une ligne à `PAINT`, dans `js/catalog.js` :
+
+   ```js
+   bed: { colours: ["red", "blue", "green", "purple", "yellow"],
+          tint:    ["#c8413c", "#8f2a26", "#e06a63", "#b53a36"] },
+   ```
+
+   `colours` est la liste des couleurs proposées, prises dans `COLOURS`
+   juste au-dessus ; **la première est celle dans laquelle l'objet est
+   déjà dessiné** et ne coûte aucun fichier. `tint` nomme les aplats du
+   dessin qui prennent la couleur — le premier est l'aplat principal,
+   les autres ses ombres et ses reflets.
+
+2. Lancer l'outil :
+
+   ```sh
+   node tools/recolour.js           # écrit ce qui manque
+   node tools/recolour.js --check   # dit ce qui manque, sans rien écrire
+   node tools/recolour.js --force   # tout réécrire (après un redessin)
+   ```
+
+   Il écrit `assets/items/bed-blue.svg` et consorts, et se plaint si un
+   objet n'existe pas, si un aplat annoncé n'est pas dans le dessin, ou
+   si une couleur n'est pas dans les pots. Chaque aplat fait le même
+   chemin que l'aplat principal (teinte, saturation, clarté), donc les
+   ombres restent des ombres.
+
+3. Il n'y a rien d'autre à faire : le magasin, l'objet en main et la
+   barre de sélection affichent la rangée de pastilles d'eux-mêmes.
+
 Ne jamais renommer un `id` déjà utilisé : c'est lui qui est écrit dans la
-sauvegarde.
+sauvegarde. Il en va de même pour un nom de couleur (`blue`) : c'est
+aussi ce qui est écrit dans la sauvegarde, et le nom du fichier.
 
 ## Prévu pour plus tard
 

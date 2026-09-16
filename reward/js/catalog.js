@@ -46,6 +46,9 @@
               The pieces are in assets/items/ too, one tile each, drawn
               for the top edge and the top-left corner: the others are
               the same drawing turned a quarter at a time.
+
+   What colours an object comes in is not a field of its own: it is a
+   line in PAINT, further down, keyed by id.
    ===================================================================== */
 const CATALOG = (function () {
 
@@ -344,15 +347,114 @@ const CATALOG = (function () {
     { id: "ferris_wheel",  fr: "Grande roue",  en: "a big wheel",    price: 2000, level: 100, w: 8, h: 8, category: "play", asset: "ferris-wheel.svg" }
   ];
 
+
+  /* ---------------------------------------------------------------
+     COLOURS — the paint pots. Every colour an object can be given is
+     one of these; the hex is the swatch shown in the shop and on the
+     action bar, and it is also the colour the drawing is repainted in.
+     --------------------------------------------------------------- */
+  const COLOURS = {
+    red:    { fr: "Rouge",     hex: "#c8413c" },
+    pink:   { fr: "Rose",      hex: "#e3618f" },
+    orange: { fr: "Orange",    hex: "#e0802f" },
+    yellow: { fr: "Jaune",     hex: "#f2c94c" },
+    green:  { fr: "Vert",      hex: "#4d9a3b" },
+    teal:   { fr: "Turquoise", hex: "#3aa79b" },
+    blue:   { fr: "Bleu",      hex: "#4a7fa8" },
+    purple: { fr: "Violet",    hex: "#8a63c4" },
+    brown:  { fr: "Marron",    hex: "#a9763f" },
+    cream:  { fr: "Crème",     hex: "#e8e2d4" },
+    white:  { fr: "Blanc",     hex: "#fdfdfb" },
+    grey:   { fr: "Gris",      hex: "#9aa3ab" },
+    black:  { fr: "Noir",      hex: "#3a3f44" }
+  };
+
+  /* ---------------------------------------------------------------
+     PAINT — the objects that come in more than one colour, and which
+     colours those are. The first of the list is the colour the object
+     is already drawn in: it is the plain drawing, assets/items/bed.svg.
+     Each of the others has its own file beside it, assets/items/
+     bed-blue.svg, written once and for all by tools/recolour.js.
+
+     `tint` is for that tool alone — it names the fills in the drawing
+     that take the colour, the first of them being the main one, the
+     rest its highlights and shadows. The app never reads it: it only
+     ever asks for a colour by name.
+     --------------------------------------------------------------- */
+  const PAINT = {
+    /* the first day */
+    rug:        { colours: ["red", "blue", "green", "purple", "teal"],    tint: ["#b8504f", "#d4706b", "#8f2a26"] },
+    tiles:      { colours: ["grey", "blue", "green", "cream", "pink"],    tint: ["#c9d3da", "#e6edf1", "#b6c2ca", "#a9b5bd"] },
+    flowers:    { colours: ["pink", "red", "yellow", "blue", "purple"],   tint: ["#e3618f", "#a83a63", "#f0f0f0", "#c4bfae", "#8a63c4", "#5f3f96"] },
+    bucket:     { colours: ["grey", "blue", "red", "green", "yellow"],    tint: ["#9aa3ab", "#b7c0c7", "#7d868d", "#6f7880"] },
+    mailbox:    { colours: ["blue", "red", "green", "yellow", "black"],   tint: ["#2a5b8c", "#3f7fbf"] },
+    chair:      { colours: ["brown", "white", "red", "blue", "green"],    tint: ["#b0813f", "#c8974d", "#8f6134", "#6d4a28", "#5c3d1f"] },
+    table:      { colours: ["brown", "white", "grey", "blue", "red"],     tint: ["#b0813f", "#c8974d", "#6d4a28", "#5c3d1f"] },
+    plant:      { colours: ["orange", "blue", "green", "white", "grey"],  tint: ["#c8674a", "#d9775a", "#8f4530"] },
+    inner_door: { colours: ["brown", "white", "blue", "red", "green"],    tint: ["#a9763f", "#c8974d", "#8f6134", "#6d4a28", "#5c3d1f"] },
+    wardrobe:   { colours: ["brown", "white", "blue", "green", "grey"],   tint: ["#a9763f", "#c8974d", "#5c3d1f"] },
+    bookshelf:  { colours: ["brown", "white", "grey", "blue", "green"],   tint: ["#8f6134", "#6d4a28"] },
+    bed:        { colours: ["red", "blue", "green", "purple", "yellow"],  tint: ["#c8413c", "#8f2a26", "#e06a63", "#b53a36"] },
+
+    /* the years after */
+    stool:      { colours: ["brown", "red", "blue", "green", "white"],    tint: ["#cda06a", "#b8874d", "#6d4a28"] },
+    shelf:      { colours: ["brown", "white", "grey", "blue", "green"],   tint: ["#cda06a", "#6d4a28"] },
+    watering_can: { colours: ["blue", "green", "red", "yellow", "grey"],  tint: ["#4a90b8", "#6fb3d6", "#2f5d80"] },
+    wheelbarrow: { colours: ["red", "blue", "green", "yellow", "grey"],   tint: ["#c8413c", "#a83733", "#8f2a26"] },
+    planter:    { colours: ["brown", "white", "blue", "grey", "red"],     tint: ["#cda06a", "#b8874d", "#6d4a28"] },
+    pet_basket: { colours: ["red", "blue", "green", "purple", "cream"],   tint: ["#c8413c", "#dd6a63", "#8f2a26"] },
+    sofa:       { colours: ["blue", "red", "green", "yellow", "purple", "grey"], tint: ["#4a7fa8", "#5f9bc7", "#7fb6dd", "#2f5d80"] },
+    cupboard:   { colours: ["cream", "blue", "green", "red", "grey"],     tint: ["#e8e2d4", "#d6cdb8", "#8f7f63"] },
+    fridge:     { colours: ["white", "red", "blue", "green", "black"],    tint: ["#dfe4e8", "#eef2f5", "#b6bfc6", "#8d969e"] },
+    bench:      { colours: ["brown", "green", "white", "blue", "red"],    tint: ["#b0813f", "#96683a", "#8f6134", "#6d4a28", "#5c3d1f"] },
+    hammock:    { colours: ["yellow", "red", "blue", "green", "pink"],    tint: ["#f2c94c", "#e8b84b", "#b98d22"] },
+    tractor:    { colours: ["red", "green", "blue", "yellow", "orange"],  tint: ["#c8413c", "#a83733", "#8f2a26"] },
+    trailer:    { colours: ["green", "red", "blue", "yellow", "grey"],    tint: ["#4d8a3c", "#5fa34a", "#2f5d27"] },
+    barn:       { colours: ["red", "blue", "green", "brown", "grey"],     tint: ["#c8413c", "#a83733", "#8f2a26", "#6d201d"] },
+    bin:        { colours: ["green", "blue", "grey", "yellow", "red"],    tint: ["#4d9a5b", "#5fb06d", "#3f7a4a", "#28583a"] },
+    ball:       { colours: ["black", "red", "blue", "green", "orange"],   tint: ["#3a3f44"] },
+    kite:       { colours: ["red", "blue", "green", "yellow", "purple"],  tint: ["#e8536b", "#b83350", "#f2c94c", "#4a7fa8"] },
+    trampoline: { colours: ["blue", "green", "red", "purple", "black"],   tint: ["#3a5f8f", "#4d6b9a", "#26436a", "#2f3f5c"] },
+    slide:      { colours: ["yellow", "red", "blue", "green", "purple"],  tint: ["#f2c94c", "#ffe18c", "#c99a37"] },
+    rocking_horse: { colours: ["red", "blue", "green", "brown", "purple"], tint: ["#c8413c"] },
+    beach_towel: { colours: ["red", "blue", "green", "yellow", "purple"], tint: ["#e8536b", "#b83350"] },
+    parasol:    { colours: ["red", "blue", "green", "yellow", "teal"],    tint: ["#e8536b", "#b83350"] },
+    deckchair:  { colours: ["blue", "red", "green", "yellow", "orange"],  tint: ["#4a90b8", "#cfe6f2", "#2f5d80"] },
+    surfboard:  { colours: ["red", "blue", "green", "purple", "orange"],  tint: ["#e8536b", "#f2c94c"] },
+    beach_hut:  { colours: ["red", "blue", "green", "yellow", "purple"],  tint: ["#e8536b"] },
+    lifebuoy:   { colours: ["red", "blue", "green", "orange", "yellow"],  tint: ["#c8413c"] },
+    rowing_boat: { colours: ["brown", "blue", "red", "green", "white"],   tint: ["#cda06a", "#b8874d", "#8f6134", "#6d4a28"] },
+    scooter:    { colours: ["blue", "red", "green", "purple", "black"],   tint: ["#4a90b8"] },
+    bicycle:    { colours: ["red", "blue", "green", "yellow", "black"],   tint: ["#c8413c"] },
+    bath_mat:   { colours: ["blue", "green", "pink", "cream", "purple"],  tint: ["#6fb3d6", "#8fd0ea", "#b6e3f5", "#3f88ad"] },
+    armchair:   { colours: ["purple", "blue", "red", "green", "yellow", "grey"], tint: ["#5d4a7a", "#6f5a8f", "#8571a8", "#9b89bb", "#4a3a63"] },
+    coffee_table: { colours: ["brown", "white", "grey", "blue", "red"],   tint: ["#cda06a", "#dcb684", "#6d4a28"] },
+    desk:       { colours: ["brown", "white", "grey", "blue", "green"],   tint: ["#cda06a", "#b8874d", "#8f6134", "#6d4a28"] },
+    picnic_blanket: { colours: ["red", "blue", "green", "yellow", "purple"], tint: ["#c8413c", "#8f2a26"] },
+    sledge:     { colours: ["brown", "red", "blue", "green", "yellow"],   tint: ["#b8874d", "#96683a", "#6d4a28"] },
+    skis:       { colours: ["red", "blue", "green", "purple", "orange"],  tint: ["#c8413c", "#8f2a26"] },
+    flagpole:   { colours: ["blue", "red", "green", "yellow", "purple"],  tint: ["#4a90b8", "#2f5d80"] },
+    hot_air_balloon: { colours: ["red", "blue", "green", "purple", "teal"], tint: ["#c8413c", "#8f2a26"] }
+  };
+
   const FOLDER = "assets/items/";
   const LAST_LEVEL = 100;
 
   const BY_ID = {};
   ITEMS.forEach(item => { BY_ID[item.id] = item; });
 
+  // "bed.svg" in blue is "bed-blue.svg"; in its own colour it is
+  // simply "bed.svg".
+  function repainted(file, colour) {
+    if (!colour) return file;
+    return file.replace(/\.svg$/, "-" + colour + ".svg");
+  }
+
   return {
     CATEGORIES,
     ITEMS,
+    COLOURS,
+    PAINT,
     LAST_LEVEL,
     item(id) { return BY_ID[id] || null; },
     // Everything is an object unless it says otherwise.
@@ -383,14 +485,47 @@ const CATALOG = (function () {
     joinsOf(item) { return (item && item.joins) || null; },
     // Does it belong on open water? A jetty and a boat do, a hen does not.
     floats(item) { return !!(item && item.wet); },
-    assetUrl(id) {
+    // The colours an object comes in, or nothing: most things come in
+    // one colour only. The first of the list is the one it is drawn in.
+    paintsOf(item) {
+      const paint = item && PAINT[item.id];
+      return paint ? paint.colours : null;
+    },
+    // The colour an object is really wearing. Anything the object does
+    // not come in — a colour dropped since, or none at all — falls back
+    // to the one it is drawn in.
+    paintOf(item, colour) {
+      const paint = item && PAINT[item.id];
+      if (!paint) return null;
+      return paint.colours.indexOf(colour) > 0 ? colour : paint.colours[0];
+    },
+    // Is this the colour the drawing already has, and so no repaint?
+    plain(item, colour) {
+      const paint = item && PAINT[item.id];
+      return !paint || !colour || colour === paint.colours[0];
+    },
+    swatch(colour) {
+      const pot = COLOURS[colour];
+      return pot ? pot.hex : "#9aa3ab";
+    },
+    colourName(colour) {
+      const pot = COLOURS[colour];
+      return pot ? pot.fr : "";
+    },
+    assetUrl(id, colour) {
       const item = BY_ID[id];
-      return item ? FOLDER + item.asset : "";
+      if (!item) return "";
+      const paint = PAINT[id];
+      const worn = paint && paint.colours.indexOf(colour) > 0 ? colour : null;
+      return FOLDER + repainted(item.asset, worn);
     },
     // What to show when the object is named rather than put down.
-    cardUrl(id) {
+    cardUrl(id, colour) {
       const item = BY_ID[id];
-      return item ? FOLDER + (item.card || item.asset) : "";
+      if (!item) return "";
+      const paint = PAINT[id];
+      const worn = paint && paint.colours.indexOf(colour) > 0 ? colour : null;
+      return FOLDER + repainted(item.card || item.asset, worn);
     },
     pieceUrl(file) { return FOLDER + file; }
   };

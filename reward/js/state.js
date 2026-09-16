@@ -9,7 +9,8 @@
 
    The save holds the plots bought and the objects of each scene, never
    the map itself: the map is rebuilt from scenes.js on every load. A
-   save written by an older version is dropped rather than converted.
+   save written by an older version is carried over step by step (see
+   STEPS below), never dropped.
 
    Everything is kept in one localStorage entry. The module owns the
    rules; the views only read the state and call these functions.
@@ -21,7 +22,7 @@
 const PropertyState = (function () {
 
   const KEY = "reward-property-v1";
-  const VERSION = 8;   // the shape of the save
+  const VERSION = 9;   // the shape of the save
   const START_COINS = 150;
 
   function blank() {
@@ -45,7 +46,14 @@ const PropertyState = (function () {
        from before simply has none of them counted yet, so the first
        sync pays for the stamps already in the book — the regularity was
        real, it just had nothing to buy at the time. */
-    7: saved => Object.assign({}, saved, { stamps: 0, version: 8 })
+    7: saved => Object.assign({}, saved, { stamps: 0, version: 8 }),
+
+    /* 9 lets an object be painted. An entry says nothing about its
+       colour unless it has been given one, and no colour means the
+       colour it is drawn in — which is what everything already down
+       was wearing yesterday. So there is nothing to convert and
+       nothing to pay back: the property comes across untouched. */
+    8: saved => Object.assign({}, saved, { version: 9 })
   };
 
   let carried = 0;    // coins handed back while reading an older save
@@ -336,7 +344,7 @@ const PropertyState = (function () {
   /* An object is bought where it lands: one call takes the coins and
      puts it down, so the payment and the placement cannot come apart.
      Nothing is paid when the purse is short or the spot is taken. */
-  function buyAt(id, x, y, turn, mirror) {
+  function buyAt(id, x, y, turn, mirror, colour) {
     const item = CATALOG.item(id);
     if (!item || data.coins < item.price) return null;
     if (!CATALOG.unlocked(item, level())) return null;   // not yet earned
@@ -344,9 +352,11 @@ const PropertyState = (function () {
     data.coins -= item.price;
     const uid = data.nextUid++;
     const entry = { uid, id, x, y };
-    // Only what has been turned or flipped says so, so saves stay readable.
+    // Only what has been turned, flipped or painted says so, so saves
+    // stay readable and an old one still means what it always meant.
     if (turn) entry.r = turn;
     if (mirror) entry.m = 1;
+    if (!CATALOG.plain(item, colour)) entry.c = colour;
     scene().placed.push(entry);
     changed();
     return { uid };
@@ -371,6 +381,22 @@ const PropertyState = (function () {
     if (!entry || !CATALOG.item(entry.id)) return false;
     if (entry.m) delete entry.m;
     else entry.m = 1;
+    changed();
+    return true;
+  }
+
+  /* Painted another colour, where it stands. Only the objects the
+     catalogue sells in more than one colour can be, and only in one of
+     their own colours; going back to the colour the drawing already has
+     leaves no mark on the save at all. Nothing is charged: the colour
+     is part of choosing the object, not a second object. */
+  function paint(uid, colour) {
+    const entry = scene().placed.find(one => one.uid === uid);
+    const item = entry && CATALOG.item(entry.id);
+    if (!item || !CATALOG.paintsOf(item)) return false;
+    const worn = CATALOG.paintOf(item, colour);
+    if (CATALOG.plain(item, worn)) delete entry.c;
+    else entry.c = worn;
     changed();
     return true;
   }
@@ -479,6 +505,6 @@ const PropertyState = (function () {
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
     addCoins, grantTier, grantUpTo, grantStamps, level, stamps, mendedCoins,
-    buyAt, move, turn, mirror, sell, reset
+    buyAt, move, turn, mirror, paint, sell, reset
   };
 })();
