@@ -120,6 +120,46 @@
   .choice .sub { display: block; color: var(--ink-soft); font-size: 0.85rem; }
   .choice[aria-pressed="true"] { border-color: var(--ink); background: var(--right-bg); }
 
+  /* ---- The face a profile wears ----
+     A child who cannot yet read a list of names finds their own line by
+     its drawing, so it comes first and it is large. The grid of them is
+     sized in whole columns, which keeps it tidy at any width. */
+  .face {
+    width: 40px; height: 40px;
+    vertical-align: middle;
+    margin-right: 10px;
+    flex: none;
+  }
+  .face.small { width: 24px; height: 24px; margin-right: 6px; }
+
+  .choice.is-who { display: flex; align-items: center; }
+  .choice.is-who .who-name { flex: 1; }
+  .who-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+  /* The question that follows the grid needs the same air as one that
+     follows a stack of choices. */
+  .faces + .label { margin-top: 24px; }
+
+  .faces {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+    gap: 8px;
+  }
+  .face-pick {
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    border: 1.5px solid var(--card-edge);
+    border-radius: 8px;
+    background: transparent;
+    /* No waiting to see whether a tap was the first of two. */
+    touch-action: manipulation;
+  }
+  .face-pick img { width: 42px; height: 42px; display: block; }
+  .face-pick:hover { border-color: var(--ink); }
+  .face-pick:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .face-pick[aria-pressed="true"] { border-color: var(--ink); border-width: 3px; background: var(--right-bg); }
+
   /* The school year, beside a name: small, quiet, and enough to tell
      two children apart at a glance. */
   .grade {
@@ -925,6 +965,11 @@ function gradeBadge(grade) {
   return '<span class="grade">' + esc(PROFILES.gradeOf(grade).fr) + '</span>';
 }
 
+function faceOf(profile, size) {
+  return '<img class="face' + (size ? " " + size : "") + '" src="' +
+    esc(PROFILES.iconUrl(profile.icon)) + '" alt="">';
+}
+
 function renderProfiles(options) {
   const asking = (options || {}).asking;
   const trouble = (options || {}).trouble;
@@ -942,8 +987,9 @@ function renderProfiles(options) {
       '<p class="label">Qui travaille aujourd\'hui ?</p>' +
       '<div class="stack">' +
         people.map(one =>
-          '<button class="choice" data-profile="' + esc(one.id) + '">' +
-            esc(one.name) + gradeBadge(one.grade) +
+          '<button class="choice is-who" data-profile="' + esc(one.id) + '">' +
+            faceOf(one) + '<span class="who-name">' + esc(one.name) + '</span>' +
+            gradeBadge(one.grade) +
           '</button>'
         ).join("") +
       '</div>' +
@@ -971,6 +1017,16 @@ function renderNewProfile(trouble, howMany) {
       '<p class="label">Comment t\'appelles-tu ?</p>' +
       '<p class="spell"><input id="profile-name" type="text" autocomplete="given-name" ' +
         'maxlength="20" placeholder="Ton prénom" aria-label="Ton prénom"></p>' +
+      '<p class="label">Choisis ton image</p>' +
+      '<div class="faces" id="profile-icons">' +
+        PROFILES.ICONS.map((icon, index) =>
+          '<button class="face-pick" data-icon="' + esc(icon.id) + '"' +
+            ' title="' + esc(icon.fr) + '" aria-label="' + esc(icon.fr) + '"' +
+            ' aria-pressed="' + (index === 0 ? "true" : "false") + '">' +
+            '<img src="' + esc(PROFILES.iconUrl(icon.id)) + '" alt="">' +
+          '</button>'
+        ).join("") +
+      '</div>' +
       '<p class="label">Tu es en...</p>' +
       '<div class="stack" id="profile-grades">' +
         PROFILES.GRADES.map((grade, index) =>
@@ -991,19 +1047,29 @@ function renderNewProfile(trouble, howMany) {
       '</p>' +
     '</section>';
 
-  const grades = screen.querySelector("#profile-grades");
-  grades.addEventListener("click", event => {
-    const button = event.target.closest("[data-grade]");
-    if (!button) return;
-    grades.querySelectorAll("[data-grade]").forEach(one => {
-      one.setAttribute("aria-pressed", String(one === button));
+  /* One of a row is chosen at a time: pressing one lets the others go.
+     The same for the drawings and for the school years. */
+  function pickOne(box, mark) {
+    box.addEventListener("click", event => {
+      const button = event.target.closest("[" + mark + "]");
+      if (!button) return;
+      box.querySelectorAll("[" + mark + "]").forEach(one => {
+        one.setAttribute("aria-pressed", String(one === button));
+      });
     });
-  });
+  }
+
+  const grades = screen.querySelector("#profile-grades");
+  const icons = screen.querySelector("#profile-icons");
+  pickOne(grades, "data-grade");
+  pickOne(icons, "data-icon");
 
   const field = screen.querySelector("#profile-name");
   const make = () => {
-    const chosen = grades.querySelector('[aria-pressed="true"]');
-    const profile = PROFILES.create(field.value, chosen && chosen.dataset.grade);
+    const year = grades.querySelector('[aria-pressed="true"]');
+    const face = icons.querySelector('[aria-pressed="true"]');
+    const profile = PROFILES.create(field.value,
+      year && year.dataset.grade, face && face.dataset.icon);
     if (!profile) {
       renderProfiles({ asking: true, trouble: "Il manque le prénom." });
       screen.querySelector("#profile-name").focus();
@@ -1106,8 +1172,8 @@ function renderMenu() {
     '<section class="card">' +
       '<p class="label">Choisis l\'exercice</p>' +
       '<div class="modes">' + modes + '</div>' +
-      '<p class="label" style="margin-top:6px">' +
-        esc(PROFILE.name) + gradeBadge(PROFILE.grade) +
+      '<p class="label who-line" style="margin-top:6px">' +
+        faceOf(PROFILE, "small") + esc(PROFILE.name) + gradeBadge(PROFILE.grade) +
         ' <button class="link" data-switch>Changer de profil</button></p>' +
       '<p class="label">Choisis la liste</p>' +
       '<div class="stack">' + lessons +

@@ -6,9 +6,21 @@ tout ce que fait un profil.
 
 ## Ce qu'on demande
 
-Deux choses, et pas une de plus : **le prénom** et **le niveau**, CE2 ou
-6ème. Rien qu'un enfant puisse se tromper à saisir, rien qui mérite
-d'être caché.
+Trois choses, et pas une de plus : **le prénom**, **une image** et **le
+niveau**, CE2 ou 6ème. Rien qu'un enfant puisse se tromper à saisir,
+rien qui mérite d'être caché.
+
+L'image passe avant le nom partout où un profil se montre, et elle est
+grande : un enfant qui ne lit pas encore une liste de prénoms retrouve
+sa ligne à son dessin. Il y en a douze, dans `assets/avatars/`, un
+fichier SVG chacun. En ajouter une, c'est un dessin et une ligne dans
+`PROFILES.ICONS` — l'`id` est le nom du fichier et ce qui est écrit
+dans la sauvegarde, donc il ne se renomme pas, comme un identifiant de
+profil ou un niveau.
+
+Un profil créé avant que les images existent n'en a pas : on lui en
+calcule une **à partir de son identifiant**, si bien que deux anciens
+profils ne reviennent jamais avec le même visage.
 
 L'application s'ouvre sur la question « Qui travaille aujourd'hui ? ».
 Le dernier profil utilisé est retenu, mais **on redemande quand même** :
@@ -22,7 +34,7 @@ ses clés de rangement :
 
 | | |
 | --- | --- |
-| `anglais-profiles-v1` | la liste des profils, et le dernier choisi |
+| `anglais-profiles-v1` | la liste des profils (prénom, image, niveau) et le dernier choisi |
 | `anglais-progress-v1:p1` | les mots, les points, les journées |
 | `reward-property-v1:p1` | la propriété et ses pièces |
 
@@ -67,7 +79,8 @@ profil, il ne se renomme pas.
 
 ## Ce qui n'y est pas encore
 
-On ne peut ni **renommer** ni **supprimer** un profil. Un prénom mal
-tapé reste donc tel quel. C'est volontairement laissé de côté :
+On ne peut ni **renommer**, ni **changer d'image**, ni **supprimer** un
+profil : tout se choisit à la création et rien ne se reprend. Un prénom
+mal tapé reste donc tel quel. C'est volontairement laissé de côté :
 supprimer efface la progression d'un enfant, et cela mérite d'être
 conçu avec soin plutôt qu'ajouté en passant.

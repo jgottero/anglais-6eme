@@ -17,6 +17,10 @@
    built from, so renaming a profile leaves its progress where it is.
    The name can be edited, the id cannot.
 
+   A profile also carries a drawing, chosen from the dozen under
+   assets/avatars/. It is what a child who cannot yet read a list of
+   names picks their own line by, and what tells two Camilles apart.
+
    ---- Coming from before profiles existed ----
 
    A telephone that has been used already holds a save under the plain
@@ -46,6 +50,26 @@ const PROFILES = (function () {
     { id: "6eme", fr: "6ème", sub: "Sixième" }
   ];
 
+  /* The drawings a profile can wear. `id` is written into the save and
+     is the file name under assets/avatars/, so it never changes; `fr`
+     is what a screen reader says. Adding one is a drawing and a line. */
+  const ICONS = [
+    { id: "cat",     fr: "Un chat" },
+    { id: "dog",     fr: "Un chien" },
+    { id: "fox",     fr: "Un renard" },
+    { id: "rabbit",  fr: "Un lapin" },
+    { id: "owl",     fr: "Une chouette" },
+    { id: "frog",    fr: "Une grenouille" },
+    { id: "fish",    fr: "Un poisson" },
+    { id: "penguin", fr: "Un manchot" },
+    { id: "dragon",  fr: "Un dragon" },
+    { id: "rocket",  fr: "Une fusée" },
+    { id: "ball",    fr: "Un ballon" },
+    { id: "flower",  fr: "Une fleur" }
+  ];
+
+  const AVATARS = "assets/avatars/";
+
   function blank() {
     return { version: VERSION, profiles: [], last: null };
   }
@@ -63,6 +87,10 @@ const PROFILES = (function () {
           id: String(one.id),
           name: String(one.name),
           grade: gradeOf(one.grade).id,
+          /* A profile made before there were drawings gets one worked
+             out from its id, so two of them never come back wearing the
+             same face. */
+          icon: iconOf(one.icon, String(one.id)).id,
           made: Number(one.made) || 0
         }));
       kept.last = saved.last || null;
@@ -83,6 +111,17 @@ const PROFILES = (function () {
 
   function gradeOf(id) {
     return GRADES.find(one => one.id === id) || GRADES[GRADES.length - 1];
+  }
+
+  /* The drawing a profile wears. Asked for one it does not have, and
+     given something to fall back on, the answer is worked out from
+     that rather than always being the same first one. */
+  function iconOf(id, fallbackFrom) {
+    const found = ICONS.find(one => one.id === id);
+    if (found) return found;
+    let sum = 0;
+    String(fallbackFrom || "").split("").forEach(letter => { sum += letter.charCodeAt(0); });
+    return ICONS[sum % ICONS.length];
   }
 
   /* An id that no profile has had before. It goes into the storage
@@ -120,7 +159,10 @@ const PROFILES = (function () {
 
   return {
     GRADES,
+    ICONS,
     gradeOf,
+    iconOf,
+    iconUrl(id) { return AVATARS + iconOf(id).id + ".svg"; },
     legacy,
 
     all() { return read().profiles; },
@@ -137,15 +179,17 @@ const PROFILES = (function () {
 
     /* Makes a profile and returns it. The very first one on a telephone
        that has been used before takes over what was already saved. */
-    create(name, grade) {
+    create(name, grade, icon) {
       const clean = String(name || "").trim().slice(0, 20);
       if (!clean) return null;
       const data = read();
       const first = !data.profiles.length;
+      const id = freshId(data.profiles.map(one => one.id));
       const profile = {
-        id: freshId(data.profiles.map(one => one.id)),
+        id,
         name: clean,
         grade: gradeOf(grade).id,
+        icon: iconOf(icon, id).id,
         made: Date.now()
       };
       if (first && legacy()) inherit(profile.id);

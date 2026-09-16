@@ -21,8 +21,9 @@ page.on('console', m => {
   if (m.type() === 'error' && !/CERT|favicon|fonts\.g|404/.test(text)) errors.push('CONSOLE ' + text);
 });
 
-const makeProfile = async (name, grade) => {
+const makeProfile = async (name, grade, icon) => {
   await page.fill('#profile-name', name);
+  if (icon) await page.click('[data-icon="' + icon + '"]');
   await page.click('[data-grade="' + grade + '"]');
   await page.click('[data-make]');
   await page.waitForTimeout(600);
@@ -38,8 +39,19 @@ console.log('a telephone straight out of the box:', JSON.stringify({
   asksForAName: await page.locator('#profile-name').isVisible(),
   yearsOffered: await page.evaluate(() =>
     Array.from(document.querySelectorAll('[data-grade]')).map(b => b.dataset.grade)),
+  drawingsOffered: await page.evaluate(() => document.querySelectorAll('[data-icon]').length),
   noMenuYet: await page.evaluate(() => !document.querySelector('[data-lesson]'))
 }));
+
+// ---- every drawing on offer is really there to be drawn ----
+console.log('the drawings:', JSON.stringify(await page.evaluate(async () => {
+  const missing = [];
+  for (const icon of PROFILES.ICONS) {
+    const res = await fetch(PROFILES.iconUrl(icon.id));
+    if (!res.ok) missing.push(icon.id);
+  }
+  return { asked: PROFILES.ICONS.length, missing };
+})));
 
 // ---- and will not take an empty name ----
 await page.click('[data-make]');
@@ -53,11 +65,16 @@ console.log('a nameless profile:', JSON.stringify({
 }));
 
 // ---- two children, two profiles ----
-await makeProfile('Camille', 'ce2');
+await makeProfile('Camille', 'ce2', 'fox');
 console.log('the first one in:', JSON.stringify({
   heading: await page.locator('#heading').textContent(),
   onTheMenu: await page.evaluate(() => !!document.querySelector('[data-lesson]')),
-  grade: await page.evaluate(() => PROFILE.grade)
+  grade: await page.evaluate(() => PROFILE.grade),
+  icon: await page.evaluate(() => PROFILE.icon),
+  shownOnTheMenu: await page.evaluate(() => {
+    const face = document.querySelector('.who-line .face');
+    return face ? face.getAttribute('src') : null;
+  })
 }));
 await page.screenshot({ path: SHOTS + 'v19-menu.png' });
 
@@ -78,14 +95,27 @@ await page.click('[data-switch]');
 await page.waitForTimeout(400);
 await page.click('[data-new-profile]');
 await page.waitForTimeout(300);
-await makeProfile('Noé', '6eme');
+await makeProfile('Noé', '6eme', 'dragon');
 
 console.log('the second one starts from nothing:', JSON.stringify(await page.evaluate(() => ({
   heading: document.getElementById('heading').textContent,
   points: progress.points,
   words: Object.keys(progress.words).length,
-  grade: PROFILE.grade
+  grade: PROFILE.grade,
+  icon: PROFILE.icon
 }))));
+
+// ---- and each is told apart by its drawing on the chooser ----
+await page.click('[data-switch]');
+await page.waitForTimeout(500);
+console.log('the chooser:', JSON.stringify(await page.evaluate(() =>
+  Array.from(document.querySelectorAll('[data-profile]')).map(one => ({
+    name: one.querySelector('.who-name').textContent,
+    face: one.querySelector('.face').getAttribute('src').split('/').pop()
+  }))
+)));
+await page.click('[data-profile="p2"]');
+await page.waitForTimeout(600);
 
 // ---- each keeps their own things, under their own keys ----
 await page.evaluate(() => { progress.points = 30; Store.save(progress); });
@@ -158,7 +188,7 @@ console.log('an older telephone says so:', JSON.stringify({
     return said || null;
   })
 }));
-await makeProfile('Camille', '6eme');
+await makeProfile('Camille', '6eme', 'owl');
 console.log('the first profile takes it over:', JSON.stringify(await page.evaluate(() => ({
   points: progress.points,
   words: Object.keys(progress.words).length,
@@ -172,11 +202,24 @@ await page.click('[data-switch]');
 await page.waitForTimeout(400);
 await page.click('[data-new-profile]');
 await page.waitForTimeout(300);
-await makeProfile('Noé', 'ce2');
+await makeProfile('Noé', 'ce2', 'frog');
 console.log('the second one inherits nothing:', JSON.stringify(await page.evaluate(() => ({
   points: progress.points,
   hasAProperty: localStorage.getItem('reward-property-v1:' + PROFILE.id) !== null
 }))));
+
+// ---- a profile made before there were drawings still has a face ----
+console.log('an older profile, given a face:', JSON.stringify(await page.evaluate(() => {
+  const data = JSON.parse(localStorage.getItem('anglais-profiles-v1'));
+  data.profiles.forEach(one => { delete one.icon; });
+  localStorage.setItem('anglais-profiles-v1', JSON.stringify(data));
+  const back = PROFILES.all();
+  return {
+    everyoneHasOne: back.every(one => !!one.icon),
+    andNotAllTheSame: new Set(back.map(one => one.icon)).size === back.length,
+    faces: back.map(one => one.name + '/' + one.icon)
+  };
+})));
 
 // ---- who practised last is remembered, but still asked ----
 await page.reload();
