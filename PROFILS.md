@@ -60,18 +60,26 @@ création le dit, pour que personne ne se demande où sont passés cent
 rangs. Les clés simples disparaissent alors, et chaque profil suivant
 part de zéro.
 
-## Le niveau, pour plus tard
+## Le niveau décide de la matière
 
-Le niveau est enregistré et affiché, mais **aucun exercice ne le regarde
-encore** : toutes les listes de `words.js` sont proposées à tout le
-monde. Le jour où des listes CE2 arriveront, c'est à deux endroits que
-cela se jouera :
+Le niveau **choisit ce qui est révisé** : anglais pour la sixième,
+mathématiques pour le CE2 (`maths.js`). Tout ce qui entoure un exercice
+— les rangs, les points, l'objectif du jour, la révision espacée, la
+propriété — ne sait rien de ce qui est révisé et sert les deux sans rien
+changer.
 
-* dans `words.js`, une liste déclarerait le niveau auquel elle
-  s'adresse (rien n'est prévu pour l'instant : une leçon sans mention
-  reste pour tout le monde) ;
-* dans `renderMenu` (`index.html`), le filtre des listes proposées
-  regarderait `PROFILE.grade`.
+Trois fonctions portent la bascule, dans `index.html` :
+
+| | |
+| --- | --- |
+| `subject()` | `"maths"` pour le CE2, `"english"` sinon |
+| `lists()` | les listes de la matière, toutes de la même forme : `id`, `title`, `items` |
+| `modesFor()` | les façons de réviser ; une matière qui n'en a qu'une n'en propose aucune |
+
+`allWords()` passe par `lists()`, donc l'objectif du jour, le bilan et la
+révision espacée suivent d'eux-mêmes. Le seul endroit qui demande
+vraiment quelle matière c'est, c'est le menu : une liste de mots et une
+page de calculs ne proposent pas les mêmes choses.
 
 `PROFILES.GRADES` est la liste des niveaux, et son `id` (`ce2`, `6eme`)
 est ce qui est écrit dans la sauvegarde : comme un identifiant de

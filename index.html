@@ -375,6 +375,7 @@
 <script src="words.js"></script>
 <script src="ranks.js"></script>
 <script src="profiles.js"></script>
+<script src="maths.js"></script>
 
 <main class="sheet">
   <h1 id="heading">My English</h1>
@@ -584,12 +585,60 @@ function keyLessons() {
   });
 }
 
+/* ---- What this pupil is working on ----
+
+   The school year decides the subject: English for the sixième, maths
+   for the CE2. Everything around an exercise — the ranks, the points,
+   the daily goal, the spaced repetition, the property — knows nothing
+   of what is being revised and serves either without a change.
+
+   Both subjects hand back lists of the same shape: an id, a title, and
+   `items` to practise. The one place below that has to be asked which
+   subject it is, is the menu, because a list of words and a page of
+   sums do not offer the same things to do. */
+
+function subject() {
+  return PROFILE && PROFILE.grade === "ce2" ? "maths" : "english";
+}
+
+function lists() {
+  if (subject() === "maths") return MATHS.EXERCISES;
+  return LESSONS.map(lesson => ({
+    id: lesson.id,
+    title: lesson.title,
+    subtitle: lesson.subtitle,
+    items: lesson.words
+  }));
+}
+
+/* What one of them is called, for a sentence that counts them. The
+   English lists are made of words; a page of sums is not. */
+function thing(many) {
+  if (subject() === "maths") return many > 1 ? "calculs" : "calcul";
+  return many > 1 ? "mots" : "mot";
+}
+
+// The mode a subject is practised in. Maths has one for now, so it is
+// never chosen — it is simply what the CE2 does.
+function modesFor() {
+  return subject() === "maths" ? ["maths"] : ["mcq", "mcqfr", "spell", "say"];
+}
+
+/* A mode belongs to a subject. Changing profile can therefore leave the
+   app holding one that means nothing here — a dictation for a CE2 — so
+   it falls back to the first the subject offers. */
+function settleMode() {
+  const offered = modesFor();
+  if (offered.indexOf(state.mode) === -1) state.mode = offered[0];
+}
+
 function recordOf(word) {
   return progress.words[word.key] || { level: 0, seen: 0, ok: 0, last: 0 };
 }
 
+// Everything this pupil practises, whatever the subject.
 function allWords() {
-  return LESSONS.flatMap(lesson => lesson.words);
+  return lists().flatMap(one => one.items);
 }
 
 // ---- Spaced repetition ----
@@ -847,11 +896,12 @@ function levelNote(change) {
   const gained = change.gained
     ? '<span class="also gain">+' + change.gained + ' point' + (change.gained > 1 ? 's' : '') + '</span>'
     : '';
+  const one = thing(1);
   const text =
-    change.after.level === MAX_LEVEL ? "Mot acquis." :
-    change.after.level > change.before.level ? "Ce mot monte d'un niveau." :
-    change.after.level < change.before.level ? "Ce mot redescend d'un niveau." :
-    "Niveau du mot :";
+    change.after.level === MAX_LEVEL ? (one === "calcul" ? "Calcul acquis." : "Mot acquis.") :
+    change.after.level > change.before.level ? "Ce " + one + " monte d'un niveau." :
+    change.after.level < change.before.level ? "Ce " + one + " redescend d'un niveau." :
+    "Niveau du " + one + " :";
   return '<span class="also">' + text + levelDots(change.after.level) + '</span>' + gained;
 }
 
@@ -941,15 +991,15 @@ function poolFor(lessonId) {
   // everything is up to date it falls back to the whole set, so wanting to
   // revise more is never refused.
   if (lessonId === "!due") return allWords();
-  const lesson = LESSONS.find(l => l.id === lessonId);
-  return lesson ? lesson.words : [];
+  const list = lists().find(one => one.id === lessonId);
+  return list ? list.items : [];
 }
 
 function lessonTitle(lessonId) {
-  if (lessonId === "*") return "Tous les mots";
+  if (lessonId === "*") return subject() === "maths" ? "Tout mélangé" : "Tous les mots";
   if (lessonId === "!due") return "Révision du jour";
-  const lesson = LESSONS.find(l => l.id === lessonId);
-  return lesson ? lesson.title : "";
+  const list = lists().find(one => one.id === lessonId);
+  return list ? list.title : "";
 }
 
 // ---- Menu ----
@@ -1099,6 +1149,7 @@ async function startAs(id) {
 
 function renderMenu() {
   if (listening) recognition.stop();
+  settleMode();
 
   // Progress line shown under each list. Nothing is displayed before the
   // first round, so an untouched list does not look like a failure.
@@ -1108,31 +1159,38 @@ function renderMenu() {
     return '<span class="bar"><span style="width:' +
       Math.max(3, Math.round(stats.ratio * 100)) + '%"></span></span>' +
       '<span class="done">' + (stats.mastered
-        ? stats.mastered + " mot" + (stats.mastered > 1 ? "s" : "") + " acquis"
+        ? stats.mastered + " " + thing(stats.mastered) + " acquis"
         : "révision en cours") + '</span>';
   }
 
-  const lessons = LESSONS.map(lesson =>
-    '<button class="choice" data-lesson="' + esc(lesson.id) + '">' +
-      esc(lesson.title) +
-      '<span class="sub">' + esc(lesson.subtitle || "") +
-      (lesson.subtitle ? " — " : "") + lesson.words.length + ' mots</span>' +
-      progressLine(lesson.words) +
+  const here = lists();
+  const lessons = here.map(list =>
+    '<button class="choice" data-lesson="' + esc(list.id) + '">' +
+      esc(list.title) +
+      '<span class="sub">' + esc(list.subtitle || "") +
+      (list.subtitle ? " — " : "") + list.items.length + ' ' + thing(list.items.length) + '</span>' +
+      progressLine(list.items) +
     '</button>'
   ).join("");
 
-  const everything = LESSONS.flatMap(lesson => lesson.words);
+  const everything = here.flatMap(list => list.items);
 
-  const total = LESSONS.reduce((sum, lesson) => sum + lesson.words.length, 0);
+  const total = everything.length;
 
-  const modes = [
-    { id: "mcq",   title: "Français → anglais", sub: "Choisis le mot anglais, il est lu à voix haute" },
-    { id: "mcqfr", title: "Anglais → français", sub: "Écoute la phrase anglaise et choisis sa traduction" },
-    { id: "say",   title: "Prononcer",          sub: "Dis la réponse en anglais au micro" },
-    { id: "spell", title: "Écouter et écrire",   sub: "Le mot est dit en anglais, écris-le sans faute" }
-  ].map(mode =>
-    '<button class="choice" data-mode="' + mode.id + '" aria-pressed="' + (state.mode === mode.id) + '">' +
-      mode.title + '<span class="sub">' + mode.sub + '</span>' +
+  /* The ways of practising. Only what belongs to the subject is offered,
+     and a subject with one of them offers no choice at all — the CE2
+     does not pick between four kinds of the same sum. */
+  const ALL_MODES = {
+    mcq:   { title: "Français → anglais", sub: "Choisis le mot anglais, il est lu à voix haute" },
+    mcqfr: { title: "Anglais → français", sub: "Écoute la phrase anglaise et choisis sa traduction" },
+    say:   { title: "Prononcer",          sub: "Dis la réponse en anglais au micro" },
+    spell: { title: "Écouter et écrire",  sub: "Le mot est dit en anglais, écris-le sans faute" },
+    maths: { title: "Calcul mental",      sub: "Écris le résultat" }
+  };
+  const offered = modesFor();
+  const modes = offered.length < 2 ? "" : offered.map(id =>
+    '<button class="choice" data-mode="' + id + '" aria-pressed="' + (state.mode === id) + '">' +
+      ALL_MODES[id].title + '<span class="sub">' + ALL_MODES[id].sub + '</span>' +
     '</button>'
   ).join("");
 
@@ -1143,18 +1201,19 @@ function renderMenu() {
       '<div class="row">' +
         '<span class="col">' +
           '<p class="count">' + (goal.complete
-            ? goal.done + ' mot' + (goal.done > 1 ? 's' : '') + ' révisés'
-            : goal.done + ' mot' + (goal.done > 1 ? 's' : '') + ' sur ' + goal.goal) + '</p>' +
+            ? goal.done + ' ' + thing(goal.done) + ' révisé' + (goal.done > 1 ? 's' : '')
+            : goal.done + ' ' + thing(goal.done) + ' sur ' + goal.goal) + '</p>' +
           '<span class="bar"><span style="width:' +
             Math.min(100, Math.round(goal.done / goal.goal * 100)) + '%"></span></span>' +
           '<span class="done">' + (goal.complete
             ? 'Objectif atteint, tampon gagné.'
-            : 'Un mot compte même quand la réponse est fausse.') + '</span>' +
+            : 'Un ' + thing(1) + ' compte même quand la réponse est fausse.') + '</span>' +
         '</span>' +
         (goal.complete ? stampSvg(goal.stamp, 64) : '') +
       '</div>' +
       '<div class="actions"><button class="text primary" id="daily">' +
-        (goal.complete ? 'Continuer à réviser' : 'Réviser les mots du jour') +
+        (goal.complete ? 'Continuer à réviser'
+          : subject() === "maths" ? 'Les calculs du jour' : 'Réviser les mots du jour') +
       '</button></div>' +
     '</section>';
 
@@ -1170,17 +1229,23 @@ function renderMenu() {
 
   screen.innerHTML = demo + rankBanner() + property + goalCard +
     '<section class="card">' +
-      '<p class="label">Choisis l\'exercice</p>' +
-      '<div class="modes">' + modes + '</div>' +
-      '<p class="label who-line" style="margin-top:6px">' +
+      (modes
+        ? '<p class="label">Choisis l\'exercice</p>' +
+          '<div class="modes">' + modes + '</div>'
+        : "") +
+      '<p class="label who-line"' + (modes ? ' style="margin-top:6px"' : '') + '>' +
         faceOf(PROFILE, "small") + esc(PROFILE.name) + gradeBadge(PROFILE.grade) +
         ' <button class="link" data-switch>Changer de profil</button></p>' +
-      '<p class="label">Choisis la liste</p>' +
+      '<p class="label">' + (subject() === "maths" ? "Choisis le calcul" : "Choisis la liste") + '</p>' +
       '<div class="stack">' + lessons +
-        '<button class="choice" data-lesson="*">Tous les mots<span class="sub">Les ' +
-          LESSONS.length + ' listes mélangées — ' + total + ' mots</span>' +
-          progressLine(everything) +
-        '</button>' +
+        // Mixing one list with itself is no choice at all.
+        (here.length > 1
+          ? '<button class="choice" data-lesson="*">' + esc(lessonTitle("*")) +
+            '<span class="sub">Les ' + here.length + ' listes mélangées — ' +
+            total + ' ' + thing(total) + '</span>' +
+            progressLine(everything) +
+          '</button>'
+          : "") +
       '</div>' +
       '<p style="margin:22px 0 0">' +
         '<button class="link" id="report">Voir le bilan</button>' +
@@ -1303,9 +1368,9 @@ function relativeDate(timestamp) {
 }
 
 function renderReport() {
-  const sections = LESSONS.map(lesson => {
-    const stats = progressOf(lesson.words);
-    const rows = lesson.words.map(word => {
+  const sections = lists().map(lesson => {
+    const stats = progressOf(lesson.items);
+    const rows = lesson.items.map(word => {
       const record = recordOf(word);
       const meta = record.seen
         ? record.ok + " bonne" + (record.ok > 1 ? "s" : "") + " réponse" +
@@ -1321,8 +1386,8 @@ function renderReport() {
     return '<section class="card">' +
         '<p class="label" style="margin-bottom:0"><b>' + esc(lesson.title) + '</b></p>' +
         '<span class="bar"><span style="width:' + Math.round(stats.ratio * 100) + '%"></span></span>' +
-        '<span class="done">' + stats.mastered + ' mot' + (stats.mastered > 1 ? "s" : "") +
-          ' acquis sur ' + lesson.words.length + '</span>' +
+        '<span class="done">' + stats.mastered + ' ' + thing(stats.mastered) +
+          ' acquis sur ' + lesson.items.length + '</span>' +
         '<ul class="report">' + rows + '</ul>' +
       '</section>';
   }).join("");
@@ -1330,8 +1395,8 @@ function renderReport() {
   screen.innerHTML =
     '<section class="card">' +
       '<button class="link" id="back">← Retour</button>' +
-      '<p class="label" style="margin:14px 0 0">Chaque mot monte d\'un niveau par bonne réponse. ' +
-        'Cinq points remplis, le mot est acquis.</p>' +
+      '<p class="label" style="margin:14px 0 0">Chaque ' + thing(1) +
+        ' monte d\'un niveau par bonne réponse. Cinq points remplis, il est acquis.</p>' +
     '</section>' + rankBanner() + sections;
 
   document.getElementById("back").addEventListener("click", renderMenu);
@@ -1368,6 +1433,7 @@ function startRound(lessonId) {
     // Writing what is heard means writing it from the sound alone: the
     // French word would hand the answer over before the first letter.
     if (state.mode === "spell") return { word, prompt: "" };
+    // A sum is asked in writing and answered in writing.
     return { word, prompt: word.fr };
   });
   state.index = 0;
@@ -1410,7 +1476,8 @@ function renderShell() {
   screen.innerHTML =
     '<section class="card">' +
       '<div class="topbar">' +
-        '<button class="link" id="back">← Changer de liste</button>' +
+        '<button class="link" id="back">← ' +
+          (subject() === "maths" ? "Changer d\'exercice" : "Changer de liste") + '</button>' +
         '<span class="counter" id="counter"></span>' +
       '</div>' +
       '<div class="track" id="track" aria-hidden="true"></div>' +
@@ -1440,11 +1507,13 @@ function showQuestion() {
   prompt.hidden = !prompt.textContent;   // the dictation asks nothing in writing
   if (state.mode === "say") say.render();
   else if (state.mode === "spell") spell.render();
+  else if (state.mode === "maths") maths.render();
   else mcq.render();
 }
 
 function nextLabel() {
-  return state.index === state.round.length - 1 ? "Voir le score" : "Mot suivant";
+  if (state.index === state.round.length - 1) return "Voir le score";
+  return subject() === "maths" ? "Calcul suivant" : "Mot suivant";
 }
 
 function goNext() {
@@ -1665,6 +1734,107 @@ const spell = {
   }
 };
 
+/* ---- Mental arithmetic ----
+   The question is written, the answer is typed. A wrong answer shows the
+   right one and asks for it to be written out, exactly as a misspelt
+   word does: what is corrected by hand is what sticks. */
+const maths = {
+  // Only the digits matter: spaces and a stray full stop are forgiven.
+  matches(word, attempt) {
+    const said = String(attempt).replace(/[^0-9-]/g, "");
+    return said !== "" && Number(said) === word.answer;
+  },
+
+  render() {
+    const word = state.round[state.index].word;
+    document.getElementById("body").innerHTML =
+      '<form id="sumForm" class="spell">' +
+        '<input id="typed" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+               'autocomplete="off" autocorrect="off" spellcheck="false" ' +
+               'placeholder="Ta réponse" aria-label="Ta réponse">' +
+        '<button class="text primary" type="submit" id="check">Valider</button>' +
+      '</form>' +
+      '<p class="verdict" id="verdict"></p>' +
+      '<div class="actions">' +
+        '<button class="text primary" id="next" hidden></button>' +
+        '<button class="text" id="skip">Voir la réponse</button>' +
+      '</div>';
+
+    const input = document.getElementById("typed");
+    document.getElementById("skip").addEventListener("click", () => maths.settle(false, ""));
+    document.getElementById("next").addEventListener("click", goNext);
+    document.getElementById("sumForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const attempt = input.value.trim();
+      if (!attempt) return;
+      if (state.locked) maths.checkCopy(attempt);
+      else maths.settle(maths.matches(word, attempt), attempt);
+    });
+    input.focus();
+  },
+
+  settle(success, attempt) {
+    if (state.locked) return;
+    state.locked = true;
+    const word = state.round[state.index].word;
+    const change = recordResult(word, success);
+    const verdict = document.getElementById("verdict");
+    const input = document.getElementById("typed");
+
+    if (success) {
+      verdict.innerHTML = "<b>C'est juste.</b> " + esc(word.fr) + ", c'est " +
+        word.answer + "." + levelNote(change);
+      input.disabled = true;
+      document.getElementById("check").disabled = true;
+      document.getElementById("skip").hidden = true;
+      maths.showNext();
+    } else {
+      verdict.innerHTML =
+        (attempt ? "<b>Pas tout à fait.</b> Tu as écrit " + esc(attempt) + "." : "<b>La réponse :</b>") +
+        '<span class="also">' + esc(word.fr) + ", c'est <b>" + word.answer +
+        "</b> — " + word.n + " + " + word.n + " = " + word.answer + ".</span>" +
+        levelNote(change);
+      document.getElementById("skip").hidden = true;
+      // Writing it out is what unlocks the next one.
+      input.value = "";
+      input.placeholder = "Recopie : " + word.answer;
+      input.focus();
+      document.getElementById("check").textContent = "Recopier";
+      const pass = document.createElement("button");
+      pass.className = "link";
+      pass.type = "button";
+      pass.id = "pass";
+      pass.textContent = "passer";
+      pass.addEventListener("click", maths.showNext);
+      document.querySelector(".actions").appendChild(pass);
+    }
+    markTrack(success ? "right" : "wrong");
+  },
+
+  checkCopy(attempt) {
+    const word = state.round[state.index].word;
+    if (maths.matches(word, attempt)) {
+      document.getElementById("typed").disabled = true;
+      document.getElementById("check").disabled = true;
+      const pass = document.getElementById("pass");
+      if (pass) pass.remove();
+      maths.showNext();
+    } else {
+      document.getElementById("typed").value = "";
+      document.getElementById("typed").focus();
+    }
+  },
+
+  showNext() {
+    const pass = document.getElementById("pass");
+    if (pass) pass.remove();
+    const next = document.getElementById("next");
+    next.textContent = nextLabel();
+    next.hidden = false;
+    next.focus();
+  }
+};
+
 const say = {
   render() {
     document.getElementById("body").innerHTML =
@@ -1861,6 +2031,7 @@ function showScore() {
     state.score === total ? "Sans faute." :
     state.score >= total - 2 ? "Presque parfait." :
     state.score >= total / 2 ? "C'est en bonne voie." :
+    subject() === "maths" ? "Reprends les calculs tranquillement." :
     "Réécoute les mots et recommence.";
 
   // The words that came up in this round and are still weak: what to revise
