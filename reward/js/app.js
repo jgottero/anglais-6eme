@@ -6,7 +6,9 @@
    Buying is one flow now: the shop hands an object over, the shop
    closes, and the object is paid for on the tile where the child puts it
    down. It stays in hand afterwards, so a row of fields is a row of
-   taps.
+   taps. The name is said in English as the object is handed over: that
+   is what the child is here to learn, and it costs them nothing to
+   hear it.
 
    The learning app never touches the state directly. It either calls
    REWARD.grantTier(rank) when the module is on the same page, or posts
@@ -63,6 +65,10 @@
       onPick: (item, colour) => {
         World.startPlacing(item.id, colour);
         openShop(false);
+        // Choosing an object in the shop is the moment its English name
+        // matters most: it is said out loud, without asking, the same
+        // way the 🔊 of a selected object says it.
+        say(item.en);
       },
       onRefused: toast
     });

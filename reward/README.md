@@ -178,7 +178,8 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   bleu a les mêmes plis que le rouge —, et rien n'est recalculé pendant
   le jeu.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
-  magasin se ferme et l'objet part dans le coin de l'écran avec son prix.
+  magasin se ferme, son **nom anglais est prononcé**, et l'objet part
+  dans le coin de l'écran avec son prix.
   Un appui sur le terrain le pose et débite les pièces, **centré au plus
   près de l'endroit touché** : viser le coin haut-gauche d'une case met
   cette case en bas à droite de l'objet, viser son milieu le pose à cheval
@@ -249,6 +250,12 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   un bouton 🔊 qui prononce son nom anglais avec la voix du navigateur,
   un peu ralentie. C'est le premier fil tiré vers le vocabulaire : le nom
   anglais est déjà partout, il se dit maintenant à voix haute.
+
+  **Le magasin le dit tout seul** : au moment où l'on choisit un objet et
+  qu'il part en main, son nom anglais est prononcé sans qu'on ait rien à
+  toucher — c'est l'instant où il compte le plus, et il ne coûte rien à
+  entendre. Un objet refusé (trop cher, pas encore débloqué) ne dit rien :
+  seul ce qu'on emporte se prononce.
 * Dans les deux lieux : toucher un objet le **sélectionne** ; sa barre propose
   de le **revendre à son prix d'achat**, et une fois sélectionné on le
   glisse pour le déplacer. L'objet reste sélectionné si on le lâche sur
