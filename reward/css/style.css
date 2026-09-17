@@ -223,6 +223,9 @@ button { font: inherit; cursor: pointer; }
   background: rgba(200, 65, 60, 0.38);
 }
 .ghost img { opacity: 0.85; }
+/* The drawing hangs off the ground the object would take: a tree's
+   branches reach well past the square its trunk holds. */
+.ghost-art { position: absolute; }
 
 /* ---- Overlay ---- */
 

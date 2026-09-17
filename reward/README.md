@@ -207,6 +207,24 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   `js/catalog.js`. Le dessin garde ses ombres et ses reflets — le tissu
   bleu a les mêmes plis que le rouge —, et rien n'est recalculé pendant
   le jeu.
+* **Le dessin et le sol qu'il occupe sont deux choses.** Un sapin est
+  dessiné sur 3 × 4 cases, mais seul son tronc tient le sol : son
+  **emprise** est la bande d'une case de haut, au pied du dessin. Les
+  branches débordent, et un autre arbre peut pousser juste derrière —
+  c'est ainsi qu'on plante une forêt dense, qu'on range un banc sous une
+  pergola ou qu'on pousse une armoire contre le mur. Cent trente-quatre
+  objets ont ainsi une emprise plus petite que leur dessin
+  (`foot` dans `js/catalog.js`) ; tout ce qui est vu de dessus — le lit,
+  la table, la mare, le trampoline — occupe son dessin entier, comme
+  avant. La bande est centrée sur le dessin et tourne avec lui : un banc
+  tourné d'un quart de tour tient une colonne au lieu d'une rangée.
+  La silhouette blanche, à la pose, montre **l'emprise** — c'est elle qui
+  doit être libre —, et le dessin par-dessus, là où il tombera.
+  Comme les dessins se chevauchent désormais, c'est **la case touchée qui
+  décide** : ce qui est posé dessus répond en premier (le plus en avant
+  s'il y en a plusieurs), et seulement si rien n'y est posé, le dessin qui
+  déborde par-dessus. Une fleur rangée derrière une grange se retrouve
+  donc toujours.
 * **Prendre en main** : toucher un objet du magasin ne l'achète pas ; le
   magasin se ferme, son **nom anglais est prononcé**, et l'objet part
   dans le coin de l'écran avec son prix.
@@ -310,11 +328,17 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   aussi est remboursé, l'enfant est prévenu (« +350 pièces rendues »), et
   le fichier est réécrit aussitôt pour qu'un remboursement ne soit jamais
   payé deux fois.
-  La dernière étape en date (`8`) est celle des couleurs : un objet posé
-  ne dit rien de sa couleur tant qu'on ne lui en a pas donné une, et ne
-  rien dire veut dire « la couleur dans laquelle il est dessiné » — ce
-  que portait déjà tout ce qui était en place. Rien à convertir, rien à
-  rembourser.
+  La dernière étape en date (`9`) est celle des emprises : un objet était
+  rangé par le coin de son **dessin**, il est désormais rangé par le coin
+  de son **emprise** — la bande de sol au pied du dessin. L'étape déplace
+  chaque objet du premier coin vers le second, en tenant compte du quart
+  de tour qu'il a reçu ; quinze dessins ont perdu leurs côtés vides au
+  passage, et `WAS` (`js/state.js`) se souvient de leur ancienne largeur.
+  L'emprise tient toujours dans le carré que le dessin occupait, donc
+  **rien n'est déplacé ni remboursé** : un objet qui avait sa place la
+  garde. Un dessin rogné peut se retrouver une demi-case sur le côté,
+  faute de pouvoir centrer un tronc de trois cases sur un dessin qui en
+  faisait quatre ; rien d'autre ne bouge.
 * **Une propriété par enfant** : l'application d'apprentissage ouvre le
   module avec `reward/index.html?p=<profil>`, et la sauvegarde prend ce
   nom-là (`reward-property-v1:p1`). Ouvert tout seul, sans profil nommé,
@@ -507,7 +531,7 @@ reward/
 ## Ajouter un objet
 
 1. Déposer un SVG dans `assets/items/`. L'échelle est de **16 px par
-   case**, et le dessin doit avoir les proportions de son emprise : un
+   case**, et le dessin doit avoir les proportions de son cadre : un
    objet de 2 × 2 cases (la taille courante) se dessine dans un `viewBox`
    de `0 0 32 32`, une porte de 2 × 1 dans `0 0 32 16`, un banc de
    4 × 2 dans `0 0 64 32`, un poteau de 1 × 1 dans `0 0 16 16`. Un
@@ -519,10 +543,19 @@ reward/
    sans rien déclarer). Le `level` est le niveau qui le met en rayon : 0
    pour le premier jour, un multiple de cinq ensuite. L'objet apparaît
    aussitôt en magasin, au bon niveau et du bon côté des murs.
-3. Ajouter `wet: true` à ce qui doit pouvoir se poser **sur l'eau** (un
+3. Ajouter `foot: <largeur>` si l'objet est **dessiné debout** et ne tient
+   le sol que par son pied : `foot: 3` sur un sapin dessiné sur 3 × 4
+   cases lui donne les trois cases du bas, et laisse passer ce qui se
+   range derrière. La bande fait toujours une case de haut, elle est
+   centrée sur le dessin — sa largeur doit donc être paire ou impaire
+   comme lui — et elle ne peut pas être plus large que lui. Sans ce mot,
+   l'objet occupe tout son dessin, ce qui est juste pour tout ce qui est
+   vu de dessus (un lit, une mare) et pour ce qui se raccorde à ses
+   voisins.
+4. Ajouter `wet: true` à ce qui doit pouvoir se poser **sur l'eau** (un
    ponton, un bateau, un oiseau d'eau). Sans ce mot, la mer et le lac le
    refusent.
-4. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` avec
+5. Pour un objet qui **se raccorde à ses voisins**, ajouter `joins` avec
    `group` (avec quoi il s'assemble) et, au choix, l'une des deux
    manières :
    * *entre deux voisins* — `across` (le morceau dessiné entre deux

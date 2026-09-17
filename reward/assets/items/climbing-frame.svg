@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="96" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 0 80 64" width="80" height="64">
   <ellipse cx="48" cy="58" rx="40" ry="4" fill="#000" opacity=".13"/>
   <g stroke="#c8413c" stroke-width="4" stroke-linecap="round" fill="none">
     <path d="M10 56V16M34 56V16M62 56V16M86 56V16"/>

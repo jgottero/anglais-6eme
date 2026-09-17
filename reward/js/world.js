@@ -232,12 +232,15 @@ const World = (function () {
       const item = CATALOG.item(entry.id);
       if (!item) return;
       const size = CATALOG.footprint(item, entry.r);
+      // The square holds the drawing, which reaches past the ground the
+      // object stands on: that is what the child sees and presses.
+      const shown = CATALOG.drawing(item, entry.r);
       const node = document.createElement("div");
       node.className = "ob" +
         (CATALOG.layerOf(item) === "ground" ? " is-ground" : "") +
         (isSelected("object", entry.uid) ? " is-selected" : "");
       node.dataset.uid = entry.uid;
-      node.style.cssText = box(entry.x, entry.y, size.w, size.h);
+      node.style.cssText = box(entry.x + shown.x, entry.y + shown.y, shown.w, shown.h);
       node.innerHTML = art(item, entry.r, entry.m, entry.c);
       linkCells(marks, item, entry, size).forEach(cell => links.appendChild(cell));
       if (rank(entry)) standing.push(node);
@@ -394,18 +397,23 @@ const World = (function () {
       'transform:' + poses.join(" ") + '">';
   }
 
+  /* The ghost marks the ground the object would take — that, and not
+     the drawing, is what has to be free — and the drawing hangs off it
+     where it will fall. */
   function showGhost(x, y, item, pose, valid, withArt) {
     const size = CATALOG.footprint(item, pose.r);
     const join = CATALOG.joinsOf(item);
     ghost.hidden = false;
     ghost.style.cssText = box(x, y, size.w, size.h);
     ghost.classList.toggle("is-bad", !valid);
+    if (!withArt) { ghost.innerHTML = ""; return; }
     /* An object in hand shows what it is about to join: the rails on
        every side, not only the two a drawn object carries. */
-    ghost.innerHTML = withArt
-      ? (join ? joinArt(joinMarks(PropertyState.scene()), join, x, y, true) : "") +
-        art(item, pose.r, pose.m, pose.c)
-      : "";
+    const shown = CATALOG.drawing(item, pose.r);
+    ghost.innerHTML =
+      (join ? joinArt(joinMarks(PropertyState.scene()), join, x, y, true) : "") +
+      '<div class="ghost-art" style="' + box(shown.x, shown.y, shown.w, shown.h) + '">' +
+      art(item, pose.r, pose.m, pose.c) + "</div>";
   }
 
   function hideGhost() {
@@ -457,6 +465,31 @@ const World = (function () {
     };
   }
 
+  /* What a press lands on. Drawings overlap now that they reach past the
+     ground they stand on, and the one in front would always answer — so
+     a flower tucked behind a barn could never be picked up again. The
+     square pressed decides instead: whatever is standing on it comes
+     first, the nearest the front of the scene if there are several, and
+     only when nothing stands there does the drawing hanging over it
+     answer for itself. */
+  function pressedOn(event) {
+    const node = event.target.closest(".ob, .blk, .plot[data-sale]");
+    if (!node || node.dataset.uid === undefined) return node;
+    const point = pointerTile(event.clientX, event.clientY);
+    const tile = { x: Math.floor(point.x), y: Math.floor(point.y) };
+    const standing = PropertyState.scene().placed.filter(entry => {
+      const item = CATALOG.item(entry.id);
+      if (!item || CATALOG.layerOf(item) === "ground") return false;
+      const size = CATALOG.footprint(item, entry.r);
+      return tile.x >= entry.x && tile.x < entry.x + size.w &&
+             tile.y >= entry.y && tile.y < entry.y + size.h;
+    });
+    if (!standing.length) return node;
+    // The last one down the scene is the one drawn over the others.
+    const front = standing.sort((a, b) => a.y - b.y)[standing.length - 1];
+    return world.querySelector('.ob[data-uid="' + front.uid + '"]') || node;
+  }
+
   /* ---- Gestures ---- */
 
   function onPointerDown(event) {
@@ -472,7 +505,7 @@ const World = (function () {
     /* Only the object already picked can be dragged. Everything else
        pans the camera, which is what a finger on the ground means far
        more often than "move this hen". */
-    const node = placing ? null : event.target.closest(".ob, .blk, .plot[data-sale]");
+    const node = placing ? null : pressedOn(event);
     const uid = node && node.dataset.uid !== undefined ? Number(node.dataset.uid) : null;
     if (uid === null || !isSelected("object", uid)) {
       gesture = {

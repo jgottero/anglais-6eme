@@ -34,7 +34,7 @@ const PropertyState = (function () {
       return PLAIN;
     }
   })();
-  const VERSION = 9;   // the shape of the save
+  const VERSION = 10;  // the shape of the save
   const START_COINS = 150;
 
   function blank() {
@@ -65,8 +65,58 @@ const PropertyState = (function () {
        colour it is drawn in — which is what everything already down
        was wearing yesterday. So there is nothing to convert and
        nothing to pay back: the property comes across untouched. */
-    8: saved => Object.assign({}, saved, { version: 9 })
+    8: saved => Object.assign({}, saved, { version: 9 }),
+
+    /* 10 tells a drawing apart from the ground it stands on. An object
+       used to be stored by the corner of its drawing; it is now stored
+       by the corner of its foot — the strip of ground it really holds,
+       narrower than the drawing and at the bottom of it. Fifteen
+       drawings were trimmed of their empty sides at the same time, and
+       WAS below is how wide they used to be.
+
+       Everything comes across: the foot always lies inside the square
+       the drawing used to take, so an object that had its place keeps
+       it, and nothing has to be paid back. A trimmed drawing can end up
+       half a tile to one side of where it was, because a three-tile
+       foot cannot be centred on four tiles; nothing else moves. */
+    9: saved => Object.assign({}, saved, { version: 10, placed: onTheirFeet(saved.placed) })
   };
+
+  // The drawings trimmed in version 10, and the width they had before.
+  const WAS = {
+    wheelbarrow: 4, pine_tree: 4, apple_tree: 4, cherry_tree: 4, garden_arch: 4,
+    lamp: 2, topiary: 3, bbq: 4, tractor: 6, traffic_light: 2, climbing_frame: 6,
+    snowy_fir: 4, christmas_tree: 4, castle_tower: 4, observatory: 6
+  };
+
+  /* An object stored by the corner of its drawing, stored by the corner
+     of its foot instead. The two squares share the foot of the drawing:
+     the foot sits in the middle of it, along the bottom — or along
+     whichever side the bottom ended up on, once the object was turned. */
+  function onTheirFeet(placed) {
+    const moved = {};
+    Object.keys(placed || {}).forEach(id => {
+      moved[id] = (Array.isArray(placed[id]) ? placed[id] : []).map(entry => {
+        const item = CATALOG.item(entry && entry.id);
+        if (!item) return entry;
+        const quarter = (entry.r || 0) % 4;
+        const was = { w: WAS[item.id] || item.w, h: item.h };
+        const drawn = quarter % 2 ? { w: was.h, h: was.w } : was;
+        const foot = CATALOG.footprint(item, entry.r);
+        const side = (drawn.w - foot.w) / 2, down = (drawn.h - foot.h) / 2;
+        const shift =
+          quarter === 1 ? { x: 0, y: down } :
+          quarter === 2 ? { x: side, y: 0 } :
+          quarter === 3 ? { x: drawn.w - foot.w, y: down } :
+                          { x: side, y: drawn.h - foot.h };
+        return Object.assign({}, entry, {
+          x: Math.round(entry.x + shift.x),
+          y: Math.round(entry.y + shift.y)
+        });
+      });
+    });
+    return moved;
+  }
 
   let carried = 0;    // coins handed back while reading an older save
   /* While a world someone else sent is on show, the child's own

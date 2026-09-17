@@ -42,7 +42,7 @@
    ===================================================================== */
 const Share = (function () {
 
-  const SHAPE = 1;        // the shape of the message, should it ever change
+  const SHAPE = 2;        // the shape of the message, should it ever change
   const MARK = "#w=";     // what an address carrying a world looks like
 
   /* ---- Reading and writing the bytes ---- */
