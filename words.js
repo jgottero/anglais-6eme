@@ -91,6 +91,21 @@ const VOCABULARY = {
         { fr: "Malade", en: ["sick"], heard: ["six", "sik"] },
         { fr: "Fatigué", en: ["tired"], heard: ["tyred", "tire"] }
       ]
+    },
+    {
+      id: "be",
+      title: "To be",
+      subtitle: "Verbe être",
+      words: [
+        { fr: "Je suis", en: ["I am"] },
+        { fr: "Tu es", en: ["You are"] },
+        { fr: "Il est (garçon ou animal)", en: ["He is"] },
+        { fr: "Elle est (fille ou animal)", en: ["She is"] },
+        { fr: "C'est (chose ou animal)", en: ["It is"] },
+        { fr: "Nous sommes", en: ["We are"] },
+        { fr: "Vous êtes", en: ["You are"] },
+        { fr: "Ils/Elles sont", en: ["They are"] }
+      ]
     }
   ]
 };
