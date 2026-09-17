@@ -13,6 +13,10 @@
    to learn — and keeps the French one underneath to say which object it
    is.
 
+   Every drawing is shown on the ground it belongs to — a lawn outside,
+   a wooden floor inside — so that a path or a patch of decking reads as
+   something laid down rather than as a coloured square.
+
    What comes in more than one colour shows its colours under the
    drawing. Touching one is not buying: it repaints the card there and
    then, and that is the colour the object leaves the shop in. The
@@ -129,7 +133,8 @@ const Shop = (function () {
       (coming ? " is-coming" : affordable ? "" : " is-locked") +
       '" data-pick="' + item.id + '">' +
       '<span class="card-art">' +
-        '<img src="' + CATALOG.cardUrl(item.id, colour) + '" alt="' + item.fr + '" draggable="false">' +
+        '<img' + (CATALOG.layerOf(item) === "ground" ? ' class="is-ground"' : "") +
+          ' src="' + CATALOG.cardUrl(item.id, colour) + '" alt="' + item.fr + '" draggable="false">' +
         (owned ? '<span class="owned" title="Déjà posé ici">×' + owned + '</span>' : '') +
         (coming ? '<span class="coming">niv. ' + item.level + '</span>' : '') +
       '</span>' +
@@ -186,6 +191,9 @@ const Shop = (function () {
     ).join("");
 
     renderLevel(level);
+
+    // The shelves take the ground of the place: a lawn outside, a floor in.
+    gridEl.classList.toggle("is-indoor", !!indoor);
 
     const family = here.filter(item => item.category === category);
     gridEl.innerHTML = family

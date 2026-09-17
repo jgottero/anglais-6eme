@@ -181,6 +181,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Chaque fiche annonce d'abord le **nom anglais**, en gras, le nom
   français en gris dessous, et le prix — la taille se devine au dessin,
   elle n'est pas écrite.
+  Chaque dessin est posé **sur le sol auquel il appartient** : une pelouse
+  dehors, un parquet dedans. Un chemin ou une terrasse se lit alors comme
+  ce qu'il est, quelque chose qu'on pose par terre, et non comme un carré
+  de couleur. Un terrain porte en plus une ombre portée, faute de quoi un
+  parquet sur du parquet disparaîtrait.
 * **Choisir la couleur** : cinquante objets se vendent en
   plusieurs couleurs — la couette du **lit**, le tissu du **canapé** et
   du **fauteuil**, le **tapis**, le carrelage, la **chaise** et la
@@ -277,6 +282,21 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   poser, et dans sa barre une fois posé. Un quart de tour à la fois ;
   l'emprise tourne avec le dessin, et un objet qui ne rentrerait plus en
   travers reste comme il était.
+  **Les terrains tournent aussi** : vingt d'entre eux sur vingt-huit —
+  les sillons du **champ**, les rangs du **potager**, les lames de la
+  **terrasse** et du **parquet**, les assises des **briques** et des
+  **pavés**, le **carrelage**, le **gravier**, le **parterre**, la
+  **neige**, les rayures du **tapis de bain**, les veines du **marbre**,
+  la glissade de la **patinoire**, la diagonale du **pas japonais**, la
+  place de l'assiette sur la **nappe**.
+  La règle n'est pas une opinion : un terrain tourne **quand un quart de
+  tour change au moins un cinquième de son dessin**, mesuré pixel par
+  pixel (`tests/test42.mjs` affiche le tableau). Les huit qui ne tournent
+  pas — le chemin (2 %), le trottoir (0 %), le tapis (0 %), la route
+  (1 %), la route à bandes (0 %), le ruisseau (11 %), la piscine (12 %),
+  le sable (13 %) — n'auraient rien gagné à un bouton. La route, la route
+  à bandes et le ruisseau en avaient un : il ne faisait rien, il a été
+  retiré.
 * **Miroir** : **tout objet** porte un bouton ⇄ qui le retourne de gauche
   à droite — dans le coin avant de le poser, et dans sa barre une fois
   posé. L'emprise ne change pas, donc c'est toujours possible, et les
@@ -294,6 +314,9 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
   et un chien aussi, mais la poule se pose sans problème sur le chemin.
   La maison, elle, occupe les deux couches.
+  Le **pas japonais** est le seul terrain sans fond : ses pierres sont
+  dessinées sur du vide, si bien qu'il se pose sur l'herbe, le sable ou la
+  neige et laisse voir le décor autour d'elles.
 * **Écouter** : la barre d'un objet (ou d'un bâtiment) sélectionné porte
   un bouton 🔊 qui prononce son nom anglais avec la voix du navigateur,
   un peu ralentie. C'est le premier fil tiré vers le vocabulaire : le nom

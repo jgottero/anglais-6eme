@@ -525,17 +525,35 @@ button { font: inherit; cursor: pointer; }
 .card:active { transform: scale(0.97); }
 .card.is-locked { opacity: 0.5; }
 
+/* Each drawing is shown on the ground it belongs to: a lawn outside, a
+   wooden floor inside. A path or a patch of decking then reads as what
+   it is — something laid on a ground — rather than as a coloured
+   square, and everything on a shelf looks like it does on the property.
+   The colour underneath is what shows while the texture loads. */
 .card-art {
   position: relative;
   width: 100%;
   height: 78px;
   display: grid;
   place-items: center;
-  background: #e8f1d9;
+  background: #8fbf5f url("../assets/ground/grass-1.svg") 0 0 / 46px 46px repeat;
   border-radius: 8px;
   margin-bottom: 5px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.09);
+}
+.grid.is-indoor .card-art {
+  background: #c8a06a url("../assets/ground/floor-1.svg") 0 0 / 46px 46px repeat;
 }
 .card-art img { max-width: 72px; max-height: 66px; }
+/* A ground tile is made of the same stuff as the shelf it is shown on —
+   a wooden floor on a wooden floor would simply vanish — so it is given
+   an edge and a shadow, and reads as a patch laid on top. The shadow
+   follows the drawing rather than its box, so the stepping stones, which
+   have no ground of their own, each cast their own. */
+.card-art img.is-ground {
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.55))
+          drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
 .card-art .owned {
   position: absolute;
   right: 5px;

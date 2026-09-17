@@ -391,9 +391,14 @@ const World = (function () {
     const poses = ["translate(-50%,-50%)"];
     if (quarter) poses.push("rotate(" + quarter * 90 + "deg)");
     if (mirror) poses.push("scaleX(-1)");
+    /* A turned drawing is given its own size, which overrides the hair
+       of overlap the stylesheet gives a ground tile — so a turned patch
+       of decking has to ask for it again, or a thread of grass shows
+       between two of them at some zooms. */
+    const bleed = CATALOG.layerOf(item) === "ground" ? 1 : 0;
     return '<img class="is-turned" src="' + CATALOG.assetUrl(item.id, colour) +
       '" alt="' + item.fr + '" draggable="false"' +
-      ' style="width:' + item.w * TILE + 'px;height:' + item.h * TILE + 'px;' +
+      ' style="width:' + (item.w * TILE + bleed) + 'px;height:' + (item.h * TILE + bleed) + 'px;' +
       'transform:' + poses.join(" ") + '">';
   }
 
