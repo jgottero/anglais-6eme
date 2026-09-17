@@ -55,6 +55,13 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   Le bouton **Sortir** cherche vraiment la porte : depuis un étage, qui
   n'a que des escaliers, il redescend jusqu'à l'étage qui en a une et
   ressort par là, d'un seul appui.
+  **Deux appuis d'affilée** sur une maison, une porte ou un escalier
+  passent directement, sans le détour par la barre du bas. Le premier
+  appui sélectionne toujours : la barre dit où cela mène et prononce le
+  nom anglais, le second est la réponse. Les deux doivent se suivre de
+  près (moins d'une demi-seconde) et au même endroit (à un doigt près),
+  sans quoi ce sont deux appuis simples. Ce qui ne mène nulle part — un
+  mur, une poule — ne gagne aucun second sens.
 * **Un bouton par étage** : dans un bâtiment qui en a plusieurs, une
   rangée **RDC · 1er · 2e · 3e** s'affiche sous le bouton Sortir, celui
   où l'on se trouve marqué. Un appui y va directement — chercher

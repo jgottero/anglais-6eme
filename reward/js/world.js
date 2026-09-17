@@ -637,7 +637,7 @@ const World = (function () {
 
     if (finished.type === "pan") {
       if (finished.moved) return;
-      if (finished.tapNode) pick(finished.tapNode);
+      if (finished.tapNode) tapped(finished.tapNode, event);
       else tapOnGround(event);
       return;
     }
@@ -783,6 +783,44 @@ const World = (function () {
     if (kind === "object") return selected.uid === key;
     if (kind === "plot") return selected.id === key;
     return selected.index === key;
+  }
+
+  /* ---- Going through a door ----
+     Two taps in a row on a house, a door or a staircase go through it,
+     rather than asking for the bar at the foot of the screen and its
+     button. The first tap still picks it, so the bar is there to say
+     where it leads and to read its English name out: the second tap is
+     the answer to it. Anything else is picked as usual — a hen tapped
+     twice is a hen tapped twice.
+
+     Only a press that stays put counts, and only within the scene it was
+     made in: going up the stairs puts a new floor under the finger, and
+     a tap left over from the floor below must not carry it further. */
+  const DOUBLE_TAP = 450;    // milliseconds between the two taps
+  const DOUBLE_REACH = 32;   // screen pixels the finger may wander between them
+  let lastTap = null;
+
+  // Where a block leads, or nothing: a wall leads nowhere.
+  function wayThrough(node) {
+    if (!node || node.dataset.block === undefined) return null;
+    const block = PropertyState.scene().blocks[Number(node.dataset.block)];
+    return (block && block.to) || null;
+  }
+
+  function tapped(node, event) {
+    const to = wayThrough(node);
+    const key = to ? PropertyState.sceneId() + "/" + node.dataset.block : null;
+    const twice = !!key && !!lastTap && lastTap.key === key &&
+      Date.now() - lastTap.at < DOUBLE_TAP &&
+      Math.abs(event.clientX - lastTap.x) < DOUBLE_REACH &&
+      Math.abs(event.clientY - lastTap.y) < DOUBLE_REACH;
+    lastTap = key && !twice
+      ? { key, at: Date.now(), x: event.clientX, y: event.clientY }
+      : null;
+    // Changing scene drops what was picked on its own, so there is
+    // nothing to put away here.
+    if (twice) { PropertyState.enter(to); return; }
+    pick(node);
   }
 
   function pick(node) {
