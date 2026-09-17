@@ -769,8 +769,13 @@ window.addEventListener("message", event => {
     stamps: message.stamps || 0
   };
   Store.save(progress);
-  // The menu shows the purse; redraw it if that is what is on screen.
-  if (document.getElementById("property").hidden) renderMenu();
+  /* The menu shows the purse, so it is redrawn when the purse changes —
+     but only when the menu is really what is on screen. Every answer
+     earns points, every point is sent to the property, and the property
+     answers with the purse: redrawing on that alone threw the pupil out
+     of the exercise they were in the middle of, back to the list of
+     lessons, at each answer. */
+  if (showing === "menu" && document.getElementById("property").hidden) renderMenu();
 });
 
 function goalState() {
@@ -1021,6 +1026,7 @@ function faceOf(profile, size) {
 }
 
 function renderProfiles(options) {
+  showing = "profiles";
   const asking = (options || {}).asking;
   const trouble = (options || {}).trouble;
   const people = PROFILES.all();
@@ -1056,6 +1062,7 @@ function renderProfiles(options) {
 }
 
 function renderNewProfile(trouble, howMany) {
+  showing = "profiles";
   /* The very first profile on a telephone that has been used before
      takes over what is already saved, rather than leaving it stranded
      under a key nobody reads any more. */
@@ -1147,7 +1154,14 @@ async function startAs(id) {
   renderMenu();
 }
 
+/* Which of the screens is up. The property answers with the purse
+   whenever anything is sent to it, and the menu has to be redrawn to
+   show it — but only the menu, and only when it is the screen the pupil
+   is looking at. */
+let showing = null;
+
 function renderMenu() {
+  showing = "menu";
   if (listening) recognition.stop();
   settleMode();
 
@@ -1317,6 +1331,7 @@ function propertyCard() {
 
 // ---- Stamp book ----
 function renderStamps() {
+  showing = "stamps";
   const stamps = earnedStamps();
   const month = stamps.filter(([key]) => key.startsWith(dayKey().slice(0, 7))).length;
 
@@ -1368,6 +1383,7 @@ function relativeDate(timestamp) {
 }
 
 function renderReport() {
+  showing = "report";
   const sections = lists().map(lesson => {
     const stats = progressOf(lesson.items);
     const rows = lesson.items.map(word => {
@@ -1473,6 +1489,7 @@ function buildReverse(word, pool) {
 
 // ---- Quiz shell, shared by both modes ----
 function renderShell() {
+  showing = "round";
   screen.innerHTML =
     '<section class="card">' +
       '<div class="topbar">' +
@@ -2026,6 +2043,7 @@ function stopListening() {
 
 // ---- Score ----
 function showScore() {
+  showing = "score";
   const total = state.round.length;
   const comment =
     state.score === total ? "Sans faute." :
@@ -2092,9 +2110,10 @@ function showScore() {
   if (first) first.focus();
 }
 
-// Keys 1 to 4 answer in both multiple-choice modes.
+// Keys 1 to 4 answer in both multiple-choice modes — and nowhere the
+// pupil writes their answer, where a digit is part of the answer itself.
 document.addEventListener("keydown", event => {
-  if (state.mode === "say" || state.mode === "spell") return;
+  if (state.mode === "say" || state.mode === "spell" || state.mode === "maths") return;
   if (event.key >= "1" && event.key <= "4") {
     const options = document.getElementById("options");
     const button = options && options.children[Number(event.key) - 1];
