@@ -560,10 +560,15 @@
     typeof window.SpeechSynthesisUtterance !== "undefined";
   let englishVoice = null;
 
+  /* Which voice says the word. British English first, since that is
+     what the words are taught in, then American, then any English at
+     all. A telephone usually has one and not the other: the tag is read
+     loosely because Android writes it en_US as readily as en-US. */
   function pickVoice() {
     if (!canSpeak) return null;
     const voices = window.speechSynthesis.getVoices();
     englishVoice = voices.find(voice => /^en[-_]GB/i.test(voice.lang)) ||
+      voices.find(voice => /^en[-_]US/i.test(voice.lang)) ||
       voices.find(voice => /^en/i.test(voice.lang)) || null;
     return englishVoice;
   }
@@ -577,10 +582,16 @@
 
   function say(words) {
     if (!canSpeak) return;
-    const said = new SpeechSynthesisUtterance(words);
-    said.lang = "en-GB";
-    said.rate = 0.85;   // a shade slower than a native speaker
     const voice = englishVoice || pickVoice();
+    const said = new SpeechSynthesisUtterance(words);
+    /* The language asked for has to be the language of the voice that
+       will do the speaking. Asking for British English on a telephone
+       that only has the American voice makes Android turn the whole
+       thing down without a sound — which is exactly what happened on
+       one of the two telephones this is used on. With no English voice
+       at all there is nothing better to ask for than British. */
+    said.lang = voice ? voice.lang : "en-GB";
+    said.rate = 0.85;   // a shade slower than a native speaker
     if (voice) said.voice = voice;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(said);

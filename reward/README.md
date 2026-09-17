@@ -334,6 +334,16 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   toucher — c'est l'instant où il compte le plus, et il ne coûte rien à
   entendre. Un objet refusé (trop cher, pas encore débloqué) ne dit rien :
   seul ce qu'on emporte se prononce.
+
+  **Quelle voix** : l'application n'en porte aucune, elle demande celle du
+  téléphone. L'anglais britannique d'abord, puis l'américain, puis
+  n'importe quel anglais — un téléphone a l'un et pas l'autre selon ce qui
+  a été installé, et l'étiquette est lue au large parce qu'Android écrit
+  `en_US` aussi volontiers que `en-US`. **La langue demandée est toujours
+  celle de la voix trouvée** : réclamer `en-GB` sur un téléphone qui n'a
+  que la voix américaine fait refuser la phrase entière à Android, sans un
+  son et sans un mot. Sans aucune voix anglaise, il n'y a rien à faire
+  dire au téléphone.
 * Dans les deux lieux : toucher un objet le **sélectionne** ; sa barre propose
   de le **revendre à son prix d'achat**, et une fois sélectionné on le
   glisse pour le déplacer. L'objet reste sélectionné si on le lâche sur
