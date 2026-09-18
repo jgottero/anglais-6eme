@@ -618,6 +618,15 @@ function thing(many) {
   return many > 1 ? "mots" : "mot";
 }
 
+/* And what the whole set of them is called, when they are offered
+   shuffled together. The two do not even agree in gender, so the phrase
+   is said here rather than pieced together at the other end. */
+function allMixed(many) {
+  return subject() === "maths"
+    ? "Les " + many + " exercices mélangés"
+    : "Les " + many + " listes mélangées";
+}
+
 // The mode a subject is practised in. Maths has one for now, so it is
 // never chosen — it is simply what the CE2 does.
 function modesFor() {
@@ -1259,7 +1268,7 @@ function renderMenu() {
         // Mixing one list with itself is no choice at all.
         (here.length > 1
           ? '<button class="choice" data-lesson="*">' + esc(lessonTitle("*")) +
-            '<span class="sub">Les ' + here.length + ' listes mélangées — ' +
+            '<span class="sub">' + allMixed(here.length) + ' — ' +
             total + ' ' + thing(total) + '</span>' +
             progressLine(everything) +
           '</button>'
@@ -1812,8 +1821,10 @@ const maths = {
     } else {
       verdict.innerHTML =
         (attempt ? "<b>Pas tout à fait.</b> Tu as écrit " + esc(attempt) + "." : "<b>La réponse :</b>") +
-        '<span class="also">' + esc(word.fr) + ", c'est <b>" + word.answer +
-        "</b> — " + word.n + " + " + word.n + " = " + word.answer + ".</span>" +
+        /* How the answer is found is the exercise's business, not this
+           file's: a table of four is not worked out like a double. */
+        '<span class="also">' + esc(word.fr) + ", c'est <b>" + word.answer + "</b>" +
+        (word.how ? " — " + esc(word.how) : "") + ".</span>" +
         levelNote(change);
       document.getElementById("skip").hidden = true;
       // Writing it out is what unlocks the next one.

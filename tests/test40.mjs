@@ -156,5 +156,86 @@ console.log('back to the CE2:', JSON.stringify(await page.evaluate(() => ({
   hasKeptHerWork: Object.keys(progress.words).filter(k => k.indexOf('doubles:') === 0).length
 }))));
 
+/* ---- the four tables ----
+   The doubles were the whole of the CE2 for a while. The tables of two
+   to five are four exercises of their own beside them, recited from one
+   times to ten times, which is the shape they are learnt in. */
+await page.click('[data-switch]');
+await page.waitForTimeout(400);
+await page.click('[data-profile="p1"]');
+await page.waitForTimeout(700);
+
+const tables = await page.evaluate(() => {
+  const wrong = [];
+  [2, 3, 4, 5].forEach(table => {
+    const list = MATHS.byId('times' + table);
+    if (!list) { wrong.push('times' + table + ' is missing'); return; }
+    const asked = list.items.map(one => one.n);
+    if (asked.join(' ') !== '1 2 3 4 5 6 7 8 9 10') wrong.push('times' + table + ' asks ' + asked.join(' '));
+    list.items.forEach(one => {
+      if (one.answer !== table * one.n) wrong.push(one.key + ' answers ' + one.answer);
+      if (Number(one.en[0]) !== one.answer) wrong.push(one.key + ' accepts ' + one.en[0]);
+      if (one.fr !== table + ' × ' + one.n) wrong.push(one.key + ' asks "' + one.fr + '"');
+    });
+  });
+  const keys = MATHS.all().map(one => one.key);
+  return {
+    exercises: MATHS.EXERCISES.map(one => one.id + '(' + one.items.length + ')').join(' '),
+    sums: keys.length,
+    everyKeyItsOwn: new Set(keys).size === keys.length,
+    wrong: wrong.length ? wrong : 'each table answers for itself'
+  };
+});
+console.log('the tables:', JSON.stringify(tables));
+if (Array.isArray(tables.wrong)) errors.push(...tables.wrong);
+if (!tables.everyKeyItsOwn) errors.push('two sums share a key: a save would confuse them');
+
+/* The menu offers them one by one, and all of them shuffled together —
+   which it did not before, there being only one exercise to shuffle. */
+console.log('on the menu:', JSON.stringify(await page.evaluate(() => ({
+  offered: Array.from(document.querySelectorAll('[data-lesson]')).map(b => b.dataset.lesson),
+  mixed: Array.from(document.querySelectorAll('[data-lesson="*"] .sub')).map(one => one.textContent)[0]
+}))));
+
+/* How a wrong answer is put right belongs to the exercise, not to the
+   app: a double is added to itself, a table of four leans on the table
+   of three. */
+console.log('the working shown:', JSON.stringify(await page.evaluate(async () => {
+  const shown = {};
+  for (const id of ['doubles', 'times2', 'times3', 'times4', 'times5']) {
+    renderMenu();
+    document.querySelector('[data-lesson="' + id + '"]').click();
+    await new Promise(done => setTimeout(done, 60));
+    // Always the same sum, so the four workings can be read side by side.
+    const at = state.round.findIndex(one => one.word.n === 7);
+    if (at === -1) { shown[id] = 'no seven in this round'; continue; }
+    state.index = at;
+    showQuestion();
+    document.getElementById('typed').value = '999';
+    document.getElementById('sumForm').dispatchEvent(new Event('submit', { cancelable: true }));
+    await new Promise(done => setTimeout(done, 60));
+    shown[id] = document.querySelector('#verdict .also').textContent;
+  }
+  return shown;
+})));
+
+/* Each table keeps its own book: answering in one leaves the others
+   where they were, which is what separate exercises are for. */
+console.log('one table at a time:', JSON.stringify(await page.evaluate(async () => {
+  renderMenu();
+  const before = Object.keys(progress.words).filter(k => k.indexOf('times5:') === 0).length;
+  document.querySelector('[data-lesson="times3"]').click();
+  await new Promise(done => setTimeout(done, 60));
+  const word = state.round[0].word;
+  document.getElementById('typed').value = String(word.answer);
+  document.getElementById('sumForm').dispatchEvent(new Event('submit', { cancelable: true }));
+  await new Promise(done => setTimeout(done, 120));
+  return {
+    written: word.key,
+    threeIsUp: (progress.words[word.key] || {}).level === 1,
+    fiveUntouched: Object.keys(progress.words).filter(k => k.indexOf('times5:') === 0).length === before
+  };
+})));
+
 console.log(errors.length ? 'BROKEN\n' + errors.join('\n') : 'no errors');
 await browser.close();
