@@ -76,7 +76,31 @@ console.log('and the rule it follows:', JSON.stringify((() => {
     .map(one => one.id + ': ' + one.changed + '% but ' + (one.turns ? 'turns' : 'does not turn'));
   const near = grain.filter(one => one.changed > 13 && one.changed < 24).map(one => one.id);
   return wrong.length ? wrong
-    : 'every terrain that turns is one a turn changes' + (near.length ? ', but ' + near.join(', ') + ' now sit near the line' : '');
+    : 'every terrain that turns is one a turn changes' +
+      (near.length ? ' — ' + near.join(', ') + ' sits near the line' : '');
+})()));
+
+/* ---- every terrain has its drawing, at the size it claims ----
+   A terrain is stretched to fill the tiles it takes, so a drawing whose
+   frame does not have the proportions of its box is squashed rather
+   than refused: nothing would go wrong loudly. Sixteen pixels of SVG to
+   the tile, and the file has to be there at all. */
+console.log('the drawings behind the terrains:', JSON.stringify(await (async () => {
+  const grounds = await page.evaluate(() => CATALOG.ITEMS
+    .filter(one => CATALOG.layerOf(one) === 'ground')
+    .map(one => ({ id: one.id, asset: one.asset, w: one.w, h: one.h })));
+  const wrong = [];
+  for (const one of grounds) {
+    const answer = await page.request.get(SITE + '/reward/assets/items/' + one.asset);
+    if (!answer.ok()) { wrong.push(one.id + ': ' + one.asset + ' is missing'); continue; }
+    const head = (await answer.text()).match(/viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) ([\d.]+)"/);
+    if (!head) { wrong.push(one.id + ': no viewBox'); continue; }
+    const want = one.w * 16 + 'x' + one.h * 16;
+    const got = Number(head[3]) + 'x' + Number(head[4]);
+    if (want !== got) wrong.push(one.id + ': drawn ' + got + ' for a box of ' + want);
+  }
+  if (wrong.length) errors.push(...wrong);
+  return wrong.length ? wrong : grounds.length + ' terrains, every drawing there and at its own size';
 })()));
 
 // ---- the stepping stones stand on nothing ----

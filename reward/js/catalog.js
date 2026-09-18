@@ -81,6 +81,7 @@ const CATALOG = (function () {
     { id: "tiles", fr: "Carrelage", en: "tiles", price: 20, level: 0, w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "tiles.svg" },
     { id: "field", fr: "Champ",  en: "a field", price: 25, level: 0, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "field.svg" },
     { id: "rug",   fr: "Tapis",  en: "a rug",   price: 120, level: 0, w: 4, h: 4, layer: "ground", where: "in", category: "ground", asset: "rug.svg" },
+    { id: "tile_small",    fr: "Carreau",            en: "a tile",          price: 15,  level: 0,   w: 1, h: 1, layer: "ground", where: "in", category: "ground", asset: "tile-small.svg" },
 
     { id: "flowers",  fr: "Fleurs",     en: "flowers",    price: 30, level: 0, w: 1, h: 1, category: "nature", asset: "flowers.svg" },
     { id: "wheat",    fr: "Blé",        en: "wheat",      price: 35, level: 0, w: 1, h: 1, category: "nature", asset: "wheat.svg" },
@@ -111,6 +112,7 @@ const CATALOG = (function () {
 
     /* ---------- level 5: the vegetable patch ---------- */
     { id: "veg_patch",    fr: "Potager",      en: "a vegetable patch", price: 30, level: 5, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "veg-patch.svg" },
+    { id: "soil",          fr: "Terre",              en: "soil",            price: 15,  level: 5,   w: 1, h: 1, layer: "ground", turns: true, category: "ground", asset: "soil.svg" },
     { id: "carrot",       fr: "Carottes",     en: "carrots",      price: 25, level: 5, w: 1, h: 1, category: "nature", asset: "carrot.svg" },
     { id: "cabbage",      fr: "Chou",         en: "a cabbage",    price: 30, level: 5, w: 1, h: 1, category: "nature", asset: "cabbage.svg" },
     { id: "strawberry",   fr: "Fraises",      en: "strawberries", price: 35, level: 5, w: 1, h: 1, category: "nature", asset: "strawberry.svg" },
@@ -122,6 +124,7 @@ const CATALOG = (function () {
     { id: "stool",        fr: "Tabouret",     en: "a stool",      price: 50, level: 5, w: 2, h: 2, foot: 2, where: "in", category: "furniture", asset: "stool.svg" },
 
     /* ---------- level 10: the orchard ---------- */
+    { id: "wood_chips",    fr: "Copeaux de bois",    en: "wood chips",      price: 20,  level: 10,  w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "wood-chips.svg" },
     { id: "stump",       fr: "Souche",     en: "a tree stump",  price: 40,  level: 10, w: 1, h: 1, category: "nature", asset: "stump.svg" },
     { id: "log_pile",    fr: "Tas de bûches", en: "a log pile", price: 60,  level: 10, w: 4, h: 2, foot: 4, turns: true, category: "nature", asset: "log-pile.svg" },
     { id: "hedge",       fr: "Haie",       en: "a hedge",       price: 80,  level: 10, w: 1, h: 1, category: "nature", asset: "hedge.svg", card: "hedge-run.svg",
@@ -142,12 +145,14 @@ const CATALOG = (function () {
     { id: "decking",    fr: "Terrasse",      en: "decking",         price: 28, level: 15, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "decking.svg" },
     { id: "flowerbed",  fr: "Parterre",      en: "a flower bed",    price: 30, level: 15, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "flowerbed.svg" },
     { id: "wood_floor", fr: "Parquet",       en: "a wooden floor",  price: 30, level: 15, w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "wood-floor.svg" },
+    { id: "flagstone",     fr: "Dalle",              en: "a flagstone",     price: 20,  level: 15,  w: 1, h: 1, layer: "ground", where: "both", category: "ground", asset: "flagstone.svg" },
     { id: "low_wall",   fr: "Muret",         en: "a low wall",      price: 20, level: 15, w: 1, h: 1, category: "garden", asset: "wall-post.svg", card: "wall-run.svg",
       joins: { group: "low_wall", across: "wall-rail.svg", down: "wall-beam.svg" } },
     { id: "planter",    fr: "Jardinière",    en: "a planter",       price: 70,  level: 15, w: 4, h: 2, foot: 4, turns: true, category: "garden", asset: "planter.svg" },
     { id: "garden_arch", fr: "Arche",        en: "a garden arch",   price: 140, level: 15, w: 3, h: 2, foot: 3, turns: true, category: "garden", asset: "garden-arch.svg" },
 
     /* ---------- level 20: the farmyard ---------- */
+    { id: "straw",         fr: "Paille",             en: "straw",           price: 20,  level: 20,  w: 2, h: 2, layer: "ground", turns: true, where: "both", category: "ground", asset: "straw.svg" },
     { id: "feed_sack", fr: "Sac de grain", en: "a sack of feed", price: 40,  level: 20, w: 1, h: 1, category: "farm", asset: "feed-sack.svg" },
     { id: "trough",    fr: "Abreuvoir",    en: "a trough",       price: 70,  level: 20, w: 4, h: 2, turns: true, category: "farm", asset: "trough.svg" },
     { id: "hay_bale",  fr: "Botte de foin", en: "a hay bale",    price: 80,  level: 20, w: 2, h: 2, foot: 2, category: "farm", asset: "hay-bale.svg" },
@@ -160,6 +165,7 @@ const CATALOG = (function () {
     { id: "pet_basket", fr: "Panier",      en: "a pet basket",   price: 90,  level: 20, w: 2, h: 2, foot: 2, where: "both", category: "furniture", asset: "pet-basket.svg" },
 
     /* ---------- level 25: the house is fitted out ---------- */
+    { id: "carpet",        fr: "Moquette",           en: "a carpet",        price: 35,  level: 25,  w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "carpet.svg" },
     { id: "table_lamp",      fr: "Lampe",        en: "a lamp",          price: 80,  level: 25, w: 1, h: 1, where: "in", category: "furniture", asset: "table-lamp.svg" },
     { id: "mirror",          fr: "Miroir",       en: "a mirror",        price: 90,  level: 25, w: 1, h: 1, turns: true, where: "in", category: "furniture", asset: "mirror.svg" },
     { id: "painting",        fr: "Tableau",      en: "a painting",      price: 100, level: 25, w: 1, h: 1, turns: true, where: "in", category: "furniture", asset: "painting.svg" },
@@ -172,6 +178,7 @@ const CATALOG = (function () {
     { id: "tv",              fr: "Télévision",   en: "a television",    price: 240, level: 25, w: 2, h: 2, foot: 2, turns: true, where: "in", category: "furniture", asset: "tv.svg" },
 
     /* ---------- level 30: a garden to sit in ---------- */
+    { id: "lawn",          fr: "Gazon tondu",        en: "a lawn",          price: 25,  level: 30,  w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "lawn.svg" },
     { id: "gnome",        fr: "Nain de jardin", en: "a garden gnome", price: 60,  level: 30, w: 1, h: 1, category: "garden", asset: "gnome.svg" },
     { id: "lamp",         fr: "Lampadaire",     en: "a street lamp",  price: 85,  level: 30, w: 1, h: 2, foot: 1, category: "garden", asset: "lamp.svg" },
     { id: "bird_bath",    fr: "Vasque à oiseaux", en: "a bird bath",  price: 110, level: 30, w: 2, h: 2, foot: 2, category: "garden", asset: "bird-bath.svg" },
@@ -184,6 +191,7 @@ const CATALOG = (function () {
     { id: "pergola",      fr: "Pergola",        en: "a pergola",      price: 260, level: 30, w: 4, h: 4, foot: 4, category: "garden", asset: "pergola.svg" },
 
     /* ---------- level 35: the working farm ---------- */
+    { id: "concrete",      fr: "Béton",              en: "concrete",        price: 22,  level: 35,  w: 2, h: 2, layer: "ground", where: "both", category: "ground", asset: "concrete.svg" },
     { id: "corn",       fr: "Maïs",        en: "maize",        price: 40,  level: 35, w: 1, h: 1, category: "nature", asset: "corn.svg" },
     { id: "tyre",       fr: "Vieux pneu",  en: "an old tyre",  price: 50,  level: 35, w: 1, h: 1, category: "farm", asset: "tyre.svg" },
     { id: "milk_churn", fr: "Bidon de lait", en: "a milk churn", price: 70, level: 35, w: 1, h: 1, category: "farm", asset: "milk-churn.svg" },
@@ -203,6 +211,7 @@ const CATALOG = (function () {
     { id: "road_line",   fr: "Route à bandes", en: "a road with lines", price: 30, level: 40, w: 1, h: 1, layer: "ground", category: "ground", asset: "road-line.svg", card: "road-line-card.svg",
       joins: { group: "road_line", across: "road-dash.svg", down: "road-dash-down.svg" } },
     { id: "crossing",    fr: "Passage piéton", en: "a zebra crossing", price: 35, level: 40, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "crossing.svg" },
+    { id: "cobbles",       fr: "Pavés ronds",        en: "cobblestones",    price: 25,  level: 40,  w: 1, h: 1, layer: "ground", turns: true, category: "ground", asset: "cobbles.svg" },
     { id: "bollard",     fr: "Borne",          en: "a bollard",       price: 40,  level: 40, w: 1, h: 1, category: "city", asset: "bollard.svg" },
     { id: "bin",         fr: "Poubelle",       en: "a litter bin",    price: 60,  level: 40, w: 1, h: 1, category: "city", asset: "bin.svg" },
     { id: "hydrant",     fr: "Bouche d'incendie", en: "a fire hydrant", price: 70, level: 40, w: 1, h: 1, category: "city", asset: "hydrant.svg" },
@@ -212,6 +221,7 @@ const CATALOG = (function () {
 
     /* ---------- level 45: the playground ---------- */
     { id: "hopscotch",      fr: "Marelle",     en: "hopscotch",        price: 40,  level: 45, w: 2, h: 4, layer: "ground", turns: true, category: "ground", asset: "hopscotch.svg" },
+    { id: "play_mat",      fr: "Sol souple",         en: "a play mat",      price: 30,  level: 45,  w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "play-mat.svg" },
     { id: "ball",           fr: "Ballon",      en: "a ball",           price: 30,  level: 45, w: 1, h: 1, category: "play", asset: "ball.svg" },
     { id: "kite",           fr: "Cerf-volant", en: "a kite",           price: 60,  level: 45, w: 1, h: 1, category: "play", asset: "kite.svg" },
     { id: "rocking_horse",  fr: "Cheval à bascule", en: "a rocking horse", price: 120, level: 45, w: 2, h: 2, foot: 2, turns: true, category: "play", asset: "rocking-horse.svg" },
@@ -225,6 +235,7 @@ const CATALOG = (function () {
     /* ---------- level 50: the seaside ---------- */
     { id: "sand",        fr: "Sable",          en: "sand",          price: 20,  level: 50, w: 2, h: 2, layer: "ground", category: "ground", asset: "sand.svg" },
     { id: "beach_towel", fr: "Serviette",      en: "a beach towel", price: 40,  level: 50, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "beach-towel.svg" },
+    { id: "pebbles",       fr: "Galets",             en: "pebbles",         price: 20,  level: 50,  w: 1, h: 1, layer: "ground", turns: true, category: "ground", asset: "pebbles.svg" },
     { id: "sandcastle",  fr: "Château de sable", en: "a sandcastle", price: 70, level: 50, w: 1, h: 1, category: "beach", asset: "sandcastle.svg" },
     { id: "lifebuoy",    fr: "Bouée",          en: "a lifebuoy",    price: 80,  level: 50, w: 1, h: 1, wet: true, category: "beach", asset: "lifebuoy.svg" },
     { id: "deckchair",   fr: "Transat",        en: "a deckchair",   price: 110, level: 50, w: 2, h: 2, foot: 2, turns: true, category: "beach", asset: "deckchair.svg" },
@@ -238,6 +249,7 @@ const CATALOG = (function () {
     { id: "pool",  fr: "Piscine", en: "a swimming pool", price: 25, level: 55, w: 1, h: 1, layer: "ground", category: "ground", asset: "pool.svg", card: "pool-card.svg",
       joins: { group: "pool", edge: "pool-edge.svg", corner: "pool-corner.svg", inner: "pool-inner.svg" } },
     { id: "jetty",        fr: "Ponton",     en: "a jetty",        price: 35,  level: 55, w: 2, h: 2, wet: true, layer: "ground", turns: true, category: "ground", asset: "jetty.svg" },
+    { id: "duckboard",     fr: "Caillebotis",        en: "a duckboard",     price: 30,  level: 55,  w: 2, h: 2, layer: "ground", turns: true, where: "both", category: "ground", asset: "duckboard.svg" },
     { id: "waterlily",    fr: "Nénuphar",   en: "a water lily",   price: 50,  level: 55, w: 1, h: 1, wet: true, category: "nature", asset: "waterlily.svg" },
     { id: "pool_ladder",  fr: "Échelle de piscine", en: "a pool ladder", price: 90, level: 55, w: 2, h: 2, foot: 2, turns: true, category: "garden", asset: "pool-ladder.svg" },
     { id: "diving_board", fr: "Plongeoir",  en: "a diving board", price: 180, level: 55, w: 4, h: 2, foot: 2, wet: true, turns: true, category: "garden", asset: "diving-board.svg" },
@@ -249,6 +261,7 @@ const CATALOG = (function () {
 
     /* ---------- level 60: sport ---------- */
     { id: "running_track", fr: "Piste",       en: "a running track", price: 30,  level: 60, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "running-track.svg" },
+    { id: "court_floor",   fr: "Parquet de sport",   en: "a sports floor",  price: 35,  level: 60,  w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "court-floor.svg" },
     { id: "weights",       fr: "Haltères",    en: "weights",         price: 120, level: 60, w: 1, h: 1, where: "both", category: "play", asset: "weights.svg" },
     { id: "scooter",       fr: "Trottinette", en: "a scooter",       price: 140, level: 60, w: 2, h: 2, foot: 2, turns: true, category: "play", asset: "scooter.svg" },
     { id: "archery",       fr: "Cible",       en: "an archery target", price: 150, level: 60, w: 1, h: 1, category: "play", asset: "archery.svg" },
@@ -261,6 +274,7 @@ const CATALOG = (function () {
 
     /* ---------- level 65: the bathroom and the kitchen ---------- */
     { id: "bath_mat",        fr: "Tapis de bain", en: "a bath mat",      price: 60,  level: 65, w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "bath-mat.svg" },
+    { id: "mosaic",        fr: "Mosaïque",           en: "a mosaic",        price: 25,  level: 65,  w: 1, h: 1, layer: "ground", turns: true, where: "in", category: "ground", asset: "mosaic.svg" },
     { id: "laundry",         fr: "Panier à linge", en: "a laundry basket", price: 70, level: 65, w: 1, h: 1, where: "in", category: "furniture", asset: "laundry.svg" },
     { id: "towel_rail",      fr: "Porte-serviettes", en: "a towel rail", price: 90, level: 65, w: 1, h: 1, turns: true, where: "in", category: "furniture", asset: "towel-rail.svg" },
     { id: "microwave",       fr: "Micro-ondes",  en: "a microwave",     price: 150, level: 65, w: 2, h: 2, foot: 2, turns: true, where: "in", category: "furniture", asset: "microwave.svg" },
@@ -273,6 +287,7 @@ const CATALOG = (function () {
 
     /* ---------- level 70: the grand living room ---------- */
     { id: "marble_floor", fr: "Marbre",        en: "a marble floor",  price: 40,  level: 70, w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "marble-floor.svg" },
+    { id: "parquet_weave", fr: "Parquet en damier",  en: "a parquet floor", price: 40,  level: 70,  w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "parquet-weave.svg" },
     { id: "coffee_table", fr: "Table basse",   en: "a coffee table",  price: 180, level: 70, w: 4, h: 2, foot: 4, turns: true, where: "in", category: "furniture", asset: "coffee-table.svg" },
     { id: "armchair",     fr: "Fauteuil",      en: "an armchair",     price: 240, level: 70, w: 2, h: 2, foot: 2, turns: true, where: "in", category: "furniture", asset: "armchair.svg" },
     { id: "desk",         fr: "Bureau",        en: "a desk",          price: 260, level: 70, w: 4, h: 2, foot: 4, turns: true, where: "in", category: "furniture", asset: "desk.svg" },
@@ -286,6 +301,7 @@ const CATALOG = (function () {
     /* ---------- level 75: the wild ---------- */
     { id: "stream",       fr: "Ruisseau",   en: "a stream",       price: 40,  level: 75, w: 1, h: 1, layer: "ground", category: "ground", asset: "stream.svg", card: "stream-card.svg",
       joins: { group: "stream", edge: "stream-edge.svg", corner: "stream-corner.svg", inner: "stream-inner.svg" } },
+    { id: "moss",          fr: "Mousse",             en: "moss",            price: 20,  level: 75,  w: 1, h: 1, layer: "ground", turns: true, category: "ground", asset: "moss.svg" },
     { id: "wild_flowers", fr: "Fleurs sauvages", en: "wild flowers", price: 45, level: 75, w: 1, h: 1, category: "nature", asset: "wild-flowers.svg" },
     { id: "fern",         fr: "Fougère",    en: "a fern",         price: 50,  level: 75, w: 1, h: 1, category: "nature", asset: "fern.svg" },
     { id: "rock",         fr: "Rocher",     en: "a rock",         price: 60,  level: 75, w: 1, h: 1, category: "nature", asset: "rock.svg" },
@@ -298,6 +314,7 @@ const CATALOG = (function () {
 
     /* ---------- level 80: the party ---------- */
     { id: "picnic_blanket", fr: "Nappe",     en: "a picnic blanket", price: 60,  level: 80, w: 4, h: 4, layer: "ground", turns: true, category: "ground", asset: "picnic-blanket.svg" },
+    { id: "dance_floor",   fr: "Piste de danse",     en: "a dance floor",   price: 40,  level: 80,  w: 2, h: 2, layer: "ground", turns: true, where: "both", category: "ground", asset: "dance-floor.svg" },
     { id: "bunting",        fr: "Guirlande", en: "bunting",          price: 60,  level: 80, w: 4, h: 2, foot: 4, turns: true, where: "both", category: "garden", asset: "bunting.svg" },
     { id: "balloons",       fr: "Ballons",   en: "balloons",         price: 70,  level: 80, w: 1, h: 1, where: "both", category: "garden", asset: "balloons.svg" },
     { id: "lantern",        fr: "Lanterne",  en: "a lantern",        price: 80,  level: 80, w: 1, h: 1, where: "both", category: "garden", asset: "lantern.svg" },
@@ -309,6 +326,7 @@ const CATALOG = (function () {
     { id: "stage",          fr: "Scène",     en: "a stage",          price: 400, level: 80, w: 6, h: 4, foot: 6, turns: true, category: "city", asset: "stage.svg" },
 
     /* ---------- level 85: animals from far away ---------- */
+    { id: "bamboo",        fr: "Bambou",             en: "a bamboo floor",  price: 35,  level: 85,  w: 2, h: 2, layer: "ground", turns: true, where: "both", category: "ground", asset: "bamboo.svg" },
     { id: "snake",    fr: "Serpent",  en: "a snake",    price: 200, level: 85, w: 1, h: 1, category: "animals", asset: "snake.svg" },
     { id: "tortoise", fr: "Tortue",   en: "a tortoise", price: 250, level: 85, w: 2, h: 2, foot: 2, category: "animals", asset: "tortoise.svg" },
     { id: "parrot",   fr: "Perroquet", en: "a parrot",  price: 300, level: 85, w: 2, h: 2, foot: 2, where: "both", category: "animals", asset: "parrot.svg" },
@@ -323,6 +341,7 @@ const CATALOG = (function () {
     /* ---------- level 90: winter ---------- */
     { id: "snow",           fr: "Neige",        en: "snow",             price: 25,  level: 90, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "snow.svg" },
     { id: "ice_rink",       fr: "Patinoire",    en: "an ice rink",      price: 40,  level: 90, w: 2, h: 2, layer: "ground", turns: true, category: "ground", asset: "ice-rink.svg" },
+    { id: "chalet_floor",  fr: "Plancher de chalet", en: "a cabin floor",   price: 35,  level: 90,  w: 2, h: 2, layer: "ground", turns: true, where: "in", category: "ground", asset: "chalet-floor.svg" },
     { id: "skis",           fr: "Skis",         en: "skis",             price: 120, level: 90, w: 1, h: 1, turns: true, where: "both", category: "play", asset: "skis.svg" },
     { id: "snowman",        fr: "Bonhomme de neige", en: "a snowman",   price: 150, level: 90, w: 3, h: 3, foot: 3, category: "nature", asset: "snowman.svg" },
     { id: "sledge",         fr: "Luge",         en: "a sledge",         price: 180, level: 90, w: 4, h: 2, foot: 4, turns: true, category: "play", asset: "sledge.svg" },
@@ -333,6 +352,7 @@ const CATALOG = (function () {
     { id: "igloo",          fr: "Igloo",        en: "an igloo",         price: 500, level: 90, w: 4, h: 4, foot: 4, category: "buildings", asset: "igloo.svg" },
 
     /* ---------- level 95: monuments ---------- */
+    { id: "marble_dark",   fr: "Marbre noir",        en: "black marble",    price: 30,  level: 95,  w: 1, h: 1, layer: "ground", where: "in", category: "ground", asset: "marble-dark.svg" },
     { id: "flagpole",     fr: "Mât",          en: "a flagpole",     price: 200, level: 95, w: 2, h: 2, foot: 2, category: "buildings", asset: "flagpole.svg" },
     { id: "sundial",      fr: "Cadran solaire", en: "a sundial",    price: 250, level: 95, w: 2, h: 2, foot: 2, category: "buildings", asset: "sundial.svg" },
     { id: "topiary_arch", fr: "Arche de buis", en: "a topiary arch", price: 350, level: 95, w: 4, h: 4, foot: 4, turns: true, category: "garden", asset: "topiary-arch.svg" },
@@ -345,6 +365,7 @@ const CATALOG = (function () {
     { id: "clock_tower",  fr: "Beffroi",      en: "a clock tower",  price: 800, level: 95, w: 4, h: 6, foot: 4, category: "buildings", asset: "clock-tower.svg" },
 
     /* ---------- level 100: the wonders ---------- */
+    { id: "red_carpet",    fr: "Tapis rouge",        en: "a red carpet",    price: 90,  level: 100, w: 2, h: 4, layer: "ground", turns: true, where: "both", category: "ground", asset: "red-carpet.svg" },
     { id: "dragon_statue", fr: "Dragon de pierre", en: "a stone dragon", price: 900,  level: 100, w: 4, h: 4, foot: 4, turns: true, category: "buildings", asset: "dragon-statue.svg" },
     { id: "hot_air_balloon", fr: "Montgolfière", en: "a hot air balloon", price: 1000, level: 100, w: 4, h: 6, foot: 2, category: "buildings", asset: "hot-air-balloon.svg" },
     { id: "treehouse",     fr: "Cabane perchée", en: "a treehouse",  price: 1100, level: 100, w: 6, h: 6, foot: 4, category: "buildings", asset: "treehouse.svg" },

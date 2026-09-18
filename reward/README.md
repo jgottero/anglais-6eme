@@ -155,10 +155,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 * **Cent niveaux, et le magasin qui s'ouvre** : l'application
   d'apprentissage fait monter l'enfant de niveau ; chaque niveau paie, et
   **tous les cinq niveaux une dizaine de nouveautés** arrivent en
-  magasin. Le catalogue compte **228 objets et terrains** en tout :
-  26 dès le premier jour (de quoi faire un jardin et meubler une
-  chambre), puis vingt fournées de dix, de plus en plus chères et de plus
-  en plus spectaculaires.
+  magasin. Le catalogue compte **249 objets et terrains** en tout :
+  27 dès le premier jour (de quoi faire un jardin et meubler une
+  chambre), puis vingt fournées d'onze, de plus en plus chères et de plus
+  en plus spectaculaires. **Chaque fournée apporte son terrain** : il y en
+  a 49, dont 19 posables à l'intérieur.
 
   | Niveau | Ce qui arrive | Niveau | Ce qui arrive |
   | --- | --- | --- | --- |
@@ -289,21 +290,22 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   poser, et dans sa barre une fois posé. Un quart de tour à la fois ;
   l'emprise tourne avec le dessin, et un objet qui ne rentrerait plus en
   travers reste comme il était.
-  **Les terrains tournent aussi** : vingt d'entre eux sur vingt-huit —
-  les sillons du **champ**, les rangs du **potager**, les lames de la
-  **terrasse** et du **parquet**, les assises des **briques** et des
-  **pavés**, le **carrelage**, le **gravier**, le **parterre**, la
-  **neige**, les rayures du **tapis de bain**, les veines du **marbre**,
-  la glissade de la **patinoire**, la diagonale du **pas japonais**, la
-  place de l'assiette sur la **nappe**.
+  **Les terrains tournent aussi** : trente-sept sur quarante-neuf — les
+  sillons du **champ**, les rangs du **potager**, les lames de la
+  **terrasse**, du **parquet** et du **caillebotis**, les assises des
+  **briques** et des **pavés**, le **carrelage**, la **mosaïque**, le
+  **gazon tondu**, les veines du **marbre**, la glissade de la
+  **patinoire**, la diagonale du **pas japonais**, le damier de la
+  **piste de danse**…
   La règle n'est pas une opinion : un terrain tourne **quand un quart de
   tour change au moins un cinquième de son dessin**, mesuré pixel par
-  pixel (`tests/test42.mjs` affiche le tableau). Les huit qui ne tournent
-  pas — le chemin (2 %), le trottoir (0 %), le tapis (0 %), la route
-  (1 %), la route à bandes (0 %), le ruisseau (11 %), la piscine (12 %),
-  le sable (13 %) — n'auraient rien gagné à un bouton. La route, la route
-  à bandes et le ruisseau en avaient un : il ne faisait rien, il a été
-  retiré.
+  pixel (`tests/test42.mjs` affiche le tableau, terrain par terrain, et
+  refuse un terrain qui s'en écarte). Les douze qui ne tournent pas — le
+  chemin (2 %), le trottoir (0 %), le tapis (0 %), le carreau (0 %), la
+  dalle (3 %), le béton (6 %), la route (1 %), la route à bandes (0 %),
+  le ruisseau (11 %), la piscine (12 %), le sable (13 %), le marbre noir
+  (14 %) — n'auraient rien gagné à un bouton. La route, la route à bandes
+  et le ruisseau en avaient un : il ne faisait rien, il a été retiré.
 * **Miroir** : **tout objet** porte un bouton ⇄ qui le retourne de gauche
   à droite — dans le coin avant de le poser, et dans sa barre une fois
   posé. L'emprise ne change pas, donc c'est toujours possible, et les
@@ -316,6 +318,16 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   une poule, un banc ou un tracteur, non. C'est un mot du catalogue
   (`wet`) : sans lui, l'eau reste interdite, et un appui sur la mer ne
   fait toujours rien.
+* **De quoi faire des motifs** : les terrains ne font pas tous 2 × 2
+  cases. Huit d'entre eux tiennent sur **une seule case** — le carreau, la
+  mosaïque, la dalle, le pavé rond, le galet, la terre, la mousse, le
+  marbre noir — ce qui permet de les alterner avec les grands : un damier
+  de **carrelage** 2 × 2 et de **carreaux** 1 × 1, une bordure de mosaïque,
+  un **parquet en damier** posé entre deux bandes de parquet ordinaire.
+  Plusieurs sont dessinés pour aller avec un terrain qui existait déjà —
+  le carreau et la mosaïque avec le carrelage, le marbre noir avec le
+  marbre, le parquet en damier avec le parquet, la dalle avec les pavés,
+  le galet avec le sable, le caillebotis avec le ponton.
 * **Deux couches** : le *terrain* (chemin, champ, piscine) se pose sur le sol, tout
   le reste se pose dessus. Une case ne peut porter qu'un seul terrain et
   qu'un seul objet : un chemin et un champ se disputent la case, une poule
