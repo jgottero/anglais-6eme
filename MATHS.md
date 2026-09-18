@@ -70,6 +70,12 @@ Tout le reste suit sans rien faire : la révision espacée (un calcul
 monte d'un niveau par bonne réponse, cinq niveaux et il est acquis),
 l'objectif du jour, les points, les rangs, la propriété.
 
+À la fin d'une série, la page de score donne le compte des bonnes
+réponses et, sous **« À retravailler »**, **les calculs manqués dans
+cette série-là** — rien d'autre. Un calcul juste n'y figure pas, même
+s'il vient d'être vu pour la première fois. Une série sans faute le dit
+et n'énumère rien.
+
 ## Ajouter un exercice
 
 1. Une entrée dans `EXERCISES` (`maths.js`) : un `id`, un titre, un

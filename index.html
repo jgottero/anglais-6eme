@@ -795,6 +795,16 @@ function goalState() {
 // A success moves the word one level up, a mistake one level down rather
 // than back to zero, so a slip does not wipe out a fortnight of work.
 function recordResult(word, success) {
+  /* The round keeps how each of its questions went. The score at the end
+     and the list of what to work on again are both read from it, rather
+     than counted again by each mode — two of the four modes forgot to,
+     and a faultless round of sums or of dictation ended on 0 / 10. */
+  const question = state.round[state.index];
+  if (question && question.word === word) {
+    question.got = success;
+    if (success) state.score++;
+  }
+
   const before = recordOf(word);
   const after = {
     level: success ? Math.min(MAX_LEVEL, before.level + 1) : Math.max(0, before.level - 1),
@@ -1599,7 +1609,6 @@ const mcq = {
     state.locked = true;
 
     const success = option === question.answer;
-    if (success) state.score++;
     const change = recordResult(question.word, success);
     button.classList.add(success ? "picked-right" : "picked-wrong");
     markTrack(success ? "right" : "wrong");
@@ -1990,7 +1999,6 @@ const say = {
     const change = recordResult(word, success);
 
     if (success) {
-      state.score++;
       heard.className = "heard ok";
       verdict.innerHTML = "<b>Bien prononcé.</b>" + synonymNote(word, word.en[0]) + levelNote(change);
     } else {
@@ -2067,20 +2075,31 @@ function showScore() {
     subject() === "maths" ? "Reprends les calculs tranquillement." :
     "Réécoute les mots et recommence.";
 
-  // The words that came up in this round and are still weak: what to revise
-  // next, rather than a bare score.
-  const weak = state.round
-    .map(question => question.word)
-    .filter(word => recordOf(word).level < 3)
-    .sort((a, b) => recordOf(a).level - recordOf(b).level)
-    .slice(0, 5);
+  /* What went wrong in this round. That, and nothing else, is what "to
+     work on again" means: a word answered rightly does not belong here,
+     however new it still is — and on a first round everything is new, so
+     the list used to hold the whole series, right answers and all. */
+  const missed = state.round
+    .filter(question => question.got === false)
+    .map(question => question.word);
 
-  const weakList = weak.length
+  /* An English word leads with the English, which is what is being
+     learnt. A sum leads with its question: on its own, an answer says
+     nothing about what has to be remembered. */
+  const summaryLine = word => {
+    const sum = subject() === "maths";
+    return '<li>' + esc(sum ? word.fr : word.en[0]) +
+      ' <span class="fr">— ' + esc(sum ? word.en[0] : word.fr) + '</span> ' +
+      levelDots(recordOf(word).level) + '</li>';
+  };
+
+  const missedList = missed.length
     ? '<p class="label" style="margin-top:24px">À retravailler</p>' +
-      '<ul class="summary">' + weak.map(word =>
-        '<li>' + esc(word.en[0]) + ' <span class="fr">— ' + esc(word.fr) + '</span> ' +
-        levelDots(recordOf(word).level) + '</li>'
-      ).join("") + '</ul>'
+      '<ul class="summary">' + missed.slice(0, 5).map(summaryLine).join("") + '</ul>' +
+      (missed.length > 5
+        ? '<p class="label">…et ' + (missed.length - 5) + ' ' +
+          thing(missed.length - 5) + ' de plus.</p>'
+        : '')
     : '<p class="label" style="margin-top:24px">Rien à retravailler dans cette série.</p>';
 
   const rank = rankOf(progress.points);
@@ -2107,7 +2126,7 @@ function showScore() {
       '<p>' + comment + ' <b>+' + state.roundPoints + ' points</b></p>' +
       rankUp +
       stamp +
-      weakList +
+      missedList +
       '<div class="actions">' +
         (paying
           ? '<button class="text primary" id="see-property">Voir ma propriété</button>'
