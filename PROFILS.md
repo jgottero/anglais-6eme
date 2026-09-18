@@ -25,7 +25,14 @@ profils ne reviennent jamais avec le même visage.
 L'application s'ouvre sur la question « Qui travaille aujourd'hui ? ».
 Le dernier profil utilisé est retenu, mais **on redemande quand même** :
 un frère qui prend le téléphone de sa sœur ne doit pas se retrouver à
-répondre à sa place. Depuis le menu, « Changer de profil » y revient.
+répondre à sa place.
+
+Une fois quelqu'un entré, **le titre de la page le dit, et lui seul** :
+l'image, le prénom, le niveau, et « Changer de profil » à côté. C'est
+écrit une fois pour toutes, au-dessus des écrans plutôt que dans l'un
+d'eux, donc cela ne se répète nulle part et cela suit l'enfant partout —
+y compris au milieu d'une série. Tant que personne n'est entré, le titre
+est celui de l'application et il n'y a personne à quitter.
 
 ## Où vont les affaires de chacun
 

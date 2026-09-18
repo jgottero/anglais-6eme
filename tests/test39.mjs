@@ -71,10 +71,13 @@ console.log('the first one in:', JSON.stringify({
   onTheMenu: await page.evaluate(() => !!document.querySelector('[data-lesson]')),
   grade: await page.evaluate(() => PROFILE.grade),
   icon: await page.evaluate(() => PROFILE.icon),
-  shownOnTheMenu: await page.evaluate(() => {
-    const face = document.querySelector('.who-line .face');
+  // The face is worn by the title, which is the one place that says
+  // who is holding the telephone.
+  shownInTheTitle: await page.evaluate(() => {
+    const face = document.querySelector('#heading .face');
     return face ? face.getAttribute('src') : null;
-  })
+  }),
+  saidOnceOnly: await page.evaluate(() => document.querySelectorAll('.face.small').length)
 }));
 await page.screenshot({ path: SHOTS + 'v19-menu.png' });
 

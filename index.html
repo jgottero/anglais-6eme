@@ -83,11 +83,24 @@
     font-weight: 700;
     font-size: 2rem;
     color: var(--margin-red);
-    margin: 0 0 20px;
+    margin: 0;
     display: inline-block;
     border-bottom: 2px solid var(--margin-red);
     padding-bottom: 2px;
   }
+
+  /* The name, the face and the school year sit on the red line; the way
+     out to somebody else sits beside it, on the baseline of the name so
+     that it reads as a remark rather than as part of the title. */
+  .topline {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-bottom: 20px;
+  }
+  .topline h1 .face { vertical-align: -7px; }
+  .topline h1 .grade { vertical-align: 5px; }
 
   .card {
     background: var(--card);
@@ -134,7 +147,6 @@
 
   .choice.is-who { display: flex; align-items: center; }
   .choice.is-who .who-name { flex: 1; }
-  .who-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
   /* The question that follows the grid needs the same air as one that
      follows a stack of choices. */
@@ -378,7 +390,11 @@
 <script src="maths.js"></script>
 
 <main class="sheet">
-  <h1 id="heading">My English</h1>
+  <!-- Who is holding the telephone, said once and only here. -->
+  <div class="topline">
+    <h1 id="heading">My English</h1>
+    <button class="link" id="switch-who" data-switch hidden>Changer de profil</button>
+  </div>
   <div id="screen"></div>
 </main>
 
@@ -1048,6 +1064,22 @@ function faceOf(profile, size) {
     esc(PROFILES.iconUrl(profile.icon)) + '" alt="">';
 }
 
+/* Who is holding the telephone, at the top of the page and nowhere
+   else: the face, the name, the school year, and the way out to
+   somebody else. Before anyone has been chosen there is nobody to
+   name, so the title is the app's own and there is nothing to leave. */
+function renderWho() {
+  const out = document.getElementById("switch-who");
+  if (!PROFILE) {
+    headingEl.textContent = "My English";
+    out.hidden = true;
+    return;
+  }
+  headingEl.innerHTML =
+    faceOf(PROFILE, "small") + esc(PROFILE.name) + gradeBadge(PROFILE.grade);
+  out.hidden = false;
+}
+
 function renderProfiles(options) {
   showing = "profiles";
   const asking = (options || {}).asking;
@@ -1057,7 +1089,7 @@ function renderProfiles(options) {
      back to the name of the app, rather than keeping whoever it was
      that just put it down. */
   PROFILE = null;
-  headingEl.textContent = "My English";
+  renderWho();
 
   if (asking || !people.length) { renderNewProfile(trouble, people.length); return; }
 
@@ -1170,7 +1202,7 @@ async function startAs(id) {
   const profile = PROFILES.choose(id);
   if (!profile) { renderProfiles(); return; }
   PROFILE = profile;
-  headingEl.textContent = profile.name;
+  renderWho();
   progress = DEMO_RANK ? demoProgress(DEMO_RANK) : await Store.load();
   // The property belongs to the profile too: the next open reloads it.
   dropProperty();
@@ -1270,10 +1302,8 @@ function renderMenu() {
         ? '<p class="label">Choisis l\'exercice</p>' +
           '<div class="modes">' + modes + '</div>'
         : "") +
-      '<p class="label who-line"' + (modes ? ' style="margin-top:6px"' : '') + '>' +
-        faceOf(PROFILE, "small") + esc(PROFILE.name) + gradeBadge(PROFILE.grade) +
-        ' <button class="link" data-switch>Changer de profil</button></p>' +
-      '<p class="label">' + (subject() === "maths" ? "Choisis le calcul" : "Choisis la liste") + '</p>' +
+      '<p class="label"' + (modes ? ' style="margin-top:22px"' : '') + '>' +
+        (subject() === "maths" ? "Choisis le calcul" : "Choisis la liste") + '</p>' +
       '<div class="stack">' + lessons +
         // Mixing one list with itself is no choice at all.
         (here.length > 1
@@ -1291,8 +1321,6 @@ function renderMenu() {
       '</p>' +
     '</section>';
 
-  screen.querySelector("[data-switch]")
-    .addEventListener("click", () => renderProfiles());
   document.getElementById("report").addEventListener("click", renderReport);
   document.getElementById("stamps").addEventListener("click", renderStamps);
   document.getElementById("open-property").addEventListener("click", openProperty);
@@ -2209,6 +2237,11 @@ function demoProgress(rank) {
     return;
   }
   keyLessons();
+
+  /* The way out to somebody else lives above the screens rather than in
+     one of them, so it is hung once and never again. */
+  document.getElementById("switch-who")
+    .addEventListener("click", () => renderProfiles());
 
   /* Who is holding the telephone comes before anything else: the
      progress, the property and the daily goal all belong to a profile,
