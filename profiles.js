@@ -41,13 +41,15 @@ const PROFILES = (function () {
     { plain: "reward-property-v1" }
   ];
 
-  /* The school years on offer. `id` is written into the save and never
-     changes; `fr` is what a child reads. The lessons do not look at
-     this yet — it is here so that the day a CE2 list arrives, there is
-     already something to ask. */
+  /* Who a profile is. `id` is written into the save and never changes;
+     `fr` is what is read on screen. Two school years, and a grown-up:
+     a parent has no exercises of their own and no town — their profile
+     exists to look over the children's work, so it is marked `grown`
+     and the app asks that rather than listing the years it is not. */
   const GRADES = [
     { id: "ce2", fr: "CE2", sub: "Cours élémentaire 2" },
-    { id: "6eme", fr: "6ème", sub: "Sixième" }
+    { id: "6eme", fr: "6ème", sub: "Sixième" },
+    { id: "parent", fr: "Parent", sub: "Pour suivre le travail des enfants", grown: true }
   ];
 
   /* The drawings a profile can wear. `id` is written into the save and
@@ -110,7 +112,9 @@ const PROFILES = (function () {
   }
 
   function gradeOf(id) {
-    return GRADES.find(one => one.id === id) || GRADES[GRADES.length - 1];
+    // Unknown: a pupil, never a grown-up — the sixième is the old default.
+    return GRADES.find(one => one.id === id) ||
+      GRADES.find(one => one.id === "6eme");
   }
 
   /* The drawing a profile wears. Asked for one it does not have, and
@@ -161,6 +165,8 @@ const PROFILES = (function () {
     GRADES,
     ICONS,
     gradeOf,
+    // A grown-up looks at the children's work; a child does the work.
+    grown(grade) { return !!gradeOf(grade).grown; },
     iconOf,
     iconUrl(id) { return AVATARS + iconOf(id).id + ".svg"; },
     legacy,

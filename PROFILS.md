@@ -6,13 +6,34 @@ tout ce que fait un profil.
 
 ## Ce qu'on demande
 
-Trois choses, et pas une de plus : **le prénom**, **une image** et **le
-niveau**, CE2 ou 6ème. Rien qu'un enfant puisse se tromper à saisir,
-rien qui mérite d'être caché.
+Trois choses, et pas une de plus : **le prénom**, **une image** et **qui
+on est** — CE2, 6ème, ou **parent**. Rien qu'un enfant puisse se tromper
+à saisir, rien qui mérite d'être caché.
+
+## Le profil parent
+
+Un parent n'a **ni exercices, ni objectif du jour, ni ville** : son
+profil sert à regarder le travail des enfants. Son écran d'accueil est
+la liste des enfants du téléphone, avec leur niveau et leurs points ; un
+appui ouvre le bilan de celui-là.
+
+Le bilan qu'un parent lit **garde le nombre de bonnes réponses et la
+date de la dernière révision** pour chaque question — ce sont les
+questions qu'un parent se pose, et elles n'ont rien à faire sur l'écran
+d'un enfant. Lire le carnet d'un enfant **ne prend pas sa place** : sa
+sauvegarde est ouverte en lecture, rien n'y est écrit, et le parent
+reste le parent.
+
+`PROFILES.grown(niveau)` est ce qui répond « celui-là est un
+grand ». Un niveau inconnu — une sauvegarde d'avant les parents — est
+toujours un élève, jamais un grand.
 
 L'image passe avant le nom partout où un profil se montre, et elle est
 grande : un enfant qui ne lit pas encore une liste de prénoms retrouve
-sa ligne à son dessin. Il y en a douze, dans `assets/avatars/`, un
+sa ligne à son dessin. En haut de chaque écran, **l'image et le prénom
+sont le bouton** qui repasse le téléphone à quelqu'un d'autre ; le coin
+opposé garde la sortie de l'écran en cours — « Changer d'exercice »,
+« Retour » — et ne change jamais de sens. Il y en a douze, dans `assets/avatars/`, un
 fichier SVG chacun. En ajouter une, c'est un dessin et une ligne dans
 `PROFILES.ICONS` — l'`id` est le nom du fichier et ce qui est écrit
 dans la sauvegarde, donc il ne se renomme pas, comme un identifiant de
@@ -70,7 +91,9 @@ part de zéro.
 ## Le niveau décide de la matière
 
 Le niveau **choisit ce qui est révisé** : anglais pour la sixième,
-mathématiques pour le CE2 (`maths.js`). Tout ce qui entoure un exercice
+mathématiques pour le CE2 (`maths.js`) — et `subjectOf(niveau)` répond à
+la question pour n'importe quel profil, ce dont un parent a besoin pour
+lire le carnet d'un enfant qui n'est pas de son année à lui. Tout ce qui entoure un exercice
 — les niveaux, les points, l'objectif du jour, la révision espacée, la
 ville — ne sait rien de ce qui est révisé et sert les deux sans rien
 changer.

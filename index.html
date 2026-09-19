@@ -93,6 +93,23 @@
     min-width: 0;
   }
   h1 .face { width: 44px; height: 44px; margin: 0; }
+  /* The name and the face are what one presses to hand the telephone
+     over, so they are a button — and look like the title all the same. */
+  h1 .who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    margin-left: -6px;
+    border-radius: 10px;
+    text-align: left;
+  }
+  h1 .who:hover { background: rgba(0, 0, 0, 0.05); }
+  h1 .who:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
 
   /* The way out sits at the right of the title, the same button in the
      same place whatever the screen is showing. */
@@ -293,6 +310,10 @@
   .report .en { font-weight: 700; }
   .report .fr, .report .meta { display: block; color: var(--ink-soft); font-size: 0.85rem; }
   .report .dots { flex: none; padding-top: 4px; }
+  /* A child's own report is a list to run an eye down: no rules between
+     the lines, and closer together, so the page is read in one look. */
+  .report.plain li { border-bottom: none; padding: 4px 0; align-items: center; }
+  .report.plain .dots { padding-top: 0; }
   .card + .card { margin-top: 14px; }
 
   .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
@@ -608,12 +629,23 @@ function keyLessons() {
    subject it is, is the menu, because a list of words and a page of
    sums do not offer the same things to do. */
 
-function subject() {
-  return PROFILE && PROFILE.grade === "ce2" ? "maths" : "english";
+function subjectOf(grade) {
+  return grade === "ce2" ? "maths" : "english";
 }
 
-function lists() {
-  if (subject() === "maths") return MATHS.EXERCISES;
+function subject() {
+  return PROFILE ? subjectOf(PROFILE.grade) : "english";
+}
+
+/* Whether the one holding the telephone is here to work or to look over
+   the work of others. A parent has no exercises, no daily goal and no
+   town — only the children's books. */
+function isParent() {
+  return !!PROFILE && PROFILES.grown(PROFILE.grade);
+}
+
+function listsFor(which) {
+  if (which === "maths") return MATHS.EXERCISES;
   return LESSONS.map(lesson => ({
     id: lesson.id,
     title: lesson.title,
@@ -621,6 +653,8 @@ function lists() {
     items: lesson.words
   }));
 }
+
+function lists() { return listsFor(subject()); }
 
 /* What one of them is called, for a sentence that counts them. The
    English lists are made of words; a page of sums is not. */
@@ -1079,30 +1113,38 @@ function faceOf(profile, size) {
     esc(PROFILES.iconUrl(profile.icon)) + '" alt="">';
 }
 
+/* The way out of a screen, at the right of the title. It is always the
+   same button in the same place, and it always says where it goes — it
+   never changes its mind about what it is. The menu is home and the
+   score page has its own row of buttons, so neither offers one. */
+function wayOutOf(where) {
+  if (where === "round") {
+    return { says: subject() === "maths" ? "Changer d'exercice" : "Changer de liste" };
+  }
+  if (where === "report" || where === "stamps") return { says: "Retour" };
+  return null;
+}
+
 /* Who is holding the telephone, at the top of the page and nowhere
-   else, and beside it the one way out of wherever they are: back to the
-   exercises from inside one, back to the profiles from anywhere else.
-   The school year is not written here — it says nothing a child needs
-   twenty times a day, and it is asked for and shown where profiles are
-   chosen. Before anyone has been chosen there is nobody to name, so the
-   title is the app's own and there is nothing to leave. */
+   else. The name and the face are the way to somebody else's profile:
+   pressing them asks who is working now. The school year is not written
+   here — it says nothing a child needs twenty times a day, and it is
+   asked for and shown where profiles are chosen. Before anyone has been
+   chosen there is nobody to name, so the title is the app's own. */
 function renderWho() {
   const out = document.getElementById("wayout");
-  if (!PROFILE) {
-    headingEl.textContent = "My English";
-    out.hidden = true;
-    out.removeAttribute("data-switch");
-    return;
-  }
-  headingEl.innerHTML = faceOf(PROFILE) + esc(PROFILE.name);
-  const mid = showing === "round";
-  out.textContent = mid
-    ? (subject() === "maths" ? "Changer d'exercice" : "Changer de liste")
-    : "Changer de profil";
-  // Only the one that really changes profile answers to that name.
-  if (mid) out.removeAttribute("data-switch");
-  else out.setAttribute("data-switch", "");
-  out.hidden = false;
+  const way = PROFILE ? wayOutOf(showing) : null;
+  out.textContent = way ? way.says : "";
+  out.hidden = !way;
+
+  if (!PROFILE) { headingEl.textContent = "My English"; return; }
+  headingEl.innerHTML =
+    '<button class="who" type="button" data-switch title="Changer de profil"' +
+      ' aria-label="' + esc(PROFILE.name) + ' — changer de profil">' +
+      faceOf(PROFILE) + esc(PROFILE.name) +
+    '</button>';
+  headingEl.querySelector("[data-switch]")
+    .addEventListener("click", () => renderProfiles());
 }
 
 /* Which screen is up is said through here, so that the way out at the
@@ -1172,11 +1214,11 @@ function renderNewProfile(trouble, howMany) {
           '</button>'
         ).join("") +
       '</div>' +
-      '<p class="label">Tu es en...</p>' +
+      '<p class="label">Tu es...</p>' +
       '<div class="stack" id="profile-grades">' +
-        PROFILES.GRADES.map((grade, index) =>
+        PROFILES.GRADES.map(grade =>
           '<button class="choice" data-grade="' + esc(grade.id) + '"' +
-            (index === PROFILES.GRADES.length - 1 ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' +
+            ' aria-pressed="' + (grade.id === "6eme") + '">' +
             esc(grade.fr) + '<span class="sub">' + esc(grade.sub) + '</span>' +
           '</button>'
         ).join("") +
@@ -1248,9 +1290,42 @@ async function startAs(id) {
    is looking at. */
 let showing = null;
 
+/* ---- The grown-up's menu ----
+   A parent has nothing to revise and no town to build: what they came
+   for is the children's books. One line each, and a press opens the
+   book — with the tally and the dates a parent actually wants, which a
+   child's own report leaves out. */
+function renderParentMenu() {
+  const children = PROFILES.all().filter(one => !PROFILES.grown(one.grade));
+  screen.innerHTML =
+    '<section class="card">' +
+      '<p class="label">' + (children.length
+        ? 'Le travail de chacun'
+        : 'Aucun enfant sur ce téléphone pour l\'instant.') + '</p>' +
+      (children.length
+        ? '<div class="stack">' + children.map(one => {
+            const book = bookOf(one.id);
+            const rank = RANKS.of(book.points || 0);
+            return '<button class="choice is-who" data-book="' + esc(one.id) + '">' +
+              faceOf(one) + '<span class="who-name">' + esc(one.name) +
+                '<span class="sub">Niveau ' + rank.index + ' · ' +
+                  (book.points || 0) + ' points</span>' +
+              '</span>' + gradeBadge(one.grade) +
+            '</button>';
+          }).join("") + '</div>'
+        : '<p class="label">Crée le profil d\'un enfant, puis reviens ici.</p>') +
+    '</section>';
+
+  screen.querySelectorAll("[data-book]").forEach(button => {
+    button.addEventListener("click", () => renderReport(button.dataset.book));
+  });
+  window.scrollTo(0, 0);
+}
+
 function renderMenu() {
   nowShowing("menu");
   if (listening) recognition.stop();
+  if (isParent()) { renderParentMenu(); return; }
   settleMode();
 
   // Progress line shown under each list. Nothing is displayed before the
@@ -1353,7 +1428,7 @@ function renderMenu() {
       '</div>' +
     '</section>';
 
-  document.getElementById("report").addEventListener("click", renderReport);
+  document.getElementById("report").addEventListener("click", () => renderReport());
   document.getElementById("stamps").addEventListener("click", renderStamps);
   document.getElementById("open-property").addEventListener("click", openProperty);
   document.getElementById("daily").addEventListener("click", () => startRound("!due"));
@@ -1384,11 +1459,6 @@ function levelLine() {
         ? ' · niveau maximum'
         : ' · encore ' + rank.toGo + ' avant le niveau ' + (rank.index + 1)) +
     '</span>';
-}
-
-// The same line on its own, for the report, where there is no town to open.
-function rankBanner() {
-  return '<section class="card rank">' + levelLine() + '</section>';
 }
 
 /* ---- Where the pupil stands, and the town it pays for ----
@@ -1428,8 +1498,7 @@ function renderStamps() {
 
   screen.innerHTML =
     '<section class="card">' +
-      '<button class="text quiet" id="back">← Retour</button>' +
-      '<p class="count" style="font-family:\'Shantell Sans\',cursive;font-size:1.7rem;margin:14px 0 0">' +
+      '<p class="count" style="font-family:\'Shantell Sans\',cursive;font-size:1.7rem;margin:0">' +
         stamps.length + ' tampon' + (stamps.length > 1 ? 's' : '') + '</p>' +
       '<p class="label">' + (month
         ? month + ' jour' + (month > 1 ? 's' : '') + ' d\'objectif atteint ce mois-ci.'
@@ -1437,8 +1506,6 @@ function renderStamps() {
       grid +
     '</section>';
 
-  document.getElementById("back").addEventListener("click", renderMenu);
-  document.getElementById("back").focus();
   window.scrollTo(0, 0);
 }
 
@@ -1464,46 +1531,75 @@ function relativeDate(timestamp) {
   return "il y a " + Math.floor(days / 30) + " mois";
 }
 
-function renderReport() {
+/* Somebody's book, read without becoming them: a parent looks over a
+   child's work and the child's own save is not touched. */
+function bookOf(id) {
+  try {
+    const raw = localStorage.getItem(PROFILES.keyFor(STORE_PLAIN, id));
+    return Store.adopt(raw ? JSON.parse(raw) : null);
+  } catch (error) {
+    return emptyProgress();
+  }
+}
+
+/* ---- The report ----
+   A child's own report is meant to be read at a glance: one line per
+   question — the English word, or the sum as it is asked — and the five
+   dots beside it. Nothing else. No answer (that is what is being
+   learnt), no tally, no date, no rule between the lines: what is wanted
+   is to see at once what is solid and what is not.
+
+   A parent reading a child's book gets the tally and the date as well,
+   because those are the questions a parent actually asks. */
+function renderReport(who) {
   nowShowing("report");
-  const sections = lists().map(lesson => {
-    const stats = progressOf(lesson.items);
+  const child = who ? PROFILES.all().find(one => one.id === who) : null;
+  const book = child ? bookOf(child.id) : progress;
+  const of = subjectOf(child ? child.grade : (PROFILE && PROFILE.grade));
+  const record = word => book.words[word.key] || { level: 0, seen: 0, ok: 0, last: 0 };
+  const noun = many => of === "maths"
+    ? (many > 1 ? "calculs" : "calcul")
+    : (many > 1 ? "mots" : "mot");
+
+  const sections = listsFor(of).map(lesson => {
+    const levels = lesson.items.reduce((sum, word) => sum + record(word).level, 0);
+    const ratio = lesson.items.length ? levels / (lesson.items.length * MAX_LEVEL) : 0;
+    const mastered = lesson.items.filter(word => record(word).level >= MAX_LEVEL).length;
+
     const rows = lesson.items.map(word => {
-      const record = recordOf(word);
-      const meta = record.seen
-        ? record.ok + " bonne" + (record.ok > 1 ? "s" : "") + " réponse" +
-          (record.ok > 1 ? "s" : "") + " sur " + record.seen + " · " + relativeDate(record.last)
-        : "jamais révisé";
-      /* A word leads with the English, which is what is being learnt; a
-         sum leads with its question, or the report would be a page of
-         answers with the questions underneath. */
-      const sum = subject() === "maths";
-      return '<li><span>' +
-          '<span class="en">' + esc(sum ? word.fr : word.en[0]) + '</span>' +
-          '<span class="fr">' + esc(sum ? word.en[0] : word.fr) + '</span>' +
-          '<span class="meta">' + meta + '</span>' +
-        '</span><span class="dots">' + levelDots(record.level) + '</span></li>';
+      const seen = record(word);
+      /* The question, and only the question: an English word is what is
+         being learnt, a sum is what is being asked. The answer on the
+         page would make the report a page of answers. */
+      const asked = of === "maths" ? word.fr : word.en[0];
+      const meta = !child ? "" :
+        '<span class="meta">' + (seen.seen
+          ? seen.ok + " bonne" + (seen.ok > 1 ? "s" : "") + " réponse" +
+            (seen.ok > 1 ? "s" : "") + " sur " + seen.seen + " · " + relativeDate(seen.last)
+          : "jamais révisé") + '</span>';
+      return '<li><span><span class="en">' + esc(asked) + '</span>' + meta + '</span>' +
+        '<span class="dots">' + levelDots(seen.level) + '</span></li>';
     }).join("");
 
     return '<section class="card">' +
         '<p class="label" style="margin-bottom:0"><b>' + esc(lesson.title) + '</b></p>' +
-        '<span class="bar"><span style="width:' + Math.round(stats.ratio * 100) + '%"></span></span>' +
-        '<span class="done">' + stats.mastered + ' ' + thing(stats.mastered) +
+        '<span class="bar"><span style="width:' + Math.round(ratio * 100) + '%"></span></span>' +
+        '<span class="done">' + mastered + ' ' + noun(mastered) +
           ' acquis sur ' + lesson.items.length + '</span>' +
-        '<ul class="report">' + rows + '</ul>' +
+        '<ul class="report' + (child ? '' : ' plain') + '">' + rows + '</ul>' +
       '</section>';
   }).join("");
 
   screen.innerHTML =
     '<section class="card">' +
-      '<button class="text quiet" id="back">← Retour</button>' +
-      '<p class="label" style="margin:14px 0 0">Chaque ' + thing(1) +
-        ' se retient un peu mieux à chaque bonne réponse. Cinq points remplis, ' +
-        'il est acquis.</p>' +
-    '</section>' + rankBanner() + sections;
+      (child
+        ? '<p class="label" style="margin:0">' + faceOf(child, "small") + '<b>' +
+            esc(child.name) + '</b>' + gradeBadge(child.grade) + '</p>'
+        : '<p class="label" style="margin:0">Chaque ' + noun(1) +
+          ' se retient un peu mieux à chaque bonne réponse. Cinq points remplis, ' +
+          'il est acquis.</p>') +
+    '</section>' + sections;
 
-  document.getElementById("back").addEventListener("click", renderMenu);
-  document.getElementById("back").focus();
   window.scrollTo(0, 0);
 }
 
@@ -2323,10 +2419,7 @@ function demoProgress(rank) {
   /* The way out lives above the screens rather than in one of them, so
      it is hung once and never again. Where it leads depends on where
      the pupil is: out of an exercise first, out of the profile after. */
-  document.getElementById("wayout").addEventListener("click", () => {
-    if (showing === "round") renderMenu();
-    else renderProfiles();
-  });
+  document.getElementById("wayout").addEventListener("click", renderMenu);
 
   /* Who is holding the telephone comes before anything else: the
      progress, the property and the daily goal all belong to a profile,

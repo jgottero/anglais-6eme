@@ -76,7 +76,14 @@ l'objectif du jour, les points, les niveaux, la ville.
 À la fin d'une série, la page de score donne le compte des bonnes
 réponses, **les pièces que la série a rapportées** quand elle en a
 rapporté, et, sous **« À retravailler »**, **les calculs manqués dans
-cette série-là** — rien d'autre. Un calcul juste n'y figure pas, même
+cette série-là** — rien d'autre.
+
+Le **bilan**, lui, tient en une ligne par calcul : le calcul tel qu'il
+est posé (« 4 × 7 », « Le double de 11 ») et les cinq points à côté. Pas
+la réponse, pas de compte, pas de date, pas de trait entre les lignes —
+de quoi voir d'un coup d'œil ce qui est solide et ce qui ne l'est pas.
+Le compte et la date sont gardés dans le bilan que lit **un parent**
+(voir `PROFILS.md`). Un calcul juste n'y figure pas, même
 s'il vient d'être vu pour la première fois. Une série sans faute le dit
 et n'énumère rien.
 
