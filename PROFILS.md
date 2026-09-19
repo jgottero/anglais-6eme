@@ -1,7 +1,7 @@
 # Les profils
 
 Un téléphone à la maison se partage : un frère et une sœur s'y relaient,
-et chacun a besoin de son rang, de ses mots et de sa propriété. C'est
+et chacun a besoin de son niveau, de ses mots et de sa ville. C'est
 tout ce que fait un profil.
 
 ## Ce qu'on demande
@@ -43,14 +43,14 @@ ses clés de rangement :
 | --- | --- |
 | `anglais-profiles-v1` | la liste des profils (prénom, image, niveau) et le dernier choisi |
 | `anglais-progress-v1:p1` | les mots, les points, les journées |
-| `reward-property-v1:p1` | la propriété et ses pièces |
+| `reward-property-v1:p1` | la ville et ses pièces |
 
 L'identifiant **ne change jamais et ne s'affiche jamais** : c'est lui qui
 porte les clés, donc renommer un profil (le jour où on l'ajoutera)
 laisse la progression où elle est.
 
 Le module de récompense est ouvert avec `reward/index.html?p=p1` : c'est
-ainsi qu'il sait quelle propriété charger. Ouvert tout seul, sans
+ainsi qu'il sait quelle ville charger. Ouvert tout seul, sans
 profil nommé, il retombe sur la clé simple — ce qui marchait avant
 continue de marcher.
 
@@ -64,15 +64,15 @@ Une progression enregistrée avant les profils se trouve sous les clés
 simples, sans profil. Elle n'est ni perdue ni recopiée : **le premier
 profil créé sur ce téléphone en hérite**, clés comprises. L'écran de
 création le dit, pour que personne ne se demande où sont passés cent
-rangs. Les clés simples disparaissent alors, et chaque profil suivant
+niveaux. Les clés simples disparaissent alors, et chaque profil suivant
 part de zéro.
 
 ## Le niveau décide de la matière
 
 Le niveau **choisit ce qui est révisé** : anglais pour la sixième,
 mathématiques pour le CE2 (`maths.js`). Tout ce qui entoure un exercice
-— les rangs, les points, l'objectif du jour, la révision espacée, la
-propriété — ne sait rien de ce qui est révisé et sert les deux sans rien
+— les niveaux, les points, l'objectif du jour, la révision espacée, la
+ville — ne sait rien de ce qui est révisé et sert les deux sans rien
 changer.
 
 Trois fonctions portent la bascule, dans `index.html` :

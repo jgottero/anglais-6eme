@@ -2,7 +2,7 @@
 
 L'application a commencé par l'anglais ; le CE2 commence par les
 mathématiques. Un enfant en CE2 ouvre la même application, gagne les
-mêmes rangs et aménage la même propriété — seuls les exercices changent.
+mêmes niveaux et aménage la même ville — seuls les exercices changent.
 
 ## Ce qu'il y a pour l'instant
 
@@ -68,7 +68,7 @@ c'est la forme que la sauvegarde, le bilan et la série partagent :
 
 Tout le reste suit sans rien faire : la révision espacée (un calcul
 monte d'un niveau par bonne réponse, cinq niveaux et il est acquis),
-l'objectif du jour, les points, les rangs, la propriété.
+l'objectif du jour, les points, les niveaux, la ville.
 
 À la fin d'une série, la page de score donne le compte des bonnes
 réponses et, sous **« À retravailler »**, **les calculs manqués dans

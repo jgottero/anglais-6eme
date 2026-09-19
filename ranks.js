@@ -1,8 +1,8 @@
 /* =====================================================================
-   RANKS — how points earned in the exercises turn into a rank.
+   RANKS — how points earned in the exercises turn into a level.
 
    This is all that is left of the old farm.js: the ladder itself. What a
-   rank is worth is no longer this file's business — a rank is a level of
+   level is worth is no longer this file's business — it is a level of
    the reward module (reward/), which pays it in coins and opens its shop
    a little wider every five levels.
 
@@ -29,14 +29,12 @@ const RANKS = (function () {
     return list;
   })();
 
-  // One title per ten ranks.
-  const TIERS = [
-    "Seedling", "Sprout", "Grower", "Farmhand", "Harvester",
-    "Rancher", "Homesteader", "Orchardist", "Master Farmer", "Valley Legend"
-  ];
+  /* Where a total of points stands: the level reached, how far into it,
+     and what is left before the next one.
 
-  /* Where a total of points stands: the rank reached, how far into it,
-     and what is left before the next one. */
+     There used to be a title per ten levels — Seedling, Sprout,
+     Harvester — and a child could make nothing of them. A level is a
+     number now, which is the thing they actually count. */
   function of(points) {
     let index = 1;
     while (index < COUNT && points >= THRESHOLDS[index]) index++;
@@ -44,7 +42,6 @@ const RANKS = (function () {
     const next = index < COUNT ? THRESHOLDS[index] : null;
     return {
       index,
-      name: TIERS[Math.min(TIERS.length - 1, Math.floor((index - 1) / 10))],
       next,
       ratio: next ? (points - floor) / (next - floor) : 1,
       toGo: next ? next - points : 0,
@@ -52,5 +49,5 @@ const RANKS = (function () {
     };
   }
 
-  return { COUNT, THRESHOLDS, TIERS, of };
+  return { COUNT, THRESHOLDS, of };
 })();

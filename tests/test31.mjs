@@ -27,7 +27,7 @@ await page.evaluate(() => startAs(PROFILES.create('Test', '6eme').id));
 await page.waitForTimeout(400);
 
 console.log('the menu:', JSON.stringify(await page.evaluate(() => ({
-  rank: document.querySelector('.rank-name') && document.querySelector('.rank-name').textContent,
+  level: document.querySelector('.card.rank .label').textContent,
   property: !!document.getElementById('open-property'),
   farmLink: !!document.getElementById('farm'),
   purse: document.querySelector('.purse') && document.querySelector('.purse').textContent.trim()

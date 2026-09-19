@@ -1,9 +1,17 @@
-# Module « récompense » — Ma propriété
+# Module « récompense » — Ma ville
 
 Prototype autonome : l'enfant gagne des pièces en franchissant des
 **niveaux** dans l'application d'apprentissage, puis les dépense pour
-aménager sa propriété et sa maison, vues de dessus. Il y a cent niveaux,
+aménager sa ville et sa maison, vues de dessus. Il y a cent niveaux,
 et tous les cinq le magasin ouvre une nouvelle étagère.
+
+> **Ville dehors, propriété dedans.** L'enfant lit « ma ville » partout
+> dans l'interface — c'est le mot qui lui parle. Le code, lui, dit
+> *property* (`PropertyState`, `propertyCard`), et ce document garde
+> « la propriété » quand il parle de la chose plutôt que de ce qui est
+> écrit à l'écran. La clé de sauvegarde `reward-property-v1` **ne se
+> renomme pas** : c'est sous ce nom que sont rangées les villes déjà
+> bâties.
 
 Ce dossier ne dépend de rien du reste du dépôt (`index.html`, `farm.js`,
 `words.js`) et l'inverse est vrai aussi : le module se lance seul.
@@ -69,7 +77,7 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   d'amusant, et un enfant sait très bien à quel étage il veut aller. La
   rangée se construit **en suivant les escaliers** du plan : rien n'est
   écrit deux fois, et un bâtiment d'un seul niveau n'affiche rien.
-* **La ville se mérite, et se voit** : les bâtiments de la ville et du
+* **Le centre-ville se mérite, et se voit** : les bâtiments du centre et du
   quartier neuf sont des récompenses tardives, donc les plus vastes du
   jeu — l'immeuble fait 520 cases, le long immeuble 480, chaque tour
   400, quand la maison de départ en fait 357. Les étages du dessus ont
@@ -124,7 +132,7 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   | Le lac | nord-est | 2200 | un **lac** bordé de sable et son ponton |
   | Le hameau | sud | 3200 | une place pavée et **deux maisonnettes** |
   | La plage | sud | 4500 | du sable et la mer (où l'on ne bâtit pas) |
-  | La ville | ouest | 6000 | un parc, un **immeuble** (3 étages) et une **tour** (4 étages) |
+  | Le centre-ville | ouest | 6000 | un parc, un **immeuble** (3 étages) et une **tour** (4 étages) |
   | La crique | sud-est | 7500 | du sable, la mer et la pointe aux sapins |
   | Le quartier neuf | ouest | 9000 | une **tour** (4 étages) et un **long immeuble** (3 étages) |
   | Le port | sud-ouest | 12000 | le quai, la jetée et le **hangar** du port |

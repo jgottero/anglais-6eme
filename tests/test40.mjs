@@ -126,7 +126,7 @@ await page.waitForTimeout(400);
 console.log('the day, in the CE2 words:', JSON.stringify(await page.evaluate(() => ({
   counter: document.querySelector('.goal .count').textContent,
   button: document.getElementById('daily').textContent,
-  rank: document.querySelector('.rank-name') && document.querySelector('.rank-name').textContent,
+  level: document.querySelector('.card.rank .label').textContent,
   points: progress.points,
   theProperty: !!document.getElementById('open-property')
 }))));

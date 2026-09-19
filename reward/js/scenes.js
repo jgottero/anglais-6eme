@@ -569,7 +569,7 @@ const SCENES = (function () {
     },
     {
       id: "town",
-      name: "La ville",
+      name: "Le centre-ville",
       x: 0, y: 16, w: 28, h: 18,
       ground: "paving",
       patches: [{ x: 2, y: 11, w: 14, h: 6, ground: "grass" }],   // the park
@@ -680,7 +680,7 @@ const SCENES = (function () {
 
     scenes.outside = {
       id: "outside",
-      name: "Ta propriété",
+      name: "Ta ville",
       indoor: false,
       land: {
         cols: Math.max.apply(null, PLOTS.map(one => one.x + one.w)),

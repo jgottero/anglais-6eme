@@ -503,10 +503,10 @@
       return;
     }
 
-    const words = "Regarde ma propriété !";
+    const words = "Regarde ma ville !";
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Ma propriété", text: words, url: link });
+        await navigator.share({ title: "Ma ville", text: words, url: link });
         return;
       } catch (err) {
         // Sharing turned down, or not allowed here: fall back to copying.

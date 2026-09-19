@@ -78,29 +78,30 @@
 
   .sheet { width: 100%; max-width: 560px; }
 
+  /* The face, the name and the school year on one line, each centred on
+     the others rather than sat on a shared baseline: a round face and a
+     capital letter do not have the same middle. */
   h1 {
     font-family: "Shantell Sans", "Comic Sans MS", cursive;
     font-weight: 700;
     font-size: 2rem;
     color: var(--margin-red);
     margin: 0;
-    display: inline-block;
-    border-bottom: 2px solid var(--margin-red);
-    padding-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
   }
+  h1 .face { width: 30px; height: 30px; margin: 0; }
+  h1 .grade { margin: 0; }
 
-  /* The name, the face and the school year sit on the red line; the way
-     out to somebody else sits beside it, on the baseline of the name so
-     that it reads as a remark rather than as part of the title. */
   .topline {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 4px 12px;
+    gap: 4px 14px;
     margin-bottom: 20px;
   }
-  .topline h1 .face { vertical-align: -7px; }
-  .topline h1 .grade { vertical-align: 5px; }
 
   .card {
     background: var(--card);
@@ -201,11 +202,6 @@
   .stamp { color: var(--margin-red); flex: none; }
 
   .rank { border-left-color: var(--margin-red); }
-  .rank-name {
-    font-family: "Shantell Sans", "Comic Sans MS", cursive;
-    font-size: 1.7rem;
-    margin: 0;
-  }
   .rank-up {
     font-family: "Shantell Sans", "Comic Sans MS", cursive;
     font-size: 1.3rem;
@@ -748,7 +744,7 @@ function openProperty() {
   document.body.classList.add("is-away");
   if (!propertyFrame) {
     propertyFrame = document.createElement("iframe");
-    propertyFrame.title = "Ma propriété";
+    propertyFrame.title = "Ma ville";
     propertyFrame.addEventListener("load", syncProperty);
     /* The property belongs to the profile, so the module is told which
        one it is opening: it keeps its save under a key of its own. */
@@ -928,10 +924,13 @@ function earnedStamps() {
 function levelDots(level) {
   let dots = "";
   for (let i = 0; i < MAX_LEVEL; i++) dots += '<span class="dot' + (i < level ? " on" : "") + '"></span>';
-  return '<span class="level" role="img" aria-label="Niveau ' + level + ' sur ' + MAX_LEVEL + '">' +
+  return '<span class="level" role="img" aria-label="Acquis à ' + level + ' sur ' + MAX_LEVEL + '">' +
     dots + '</span>';
 }
 
+/* How well one word is known, in five dots. It deliberately avoids the
+   word "niveau": that one now belongs to the hundred levels of the app,
+   and a sentence cannot mean both at once. */
 function levelNote(change) {
   const gained = change.gained
     ? '<span class="also gain">+' + change.gained + ' point' + (change.gained > 1 ? 's' : '') + '</span>'
@@ -939,9 +938,9 @@ function levelNote(change) {
   const one = thing(1);
   const text =
     change.after.level === MAX_LEVEL ? (one === "calcul" ? "Calcul acquis." : "Mot acquis.") :
-    change.after.level > change.before.level ? "Ce " + one + " monte d'un niveau." :
-    change.after.level < change.before.level ? "Ce " + one + " redescend d'un niveau." :
-    "Niveau du " + one + " :";
+    change.after.level > change.before.level ? "Tu connais mieux ce " + one + "." :
+    change.after.level < change.before.level ? "Ce " + one + " est à revoir." :
+    "Ce " + one + " :";
   return '<span class="also">' + text + levelDots(change.after.level) + '</span>' + gained;
 }
 
@@ -1150,7 +1149,7 @@ function renderNewProfile(trouble, howMany) {
       '</div>' +
       (inherits
         ? '<p class="label" style="margin-top:22px">La progression déjà enregistrée sur ce ' +
-          'téléphone — les rangs, les mots, la propriété — sera la tienne.</p>'
+          'téléphone — les niveaux, les mots, la ville — sera la tienne.</p>'
         : '') +
       (trouble ? '<p class="notice">' + esc(trouble) + '</p>' : '') +
       '<p style="margin:22px 0 0">' +
@@ -1286,17 +1285,17 @@ function renderMenu() {
       '</button></div>' +
     '</section>';
 
-  const property = propertyCard();
+  const standing = standingCard();
 
   const demo = DEMO_RANK
     ? '<section class="card" style="border-left-color:var(--margin-red)">' +
-        '<p class="label" style="margin:0"><b>Démonstration au rang ' + DEMO_RANK + '.</b> ' +
+        '<p class="label" style="margin:0"><b>Démonstration au niveau ' + DEMO_RANK + '.</b> ' +
         'Rien n\'est enregistré. Retire <b>?demo=' + DEMO_RANK + '</b> de l\'adresse pour revenir ' +
         'à la vraie progression.</p>' +
       '</section>'
     : '';
 
-  screen.innerHTML = demo + rankBanner() + property + goalCard +
+  screen.innerHTML = demo + standing + goalCard +
     '<section class="card">' +
       (modes
         ? '<p class="label">Choisis l\'exercice</p>' +
@@ -1337,45 +1336,51 @@ function renderMenu() {
   });
 }
 
-// The rank line, shown wherever the pupil takes stock. The bar fills
-// towards the next rank rather than showing a raw total, so progress is
-// visible even between two ranks.
-function rankBanner() {
+/* Where the pupil stands. The bar fills towards the next level rather
+   than showing a raw total, so progress is visible even between two of
+   them. The level has no name of its own on show: a rank called
+   "Seedling" told a child nothing. */
+function levelLine() {
   const rank = rankOf(progress.points);
-  return '<section class="card rank">' +
-      '<p class="label" style="margin-bottom:2px">Rang ' + rank.index + ' sur ' + RANKS.COUNT + '</p>' +
-      '<p class="rank-name">' + esc(rank.name) + '</p>' +
-      '<span class="bar"><span style="width:' +
-        Math.max(2, Math.round(rank.ratio * 100)) + '%"></span></span>' +
-      '<span class="done">' + progress.points + ' points' +
-        (rank.last ? ' · rang maximum' : ' · encore ' + rank.toGo + ' avant le rang ' + (rank.index + 1)) +
-      '</span>' +
-    '</section>';
+  return '<p class="label" style="margin-bottom:2px">Niveau ' + rank.index +
+      ' sur ' + RANKS.COUNT + '</p>' +
+    '<span class="bar"><span style="width:' +
+      Math.max(2, Math.round(rank.ratio * 100)) + '%"></span></span>' +
+    '<span class="done">' + progress.points + ' points' +
+      (rank.last
+        ? ' · niveau maximum'
+        : ' · encore ' + rank.toGo + ' avant le niveau ' + (rank.index + 1)) +
+    '</span>';
 }
 
-/* ---- The property, seen from the menu ----
-   A rank is worth coins on the property. The pupil is told when some are
-   waiting, and the purse is shown as soon as the module has reported it;
-   the module itself says how much a rank paid, so the figure is never
-   written down twice. */
-function propertyCard() {
-  const rank = rankOf(progress.points).index;
+// The same line on its own, for the report, where there is no town to open.
+function rankBanner() {
+  return '<section class="card rank">' + levelLine() + '</section>';
+}
+
+/* ---- Where the pupil stands, and the town it pays for ----
+   A level is worth coins in the town, so the two are one card and not
+   two: the level reached, and the purse it has filled. The pupil is
+   told when coins are waiting; the module itself says how much a level
+   paid, so the figure is never written down twice. */
+function standingCard() {
+  const rank = rankOf(progress.points);
   const purse = progress.reward || { coins: 0, level: 0, stamps: 0 };
   const stamps = earnedStamps().length;
-  const owed = !DEMO_RANK && (rank > purse.level || stamps > (purse.stamps || 0));
+  const owed = !DEMO_RANK && (rank.index > purse.level || stamps > (purse.stamps || 0));
   const known = purse.level > 0 || purse.coins > 0;
-  return '<section class="card' + (owed ? ' rank' : '') + '">' +
+  return '<section class="card rank">' +
+      levelLine() +
       (owed
         ? '<p class="rank-up">Des pièces t\'attendent</p>' +
-          '<p class="label" style="margin:0">Ta propriété paie ' +
-            (rank > purse.level ? 'le rang ' + rank : 'tes jours de travail') +
+          '<p class="label" style="margin:0">Ta ville paie ' +
+            (rank.index > purse.level ? 'le niveau ' + rank.index : 'tes jours de travail') +
             ' dès que tu y passes.</p>'
-        : '<p class="label" style="margin-bottom:2px">Ma propriété</p>' +
-          '<p class="purse">' + (known
+        : '<p class="purse">' + (known
             ? '<img src="reward/assets/coin.svg" alt="pièces">' + purse.coins + ' pièces'
-            : 'Une maison, un terrain, et de quoi les aménager.') + '</p>') +
+            : 'Une maison, un terrain, et toute une ville à bâtir.') + '</p>') +
       '<div class="actions">' +
-        '<button class="text primary" id="open-property">Ouvrir ma propriété</button>' +
+        '<button class="text primary" id="open-property">Ouvrir ma ville</button>' +
       '</div>' +
     '</section>';
 }
@@ -2134,8 +2139,8 @@ function showScore() {
   const gained = rank.index > state.rankBefore;
   const paying = gained || state.stampEarned;
   const rankUp = gained
-    ? '<p class="rank-up">Rang ' + rank.index + ' — ' + esc(rank.name) + '</p>' +
-      '<p class="label" style="margin:2px 0 0">Des pièces t\'attendent sur ta propriété.</p>'
+    ? '<p class="rank-up">Niveau ' + rank.index + '</p>' +
+      '<p class="label" style="margin:2px 0 0">Des pièces t\'attendent dans ta ville.</p>'
     : '';
 
   const goal = goalState();
@@ -2144,7 +2149,7 @@ function showScore() {
         stampSvg(goal.stamp, 88) +
         '<span><b>Objectif du jour atteint.</b>' +
         '<span class="done">Un tampon de plus au carnet, et des pièces ' +
-          'pour ta propriété.</span></span>' +
+          'pour ta ville.</span></span>' +
       '</div>'
     : '';
 
@@ -2157,7 +2162,7 @@ function showScore() {
       missedList +
       '<div class="actions">' +
         (paying
-          ? '<button class="text primary" id="see-property">Voir ma propriété</button>'
+          ? '<button class="text primary" id="see-property">Voir ma ville</button>'
           : '') +
         '<button class="text' + (paying ? '' : ' primary') + '" id="again">Recommencer</button>' +
         '<button class="text" id="menu">Changer de liste</button>' +
