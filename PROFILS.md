@@ -49,11 +49,40 @@ un frère qui prend le téléphone de sa sœur ne doit pas se retrouver à
 répondre à sa place.
 
 Une fois quelqu'un entré, **le titre de la page le dit, et lui seul** :
-l'image, le prénom, le niveau, et « Changer de profil » à côté. C'est
-écrit une fois pour toutes, au-dessus des écrans plutôt que dans l'un
-d'eux, donc cela ne se répète nulle part et cela suit l'enfant partout —
-y compris au milieu d'une série. Tant que personne n'est entré, le titre
-est celui de l'application et il n'y a personne à quitter.
+l'image et le prénom, sur lesquels on appuie pour repasser le téléphone.
+C'est écrit une fois pour toutes, au-dessus des écrans plutôt que dans
+l'un d'eux, donc cela ne se répète nulle part et cela suit l'enfant
+partout — y compris au milieu d'une série. Tant que personne n'est
+entré, le titre est celui de l'application et il n'y a personne à
+quitter.
+
+## Le bouton retour du téléphone
+
+C'est le bouton le plus facile à toucher par mégarde, et il faisait
+sortir de l'application. Il est branché sur les écrans : un appui fait
+**un pas en arrière**, là où les écrans s'emboîtent.
+
+| Écran | Un appui mène à |
+| --- | --- |
+| dans la ville : magasin ouvert | referme le magasin |
+| dans la ville : dans une pièce | ressort du bâtiment |
+| la ville | la referme, retour au menu |
+| une série, un bilan, le carnet | le menu |
+| le menu | « Qui travaille aujourd'hui ? » |
+| un nouveau profil | la liste des profils |
+| la liste des profils | quitte l'application, comme avant |
+
+Dedans, c'est le module qui sait ce qu'il reste à quitter : il le dit à
+chaque changement (`deep`), l'application lui envoie `reward:go-back` et
+ne referme la ville que lorsqu'il n'a plus rien à fermer.
+
+L'historique du navigateur ne grossit jamais : **une seule entrée** est
+posée au-dessus de la page, elle est consommée par l'appui et reposée
+par l'écran sur lequel on atterrit. La liste des profils est le fond —
+là, on n'en repose pas, et le bouton retour fait ce qu'il a toujours
+fait. Une page ouverte en `file://` peut refuser cette entrée : le
+bouton retrouve alors son comportement d'origine, et rien d'autre ne
+change.
 
 ## Où vont les affaires de chacun
 

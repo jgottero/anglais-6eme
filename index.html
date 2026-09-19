@@ -794,6 +794,7 @@ function openProperty() {
   const woken = !!propertyFrame;
   panel.hidden = false;
   document.body.classList.add("is-away");
+  trapBack();
   wakeProperty();
   if (woken) syncProperty();
 }
@@ -838,6 +839,7 @@ window.addEventListener("message", event => {
      so the score page can say what the round was worth without this
      side knowing a single one of the town's prices. */
   if (message.paid && showing === "round") state.roundCoins += message.paid;
+  townDeep = !!message.deep;
   Store.save(progress);
   /* The menu shows the purse, so it is redrawn when the purse changes —
      but only when the menu is really what is on screen. Every answer
@@ -1147,12 +1149,80 @@ function renderWho() {
     .addEventListener("click", () => renderProfiles());
 }
 
+/* ---- The telephone's own back button ----
+   The app is one page, so pressing back would leave it altogether. It
+   is wired to the screens instead, and goes where the screens nest:
+   out of the town, out of an exercise or a report to the menu, out of
+   the menu to the profiles. The profiles are the bottom — there, back
+   leaves the app, which is what it is for.
+
+   One entry of ours sits above the page and catches the first press. It
+   is put back by whatever screen the press landed on, so the history
+   never grows: one entry while there is somewhere to go, none once
+   there is not. */
+const UNDER = {
+  round: "menu",
+  score: "menu",
+  report: "menu",
+  stamps: "menu",
+  newProfile: "profiles",
+  menu: "profiles",
+  profiles: null
+};
+
+/* An entry left over from before the page was reloaded is ours to use
+   again: standing on it and pushing another would stack one per
+   reload. */
+let trapped = !!(history.state && history.state.app);
+
+function trapBack() {
+  if (trapped) return;
+  try {
+    history.pushState({ app: true }, "");
+    trapped = true;
+  } catch (error) {
+    /* A page opened from a file:// address may refuse: the back button
+       then does what it always did, and nothing else breaks. */
+  }
+}
+
+/* Whether the town, which covers the whole screen, still has a shop to
+   close or a room to walk out of. It is the module that knows; it says
+   so every time it changes. */
+let townDeep = false;
+
+function goBack() {
+  const town = document.getElementById("property");
+  if (!town.hidden) {
+    if (townDeep && propertyFrame && propertyFrame.contentWindow) {
+      propertyFrame.contentWindow.postMessage({ type: "reward:go-back" }, "*");
+      trapBack();
+      return true;
+    }
+    closeProperty();
+    return true;
+  }
+  const under = UNDER[showing];
+  if (!under) return false;
+  if (under === "profiles") renderProfiles();
+  else renderMenu();
+  return true;
+}
+
+window.addEventListener("popstate", () => {
+  // The entry that was caught is spent; whatever comes up puts one back.
+  trapped = false;
+  goBack();
+});
+
 /* Which screen is up is said through here, so that the way out at the
-   top is never left saying the wrong thing. */
+   top is never left saying the wrong thing, and the back button always
+   has somewhere of ours to land. */
 function nowShowing(what) {
   // Leaving a screen cancels whatever it was about to do next.
   stopMoving();
   showing = what;
+  if (UNDER[what]) trapBack();
   renderWho();
 }
 
@@ -1192,7 +1262,8 @@ function renderProfiles(options) {
 }
 
 function renderNewProfile(trouble, howMany) {
-  nowShowing("profiles");
+  // The very first profile has nothing under it: there is no chooser yet.
+  nowShowing(howMany ? "newProfile" : "profiles");
   /* The very first profile on a telephone that has been used before
      takes over what is already saved, rather than leaving it stranded
      under a key nobody reads any more. */

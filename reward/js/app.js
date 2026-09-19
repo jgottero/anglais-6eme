@@ -212,6 +212,8 @@
       World.clearSelection();
       Shop.render();
     }
+    // The shop is somewhere to come back from, so the app is told.
+    tellParent();
   }
 
   /* ---- Redrawing after any change ---- */
@@ -616,16 +618,37 @@
     return amount;
   }
 
-  function tellParent() {
-    if (window.parent === window) return;
-    window.parent.postMessage({
+  /* Everything the app is told, in one place. It is said the same way
+     whether the module speaks first or answers a message: an answer
+     that left a field out would have the app read it as gone. */
+  function saying() {
+    return {
       type: "reward:state",
       coins: PropertyState.get().coins,
       level: PropertyState.level(),
       stamps: PropertyState.stamps(),
-      paid: handedOver
-    }, "*");
+      paid: handedOver,
+      /* Whether there is somewhere to come back from in here, so that
+         the telephone's own back button walks this side before leaving
+         it: the shop first, then the room one is standing in. */
+      deep: shopOpen || PropertyState.sceneId() !== SCENES.first
+    };
+  }
+
+  function tellParent() {
+    if (window.parent === window) return;
+    window.parent.postMessage(saying(), "*");
     handedOver = 0;
+  }
+
+  /* One step back, asked for by the app when the telephone's back
+     button is pressed: out of the shop, then out of the building. What
+     is left of the way out — leaving the town altogether — belongs to
+     the app, which is what covers the screen with it. */
+  function backOne() {
+    if (shopOpen) { openShop(false); return true; }
+    if (PropertyState.sceneId() !== SCENES.first) { leaveScene(); return true; }
+    return false;
   }
 
   /* ---- Messages ---- */
@@ -691,15 +714,12 @@
     else if (message.type === "reward:level") window.REWARD.syncLevel(message.level);
     else if (message.type === "reward:stamps") window.REWARD.syncStamps(message.stamps);
     else if (message.type === "reward:coins") window.REWARD.addCoins(message.amount);
+    else if (message.type === "reward:go-back") backOne();
     else return;
-    if (event.source) {
-      event.source.postMessage({
-        type: "reward:state",
-        coins: PropertyState.get().coins,
-        level: PropertyState.level(),
-        stamps: PropertyState.stamps()
-      }, "*");
-    }
+    /* The answer says everything, the same way. What was just paid has
+       already been told to the parent by paid() itself, so there is
+       nothing left to hand over here. */
+    if (event.source) event.source.postMessage(saying(), "*");
   });
 
   document.addEventListener("DOMContentLoaded", ready);

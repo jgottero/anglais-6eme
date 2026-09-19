@@ -425,12 +425,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 
 Elle est branchée : `index.html`, à la racine du dépôt, ouvre ce module
 en plein écran dans une iframe quand l'enfant touche **« Ouvrir ma
-propriété »**. Elle lui envoie deux chiffres — le **rang** atteint dans
+ville »**. Elle lui envoie deux chiffres — le **rang** atteint dans
 les exercices et le **nombre de tampons** du carnet, un par journée où
 l'objectif a été tenu — et le module règle tout ce qui n'a pas encore
 été payé, puis répond avec la bourse, que le menu affiche entre deux
-séries. La flèche en haut à droite de la propriété renvoie aux
-exercices.
+séries. La flèche en haut à droite de la ville renvoie aux exercices.
 
 Le rang paie la progression, le tampon paie **la régularité** : revenir
 demain rapporte, même sans changer de rang.
@@ -462,8 +461,18 @@ iframe.contentWindow.postMessage({ type: "reward:stamps", stamps: 34 }, "*");
 // règle toutes les journées de travail pas encore payées
 iframe.contentWindow.postMessage({ type: "reward:tier", tier: rank }, "*");
 // paie un niveau précis
-// réponse : { type: "reward:state", coins: 1234, level: 8, stamps: 34 }
+iframe.contentWindow.postMessage({ type: "reward:go-back" }, "*");
+// un pas en arrière : le magasin d'abord, puis la pièce où l'on est
+// réponse : { type: "reward:state", coins: 1234, level: 8, stamps: 34,
+//             paid: 110, deep: true }
 ```
+
+`paid` est ce que le module vient de verser depuis la dernière fois
+qu'il a parlé — l'application en fait le total des pièces gagnées dans
+une série, sans connaître un seul prix. `deep` dit s'il reste quelque
+chose à quitter ici : un magasin ouvert, ou une pièce dans laquelle on
+est entré. Tout message reçu est répondu avec l'état complet : un champ
+oublié serait lu comme un champ éteint.
 
 `reward:level` est celui qu'utilise l'application : elle ignore ce qui a
 déjà été payé, le module s'en souvient, et renvoyer le même rang ne coûte
@@ -473,6 +482,12 @@ la bourse change, donc la page parente n'a rien à demander.
 Le bouton retour prévient la page parente avec
 `{ type: "reward:back" }` ; c'est là que l'application d'apprentissage
 reprendra la main.
+
+Le bouton retour **du téléphone**, lui, ne ferme pas la ville d'un coup :
+l'application envoie `reward:go-back`, le module referme le magasin, puis
+sort de la pièce où l'enfant se tenait, et répond `deep: false` quand il
+n'a plus rien à quitter — c'est alors seulement que l'application ferme
+la ville. Un appui, un pas.
 
 `REWARD.reset()` efface la propriété et rend la mise de départ.
 
