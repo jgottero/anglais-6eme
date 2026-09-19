@@ -2,8 +2,8 @@
 
 Prototype autonome : l'enfant gagne des pièces en franchissant des
 **niveaux** dans l'application d'apprentissage, puis les dépense pour
-aménager sa ville et sa maison, vues de dessus. Il y a cent niveaux,
-et tous les cinq le magasin ouvre une nouvelle étagère.
+aménager sa ville et sa maison, vues de dessus. Il y a cent niveaux, et
+chacun apporte deux ou trois nouveautés au magasin.
 
 > **Ville dehors, propriété dedans.** L'enfant lit « ma ville » partout
 > dans l'interface — c'est le mot qui lui parle. Le code, lui, dit
@@ -126,16 +126,16 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   | Parcelle | Où | Prix | Ce qu'elle apporte |
   | --- | --- | --- | --- |
   | Ton terrain | centre | — | la maison de départ (3 pièces) |
-  | Le pré | nord | 300 | de la place, tout simplement |
-  | Le bosquet | nord-ouest | 700 | sol de forêt, grands sapins, une **cabane** |
-  | Le verger | est | 1400 | une grande parcelle, des pommiers, un bois |
-  | Le lac | nord-est | 2200 | un **lac** bordé de sable et son ponton |
-  | Le hameau | sud | 3200 | une place pavée et **deux maisonnettes** |
-  | La plage | sud | 4500 | du sable et la mer (où l'on ne bâtit pas) |
-  | Le centre-ville | ouest | 6000 | un parc, un **immeuble** (3 étages) et une **tour** (4 étages) |
-  | La crique | sud-est | 7500 | du sable, la mer et la pointe aux sapins |
-  | Le quartier neuf | ouest | 9000 | une **tour** (4 étages) et un **long immeuble** (3 étages) |
-  | Le port | sud-ouest | 12000 | le quai, la jetée et le **hangar** du port |
+  | Le pré | nord | 296–300 | de la place, tout simplement |
+  | Le bosquet | nord-ouest | 696–700 | sol de forêt, grands sapins, une **cabane** |
+  | Le verger | est | 1396–1400 | une grande parcelle, des pommiers, un bois |
+  | Le lac | nord-est | 2196–2200 | un **lac** bordé de sable et son ponton |
+  | Le hameau | sud | 3196–3200 | une place pavée et **deux maisonnettes** |
+  | La plage | sud | 4496–4500 | du sable et la mer (où l'on ne bâtit pas) |
+  | Le centre-ville | ouest | 5996–6000 | un parc, un **immeuble** (3 étages) et une **tour** (4 étages) |
+  | La crique | sud-est | 7496–7500 | du sable, la mer et la pointe aux sapins |
+  | Le quartier neuf | ouest | 8996–9000 | une **tour** (4 étages) et un **long immeuble** (3 étages) |
+  | Le port | sud-ouest | 11996–12000 | le quai, la jetée et le **hangar** du port |
 
   On ne peut rien poser sur une parcelle qui n'est pas achetée, ni sur la
   mer ; et on n'entre pas dans une cabane qu'on ne possède pas. Les
@@ -160,35 +160,43 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   verger, le sable autour du lac. Quand deux taches se recouvrent, la
   première l'emporte : c'est ainsi que le ponton du lac et la jetée du
   port passent par-dessus l'eau au lieu d'être avalés par elle.
-* **Cent niveaux, et le magasin qui s'ouvre** : l'application
-  d'apprentissage fait monter l'enfant de niveau ; chaque niveau paie, et
-  **tous les cinq niveaux une dizaine de nouveautés** arrivent en
-  magasin. Le catalogue compte **249 objets et terrains** en tout :
-  27 dès le premier jour (de quoi faire un jardin et meubler une
-  chambre), puis vingt fournées d'onze, de plus en plus chères et de plus
-  en plus spectaculaires. **Chaque fournée apporte son terrain** : il y en
-  a 49, dont 19 posables à l'intérieur.
+* **Cent niveaux, et pas un de vide** : l'application d'apprentissage
+  fait monter l'enfant de niveau ; chaque niveau paie, et **chaque niveau
+  apporte deux ou trois nouveautés** en magasin — jamais moins de deux,
+  du niveau 1 au niveau 100. Le catalogue compte **249 objets et
+  terrains** en tout : 27 dès le premier jour (de quoi faire un jardin et
+  meubler une chambre), puis 222 répartis un à un sur les cent niveaux.
+  Il y a 49 terrains là-dedans, dont 19 posables à l'intérieur.
 
-  | Niveau | Ce qui arrive | Niveau | Ce qui arrive |
+  **Le monde, lui, s'ouvre toujours de cinq en cinq** : chaque groupe de
+  cinq niveaux partage un thème — le potager, la ville, la plage — et il
+  est servi **du moins cher au plus cher**, si bien qu'à l'intérieur d'un
+  thème chaque niveau apporte plus gros que le précédent, et que le
+  cinquième en apporte trois. Un nouveau thème recommence forcément plus
+  bas : c'est le prix d'un monde qui s'ouvre, et le magasin y gagne une
+  famille de plus.
+
+  | Niveaux | Ce qui arrive | Niveaux | Ce qui arrive |
   | --- | --- | --- | --- |
-  | 0 | le jardin de départ | 55 | l'eau : **piscine**, fontaine, jacuzzi |
-  | 5 | le potager | 60 | le sport |
-  | 10 | le verger | 65 | la salle de bain et la cuisine |
-  | 15 | les allées et les sols | 70 | le grand salon (piano, aquarium) |
-  | 20 | la basse-cour | 75 | la nature sauvage (cerf, renard) |
-  | 25 | la maison s'équipe | 80 | la fête |
-  | 30 | le jardin d'agrément | 85 | les animaux d'ailleurs |
-  | 35 | la ferme (tracteur, grange) | 90 | l'hiver |
-  | 40 | **la ville** (route, feu tricolore) | 95 | les monuments |
-  | 45 | les jeux | 100 | les merveilles : phare, manège, grande roue |
-  | 50 | **la plage** | | |
+  | 0 | le jardin de départ | 51–55 | l'eau : **piscine**, fontaine, jacuzzi |
+  | 1–5 | le potager | 56–60 | le sport |
+  | 6–10 | le verger | 61–65 | la salle de bain et la cuisine |
+  | 11–15 | les allées et les sols | 66–70 | le grand salon (piano, aquarium) |
+  | 16–20 | la basse-cour | 71–75 | la nature sauvage (cerf, renard) |
+  | 21–25 | la maison s'équipe | 76–80 | la fête |
+  | 26–30 | le jardin d'agrément | 81–85 | les animaux d'ailleurs |
+  | 31–35 | la ferme (tracteur, grange) | 86–90 | l'hiver |
+  | 36–40 | **la ville** (route, feu tricolore) | 91–95 | les monuments |
+  | 41–45 | les jeux | 96–100 | les merveilles : phare, manège, grande roue |
+  | 46–50 | **la plage** | | |
 
   Les familles ont grandi avec : Terrain, Nature, Jardin, Animaux,
   **Ferme**, **Ville**, **Plage**, **Jeux**, Meubles, Bâtiments.
 * **Voir ce qui vient** : le magasin affiche d'abord ce qui est débloqué,
   puis, en grisé au bout de chaque famille, la fournée suivante avec son
   niveau (« niv. 25 »). Une ligne sous le titre rappelle où l'on en est :
-  « Niveau 12 / 100 · 10 nouveautés au niveau 15 ». Toucher un objet
+  « Niveau 12 / 100 · 2 nouveautés au niveau 13 » — et comme aucun niveau
+  n'est vide, la prochaine nouveauté n'est jamais à plus d'un niveau. Toucher un objet
   encore verrouillé dit à quel niveau il arrive, et ne le vend pas.
 * **Magasin** : il s'ouvre en plein écran, les familles restent visibles
   en haut pendant que la liste défile, et il ne propose que ce qui a sa
@@ -518,9 +526,9 @@ pas à devenir une machine à pièces.
 
   | objets posés | longueur du lien |
   | --- | --- |
-  | 60 | ~470 caractères |
-  | 300 | ~1 300 caractères |
-  | 800 | ~3 400 caractères |
+  | 56–60 | ~470 caractères |
+  | 296–300 | ~1 300 caractères |
+  | 796–800 | ~3 400 caractères |
   | ~1 700 (carte saturée) | ~5 500 caractères |
 
   Les navigateurs et les messageries n'ont aucun mal avec ces
