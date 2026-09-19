@@ -211,6 +211,7 @@
     color: var(--margin-red);
     margin: 14px 0 0;
   }
+  .rank-up img { width: 1.1em; height: 1.1em; vertical-align: -0.15em; margin-right: 5px; }
   .also.gain { color: var(--right); }
 
   /* ---- The property ----
@@ -736,22 +737,31 @@ function addPoints(amount) {
    must not buy a real property. */
 let propertyFrame = null;
 
+/* The frame itself, made once. The town is what knows its own prices,
+   so nothing is really counted until it has been told what was earned;
+   it is therefore loaded out of sight as soon as there is something to
+   settle, rather than waiting for a visit. A frame in a hidden panel
+   loads all the same, and answers with the purse. */
+function wakeProperty() {
+  if (propertyFrame) return propertyFrame;
+  propertyFrame = document.createElement("iframe");
+  propertyFrame.title = "Ma ville";
+  propertyFrame.addEventListener("load", syncProperty);
+  /* The property belongs to the profile, so the module is told which
+     one it is opening: it keeps its save under a key of its own. */
+  propertyFrame.src = "reward/index.html" +
+    (PROFILE ? "?p=" + encodeURIComponent(PROFILE.id) : "");
+  document.getElementById("property").appendChild(propertyFrame);
+  return propertyFrame;
+}
+
 function openProperty() {
   const panel = document.getElementById("property");
+  const woken = !!propertyFrame;
   panel.hidden = false;
   document.body.classList.add("is-away");
-  if (!propertyFrame) {
-    propertyFrame = document.createElement("iframe");
-    propertyFrame.title = "Ma ville";
-    propertyFrame.addEventListener("load", syncProperty);
-    /* The property belongs to the profile, so the module is told which
-       one it is opening: it keeps its save under a key of its own. */
-    propertyFrame.src = "reward/index.html" +
-      (PROFILE ? "?p=" + encodeURIComponent(PROFILE.id) : "");
-    panel.appendChild(propertyFrame);
-  } else {
-    syncProperty();
-  }
+  wakeProperty();
+  if (woken) syncProperty();
 }
 
 /* Throws the property away without opening it, so the next child to
@@ -771,7 +781,10 @@ function closeProperty() {
 }
 
 function syncProperty() {
-  if (DEMO_RANK || !propertyFrame || !propertyFrame.contentWindow) return;
+  if (DEMO_RANK) return;
+  // Not loaded yet: waking it syncs on its own, once it is there.
+  if (!propertyFrame) { wakeProperty(); return; }
+  if (!propertyFrame.contentWindow) return;
   const to = propertyFrame.contentWindow;
   to.postMessage({ type: "reward:level", level: rankOf(progress.points).index }, "*");
   to.postMessage({ type: "reward:stamps", stamps: earnedStamps().length }, "*");
@@ -787,6 +800,10 @@ window.addEventListener("message", event => {
     level: message.level || 0,
     stamps: message.stamps || 0
   };
+  /* What the town has just handed over. Added up while a round is on,
+     so the score page can say what the round was worth without this
+     side knowing a single one of the town's prices. */
+  if (message.paid && showing === "round") state.roundCoins += message.paid;
   Store.save(progress);
   /* The menu shows the purse, so it is redrawn when the purse changes —
      but only when the menu is really what is on screen. Every answer
@@ -827,7 +844,7 @@ function recordResult(word, success) {
   const note = noteReview(word);
   let gained = note.first
     ? POINTS.word + (success ? POINTS.correct : 0) +
-      (state.mode === "say" || state.mode === "spell" ? POINTS.speaking : 0)
+      (state.asking === "say" || state.asking === "spell" ? POINTS.speaking : 0)
     : (success ? POINTS.again : 0);
   if (note.completed) {
     gained += POINTS.goal;
@@ -1024,7 +1041,8 @@ async function ensureMicPermission() {
 
 // ---- Quiz state ----
 const state = { mode: "mcq", lesson: null, round: [], index: 0, score: 0, locked: false,
-                attempts: 0, stampEarned: false, roundPoints: 0, rankBefore: 0 };
+                attempts: 0, stampEarned: false, roundPoints: 0, rankBefore: 0,
+                asking: null, roundCoins: 0 };
 
 function poolFor(lessonId) {
   if (lessonId === "*") return allWords();
@@ -1090,6 +1108,8 @@ function renderWho() {
 /* Which screen is up is said through here, so that the way out at the
    top is never left saying the wrong thing. */
 function nowShowing(what) {
+  // Leaving a screen cancels whatever it was about to do next.
+  stopMoving();
   showing = what;
   renderWho();
 }
@@ -1492,6 +1512,7 @@ function startRound(lessonId) {
   state.lesson = lessonId;
   state.stampEarned = false;
   state.roundPoints = 0;
+  state.roundCoins = 0;
   state.rankBefore = rankOf(progress.points).index;
   const pool = poolFor(lessonId);
   // The daily session is exactly as long as what is left of the goal, so
@@ -1510,19 +1531,40 @@ function startRound(lessonId) {
   const picked = lessonId === "!due"
     ? shuffle(pool.slice().sort((a, b) => dueIn(a) - dueIn(b)).slice(0, length))
     : drawWords(pool, length);
-  state.round = picked.map(word => {
-    if (state.mode === "mcq") return buildForward(word, pool);
-    if (state.mode === "mcqfr") return buildReverse(word, pool);
-    // Writing what is heard means writing it from the sound alone: the
-    // French word would hand the answer over before the first letter.
-    if (state.mode === "spell") return { word, prompt: "" };
-    // A sum is asked in writing and answered in writing.
-    return { word, prompt: word.fr };
+
+  /* The day's revision turns the word over: asked one way, then the
+     other, then written from the sound alone. Speaking is left out of
+     the turn — it wants a microphone and a recogniser that does not
+     always hear, and a daily session must never be impossible to
+     finish. So is the dictation on a telephone with no English voice,
+     for the same reason: there would be nothing to hear. */
+  const asked = lessonId === "!due" ? turnAbout() : null;
+
+  state.round = picked.map((word, at) => {
+    const mode = asked ? asked[at % asked.length] : state.mode;
+    const question =
+      mode === "mcq" ? buildForward(word, pool) :
+      mode === "mcqfr" ? buildReverse(word, pool) :
+      // Writing what is heard means writing it from the sound alone: the
+      // French word would hand the answer over before the first letter.
+      mode === "spell" ? { word, prompt: "" } :
+      // Spoken aloud, and a sum, are both asked in writing.
+      { word, prompt: word.fr };
+    question.mode = mode;
+    return question;
   });
   state.index = 0;
   state.score = 0;
   renderShell();
   showQuestion();
+}
+
+/* The modes the day's revision turns between, in order. Nothing to turn
+   between for the sums: there is one way of asking them. */
+function turnAbout() {
+  if (subject() === "maths") return null;
+  if (!englishVoice) pickVoice();
+  return englishVoice ? ["mcq", "mcqfr", "spell"] : ["mcq", "mcqfr"];
 }
 
 // French prompt, English answers. Distractors come from the same pool and are
@@ -1578,6 +1620,7 @@ function markTrack(result) {
 }
 
 function showQuestion() {
+  stopMoving();
   state.locked = false;
   state.attempts = 0;
   markTrack(null);
@@ -1586,10 +1629,48 @@ function showQuestion() {
   const prompt = document.getElementById("prompt");
   prompt.textContent = state.round[state.index].prompt;
   prompt.hidden = !prompt.textContent;   // the dictation asks nothing in writing
-  if (state.mode === "say") say.render();
-  else if (state.mode === "spell") spell.render();
-  else if (state.mode === "maths") maths.render();
+  /* Which mode this question is asked in. It is the one chosen in the
+     menu, except in the day's revision, where each question carries its
+     own — so everything below reads the question, never the menu. */
+  state.asking = state.round[state.index].mode || state.mode;
+  if (state.asking === "say") say.render();
+  else if (state.asking === "spell") spell.render();
+  else if (state.asking === "maths") maths.render();
   else mcq.render();
+}
+
+/* What happens once a question is answered. A right answer needs no
+   further instruction: it is said, it is read, and the next question
+   comes on its own. A wrong one waits for the pupil, because there is
+   something to look at — and, in the written modes, something to copy
+   out before being let on. */
+const RIGHT_PAUSE = 1200;    // long enough to read "c'est juste"
+const SPOKEN_PAUSE = 1900;   // and, where a word is said aloud, to hear it
+let moving = null;
+
+function stopMoving() {
+  clearTimeout(moving);
+  moving = null;
+}
+
+// The button that lets a corrected answer through.
+function offerNext() {
+  const pass = document.getElementById("pass");
+  if (pass) pass.remove();
+  const next = document.getElementById("next");
+  if (!next) return;
+  next.textContent = nextLabel();
+  next.hidden = false;
+  next.focus();
+}
+
+function settled(success) {
+  stopMoving();
+  if (!success) { offerNext(); return; }
+  // Where the answer is read aloud, the pause is the length of the word.
+  const aloud = state.asking === "mcq" || state.asking === "mcqfr" || state.asking === "say";
+  moving = setTimeout(() => { moving = null; goNext(); },
+    aloud ? SPOKEN_PAUSE : RIGHT_PAUSE);
 }
 
 function nextLabel() {
@@ -1611,7 +1692,7 @@ function synonymNote(word, shown) {
 
 // ---- Modes 1 and 2: multiple choice, in either direction ----
 const mcq = {
-  reverse() { return state.mode === "mcqfr"; },
+  reverse() { return state.asking === "mcqfr"; },
 
   render() {
     const question = state.round[state.index];
@@ -1678,14 +1759,12 @@ const mcq = {
         (success ? "<b>Bravo.</b> " : "<b>Raté.</b> ") +
         esc(question.word.fr) + " = " + esc(question.answer) + "." +
         synonymNote(question.word, question.answer) +
-        '<span class="also">Clique sur un mot pour l\'entendre à nouveau.</span>' +
+        // Only worth saying while the question is still there to click on.
+        (success ? "" : '<span class="also">Clique sur un mot pour l\'entendre à nouveau.</span>') +
         levelNote(change);
     }
 
-    const next = document.getElementById("next");
-    next.textContent = nextLabel();
-    next.hidden = false;
-    next.focus();
+    settled(success);
   }
 };
 
@@ -1767,7 +1846,7 @@ const spell = {
       input.disabled = true;
       document.getElementById("check").disabled = true;
       document.getElementById("skip").hidden = true;
-      spell.showNext();
+      settled(true);
     } else {
       verdict.innerHTML =
         (attempt ? "<b>Pas tout à fait.</b> Tu as écrit " + esc(attempt) + "." : "<b>La réponse :</b>") +
@@ -1784,7 +1863,7 @@ const spell = {
       pass.type = "button";
       pass.id = "pass";
       pass.textContent = "passer";
-      pass.addEventListener("click", spell.showNext);
+      pass.addEventListener("click", offerNext);
       document.querySelector(".actions").appendChild(pass);
     }
     markTrack(success ? "right" : "wrong");
@@ -1797,21 +1876,13 @@ const spell = {
       document.getElementById("check").disabled = true;
       const pass = document.getElementById("pass");
       if (pass) pass.remove();
-      spell.showNext();
+      settled(true);
     } else {
       document.getElementById("typed").value = "";
       document.getElementById("typed").focus();
     }
   },
 
-  showNext() {
-    const pass = document.getElementById("pass");
-    if (pass) pass.remove();
-    const next = document.getElementById("next");
-    next.textContent = nextLabel();
-    next.hidden = false;
-    next.focus();
-  }
 };
 
 /* ---- Mental arithmetic ----
@@ -1867,7 +1938,7 @@ const maths = {
       input.disabled = true;
       document.getElementById("check").disabled = true;
       document.getElementById("skip").hidden = true;
-      maths.showNext();
+      settled(true);
     } else {
       verdict.innerHTML =
         (attempt ? "<b>Pas tout à fait.</b> Tu as écrit " + esc(attempt) + "." : "<b>La réponse :</b>") +
@@ -1887,7 +1958,7 @@ const maths = {
       pass.type = "button";
       pass.id = "pass";
       pass.textContent = "passer";
-      pass.addEventListener("click", maths.showNext);
+      pass.addEventListener("click", offerNext);
       document.querySelector(".actions").appendChild(pass);
     }
     markTrack(success ? "right" : "wrong");
@@ -1900,21 +1971,13 @@ const maths = {
       document.getElementById("check").disabled = true;
       const pass = document.getElementById("pass");
       if (pass) pass.remove();
-      maths.showNext();
+      settled(true);
     } else {
       document.getElementById("typed").value = "";
       document.getElementById("typed").focus();
     }
   },
 
-  showNext() {
-    const pass = document.getElementById("pass");
-    if (pass) pass.remove();
-    const next = document.getElementById("next");
-    next.textContent = nextLabel();
-    next.hidden = false;
-    next.focus();
-  }
 };
 
 const say = {
@@ -2053,10 +2116,7 @@ const say = {
     document.getElementById("mic").disabled = true;
     document.getElementById("skip").hidden = true;
     document.getElementById("micLabel").textContent = success ? "Bravo." : "";
-    const next = document.getElementById("next");
-    next.textContent = nextLabel();
-    next.hidden = false;
-    next.focus();
+    settled(success);
   }
 };
 
@@ -2102,7 +2162,7 @@ function stopListening() {
   const mic = document.getElementById("mic");
   if (mic) mic.classList.remove("listening");
   const label = document.getElementById("micLabel");
-  if (label && !state.locked && state.mode === "say") label.textContent = "Appuie et prononce la réponse.";
+  if (label && !state.locked && state.asking === "say") label.textContent = "Appuie et prononce la réponse.";
 }
 
 // ---- Score ----
@@ -2145,11 +2205,20 @@ function showScore() {
 
   const rank = rankOf(progress.points);
   const gained = rank.index > state.rankBefore;
-  const paying = gained || state.stampEarned;
-  const rankUp = gained
-    ? '<p class="rank-up">Niveau ' + rank.index + '</p>' +
-      '<p class="label" style="margin:2px 0 0">Des pièces t\'attendent dans ta ville.</p>'
-    : '';
+  const paying = state.roundCoins > 0 || gained || state.stampEarned;
+  /* What the round was worth, in coins. The figure comes from the town,
+     which is the only side that knows its own prices; when it has not
+     been heard from, the level reached is still worth announcing. */
+  const rankUp = state.roundCoins > 0
+    ? '<p class="rank-up"><img src="reward/assets/coin.svg" alt="pièces">+' +
+        state.roundCoins + ' pièces</p>' +
+      '<p class="label" style="margin:2px 0 0">' +
+        (gained ? 'Niveau ' + rank.index + ' atteint. ' : '') +
+        'Elles sont dans ta ville.</p>'
+    : gained
+      ? '<p class="rank-up">Niveau ' + rank.index + '</p>' +
+        '<p class="label" style="margin:2px 0 0">Des pièces t\'attendent dans ta ville.</p>'
+      : '';
 
   const goal = goalState();
   const stamp = state.stampEarned
@@ -2188,7 +2257,7 @@ function showScore() {
 // Keys 1 to 4 answer in both multiple-choice modes — and nowhere the
 // pupil writes their answer, where a digit is part of the answer itself.
 document.addEventListener("keydown", event => {
-  if (state.mode === "say" || state.mode === "spell" || state.mode === "maths") return;
+  if (state.asking === "say" || state.asking === "spell" || state.asking === "maths") return;
   if (event.key >= "1" && event.key <= "4") {
     const options = document.getElementById("options");
     const button = options && options.children[Number(event.key) - 1];

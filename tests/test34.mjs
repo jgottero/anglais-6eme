@@ -51,8 +51,8 @@ console.log('after a right answer:', JSON.stringify(await page.evaluate(() => ({
   verdict: document.getElementById('verdict').textContent.replace(/\s+/g, ' ').trim().slice(0, 70),
   frenchNowShown: document.querySelector('.card').textContent.includes(state.round[state.index].word.fr)
 }))));
-await page.click('#next');
-await page.waitForTimeout(300);
+// A right answer needs no button: the next word comes on its own.
+await page.waitForTimeout(1600);
 console.log('next word, still nothing given away:', JSON.stringify(await look()));
 
 // A wrong answer shows how it is written, and asks for it again.

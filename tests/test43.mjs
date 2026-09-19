@@ -74,8 +74,8 @@ for (let n = 0; n < 3; n++) {
   const after = await where();
   console.log('  sum ' + (n + 1) + ' answered:', JSON.stringify(after));
   if (!after.inTheRound) break;
-  await page.click('#next');
-  await page.waitForTimeout(400);
+  // A right answer carries on by itself.
+  await page.waitForTimeout(1400);
 }
 await page.screenshot({ path: SHOTS + 'v43-ce2-round.png' });
 
@@ -100,8 +100,8 @@ for (let n = 0; n < 3; n++) {
   const after = await where();
   console.log('  word ' + (n + 1) + ' answered:', JSON.stringify(after));
   if (!after.inTheRound) break;
-  await page.click('#next');
-  await page.waitForTimeout(400);
+  // A word read aloud is given the time to be heard before the next one.
+  await page.waitForTimeout(2100);
 }
 
 // ---- the menu still hears the purse ----

@@ -25,9 +25,12 @@ Dans les cinq, le clavier s'ouvre en chiffres sur un téléphone
 « quatorze » écrit en lettres ne l'est pas — c'est un nombre qui est
 demandé.
 
-Une réponse fausse montre le calcul et demande de **recopier la
-réponse** avant de passer au suivant, exactement comme un mot mal
-orthographié. Ce qu'on corrige de sa main est ce qui reste.
+Une **bonne réponse** ne demande rien : elle est annoncée, et le calcul
+suivant arrive de lui-même après une seconde. Une réponse **fausse**
+montre le calcul et demande de **recopier la réponse** avant de passer au
+suivant, exactement comme un mot mal orthographié — là, c'est l'enfant
+qui décide quand il a fini de lire. Ce qu'on corrige de sa main est ce
+qui reste.
 
 Le raisonnement montré est **celui de l'exercice**, pas une formule
 unique : un double s'ajoute à lui-même, une table de deux ou de trois
@@ -71,7 +74,8 @@ monte d'un niveau par bonne réponse, cinq niveaux et il est acquis),
 l'objectif du jour, les points, les niveaux, la ville.
 
 À la fin d'une série, la page de score donne le compte des bonnes
-réponses et, sous **« À retravailler »**, **les calculs manqués dans
+réponses, **les pièces que la série a rapportées** quand elle en a
+rapporté, et, sous **« À retravailler »**, **les calculs manqués dans
 cette série-là** — rien d'autre. Un calcul juste n'y figure pas, même
 s'il vient d'être vu pour la première fois. Une série sans faute le dit
 et n'énumère rien.

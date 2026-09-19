@@ -1,6 +1,6 @@
 # Les tests
 
-Quarante-six suites Playwright qui ouvrent vraiment les pages dans un
+Quarante-sept suites Playwright qui ouvrent vraiment les pages dans un
 Chromium et regardent ce qui s'y passe : le magasin, la caméra, les
 sauvegardes, le pont avec l'application d'apprentissage.
 
@@ -9,9 +9,9 @@ sauvegardes, le pont avec l'application d'apprentissage.
 ```sh
 npm install          # Playwright, une seule fois
 npx playwright install chromium
-npm test             # les quarante-six, dans l'ordre
-npm test -- 46       # une seule
-npm test -- 30-46    # une tranche
+npm test             # les quarante-sept, dans l'ordre
+npm test -- 47       # une seule
+npm test -- 30-47    # une tranche
 ```
 
 `tests/run.mjs` sert le dépôt sur le port 8123 le temps du passage, puis

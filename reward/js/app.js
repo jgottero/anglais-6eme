@@ -599,14 +599,33 @@
 
   /* The learning app, when there is one, keeps a purse of its own to
      show between two rounds; it is told at every change. */
+  /* What this side has just handed over, so that the learning app can
+     say how much a round of exercises earned without knowing a single
+     one of the prices above. It is added up rather than replaced: one
+     message can settle several levels and a day of practice at once,
+     and each of them tells the parent in turn. */
+  let handedOver = 0;
+
+  /* The purse announces itself the moment it changes, which is before
+     the price of what was just settled is back in hand — so the parent
+     is told again, straight after, with the figure. */
+  function paid(amount) {
+    if (!amount) return amount;
+    handedOver += amount;
+    tellParent();
+    return amount;
+  }
+
   function tellParent() {
     if (window.parent === window) return;
     window.parent.postMessage({
       type: "reward:state",
       coins: PropertyState.get().coins,
       level: PropertyState.level(),
-      stamps: PropertyState.stamps()
+      stamps: PropertyState.stamps(),
+      paid: handedOver
     }, "*");
+    handedOver = 0;
   }
 
   /* ---- Messages ---- */
@@ -624,7 +643,7 @@
   window.REWARD = {
     grantTier(tier) {
       const result = PropertyState.grantTier(tier, rewardForTier(tier));
-      if (result) toast(levelNews(result));
+      if (result) { paid(result.amount); toast(levelNews(result)); }
       return result;
     },
     /* The learning app knows the rank the child has reached, not what
@@ -634,6 +653,7 @@
        count, and this side settles what it has not paid for. */
     syncStamps(count) {
       const result = PropertyState.grantStamps(count, rewardForStamp);
+      paid(result.amount);
       if (result.paid === 1) toast("Objectif du jour tenu ! +" + result.amount + " pièces.");
       else if (result.paid > 1) {
         toast(result.paid + " jours de travail récompensés : +" + result.amount + " pièces.");
@@ -643,6 +663,7 @@
     syncLevel(level) {
       const top = Math.max(0, Math.min(CATALOG.LAST_LEVEL, Number(level) || 0));
       const result = PropertyState.grantUpTo(top, rewardForTier);
+      paid(result.amount);
       if (result.paid) toast(caughtUp(result));
       return result;
     },

@@ -88,8 +88,8 @@ console.log('a right answer:', JSON.stringify(await page.evaluate(async () => {
 })));
 
 // ---- a wrong one shows the working and asks for the answer in writing ----
-await page.click('#next');
-await page.waitForTimeout(400);
+// A right answer moves on by itself; there is nothing to press.
+await page.waitForTimeout(1600);
 console.log('a wrong answer:', JSON.stringify(await page.evaluate(async () => {
   const word = state.round[1].word;
   document.getElementById('typed').value = '999';
