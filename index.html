@@ -92,16 +92,19 @@
     gap: 10px;
     min-width: 0;
   }
-  h1 .face { width: 30px; height: 30px; margin: 0; }
-  h1 .grade { margin: 0; }
+  h1 .face { width: 44px; height: 44px; margin: 0; }
 
+  /* The way out sits at the right of the title, the same button in the
+     same place whatever the screen is showing. */
   .topline {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px 14px;
+    gap: 8px 14px;
     margin-bottom: 20px;
   }
+  .topline h1 { flex: 1 1 auto; }
+  .topline #wayout { margin-left: auto; }
 
   .card {
     background: var(--card);
@@ -235,15 +238,10 @@
   .text.primary { font-weight: 700; background: var(--ink); border-color: var(--ink); color: var(--paper); }
   [hidden] { display: none !important; }
 
-  .link {
-    background: none;
-    border: none;
-    color: var(--ink-soft);
-    padding: 0;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .link:hover { color: var(--ink); }
+  /* What is not the main thing to do on a screen is still a button, and
+     looks like one: there is nothing underlined left to press. */
+  .text.quiet { padding: 8px 14px; font-size: 0.92rem; color: var(--ink-soft); }
+  .text.quiet:hover { color: var(--ink); }
 
   /* ---- Quiz shell ---- */
   .topbar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
@@ -389,7 +387,7 @@
   <!-- Who is holding the telephone, said once and only here. -->
   <div class="topline">
     <h1 id="heading">My English</h1>
-    <button class="link" id="switch-who" data-switch hidden>Changer de profil</button>
+    <button class="text quiet" id="wayout" hidden></button>
   </div>
   <div id="screen"></div>
 </main>
@@ -1064,23 +1062,39 @@ function faceOf(profile, size) {
 }
 
 /* Who is holding the telephone, at the top of the page and nowhere
-   else: the face, the name, the school year, and the way out to
-   somebody else. Before anyone has been chosen there is nobody to
-   name, so the title is the app's own and there is nothing to leave. */
+   else, and beside it the one way out of wherever they are: back to the
+   exercises from inside one, back to the profiles from anywhere else.
+   The school year is not written here — it says nothing a child needs
+   twenty times a day, and it is asked for and shown where profiles are
+   chosen. Before anyone has been chosen there is nobody to name, so the
+   title is the app's own and there is nothing to leave. */
 function renderWho() {
-  const out = document.getElementById("switch-who");
+  const out = document.getElementById("wayout");
   if (!PROFILE) {
     headingEl.textContent = "My English";
     out.hidden = true;
+    out.removeAttribute("data-switch");
     return;
   }
-  headingEl.innerHTML =
-    faceOf(PROFILE, "small") + esc(PROFILE.name) + gradeBadge(PROFILE.grade);
+  headingEl.innerHTML = faceOf(PROFILE) + esc(PROFILE.name);
+  const mid = showing === "round";
+  out.textContent = mid
+    ? (subject() === "maths" ? "Changer d'exercice" : "Changer de liste")
+    : "Changer de profil";
+  // Only the one that really changes profile answers to that name.
+  if (mid) out.removeAttribute("data-switch");
+  else out.setAttribute("data-switch", "");
   out.hidden = false;
 }
 
+/* Which screen is up is said through here, so that the way out at the
+   top is never left saying the wrong thing. */
+function nowShowing(what) {
+  showing = what;
+  renderWho();
+}
+
 function renderProfiles(options) {
-  showing = "profiles";
   const asking = (options || {}).asking;
   const trouble = (options || {}).trouble;
   const people = PROFILES.all();
@@ -1088,7 +1102,7 @@ function renderProfiles(options) {
      back to the name of the app, rather than keeping whoever it was
      that just put it down. */
   PROFILE = null;
-  renderWho();
+  nowShowing("profiles");
 
   if (asking || !people.length) { renderNewProfile(trouble, people.length); return; }
 
@@ -1116,7 +1130,7 @@ function renderProfiles(options) {
 }
 
 function renderNewProfile(trouble, howMany) {
-  showing = "profiles";
+  nowShowing("profiles");
   /* The very first profile on a telephone that has been used before
      takes over what is already saved, rather than leaving it stranded
      under a key nobody reads any more. */
@@ -1215,7 +1229,7 @@ async function startAs(id) {
 let showing = null;
 
 function renderMenu() {
-  showing = "menu";
+  nowShowing("menu");
   if (listening) recognition.stop();
   settleMode();
 
@@ -1313,11 +1327,10 @@ function renderMenu() {
           '</button>'
           : "") +
       '</div>' +
-      '<p style="margin:22px 0 0">' +
-        '<button class="link" id="report">Voir le bilan</button>' +
-        ' &nbsp;·&nbsp; ' +
-        '<button class="link" id="stamps">Carnet de tampons</button>' +
-      '</p>' +
+      '<div class="actions" style="margin-top:22px">' +
+        '<button class="text quiet" id="report">Voir le bilan</button>' +
+        '<button class="text quiet" id="stamps">Carnet de tampons</button>' +
+      '</div>' +
     '</section>';
 
   document.getElementById("report").addEventListener("click", renderReport);
@@ -1360,25 +1373,18 @@ function rankBanner() {
 
 /* ---- Where the pupil stands, and the town it pays for ----
    A level is worth coins in the town, so the two are one card and not
-   two: the level reached, and the purse it has filled. The pupil is
-   told when coins are waiting; the module itself says how much a level
-   paid, so the figure is never written down twice. */
+   two: the level reached, and the purse it has filled.
+
+   The purse is the one the module last reported, and it is shown as it
+   is. What a level has earned but not yet been paid is not written
+   here: only the module knows its own prices, and it settles up the
+   moment the town is opened. */
 function standingCard() {
-  const rank = rankOf(progress.points);
   const purse = progress.reward || { coins: 0, level: 0, stamps: 0 };
-  const stamps = earnedStamps().length;
-  const owed = !DEMO_RANK && (rank.index > purse.level || stamps > (purse.stamps || 0));
-  const known = purse.level > 0 || purse.coins > 0;
   return '<section class="card rank">' +
       levelLine() +
-      (owed
-        ? '<p class="rank-up">Des pièces t\'attendent</p>' +
-          '<p class="label" style="margin:0">Ta ville paie ' +
-            (rank.index > purse.level ? 'le niveau ' + rank.index : 'tes jours de travail') +
-            ' dès que tu y passes.</p>'
-        : '<p class="purse">' + (known
-            ? '<img src="reward/assets/coin.svg" alt="pièces">' + purse.coins + ' pièces'
-            : 'Une maison, un terrain, et toute une ville à bâtir.') + '</p>') +
+      '<p class="purse"><img src="reward/assets/coin.svg" alt="pièces">' +
+        purse.coins + ' pièces</p>' +
       '<div class="actions">' +
         '<button class="text primary" id="open-property">Ouvrir ma ville</button>' +
       '</div>' +
@@ -1387,7 +1393,7 @@ function standingCard() {
 
 // ---- Stamp book ----
 function renderStamps() {
-  showing = "stamps";
+  nowShowing("stamps");
   const stamps = earnedStamps();
   const month = stamps.filter(([key]) => key.startsWith(dayKey().slice(0, 7))).length;
 
@@ -1402,7 +1408,7 @@ function renderStamps() {
 
   screen.innerHTML =
     '<section class="card">' +
-      '<button class="link" id="back">← Retour</button>' +
+      '<button class="text quiet" id="back">← Retour</button>' +
       '<p class="count" style="font-family:\'Shantell Sans\',cursive;font-size:1.7rem;margin:14px 0 0">' +
         stamps.length + ' tampon' + (stamps.length > 1 ? 's' : '') + '</p>' +
       '<p class="label">' + (month
@@ -1439,7 +1445,7 @@ function relativeDate(timestamp) {
 }
 
 function renderReport() {
-  showing = "report";
+  nowShowing("report");
   const sections = lists().map(lesson => {
     const stats = progressOf(lesson.items);
     const rows = lesson.items.map(word => {
@@ -1448,9 +1454,13 @@ function renderReport() {
         ? record.ok + " bonne" + (record.ok > 1 ? "s" : "") + " réponse" +
           (record.ok > 1 ? "s" : "") + " sur " + record.seen + " · " + relativeDate(record.last)
         : "jamais révisé";
+      /* A word leads with the English, which is what is being learnt; a
+         sum leads with its question, or the report would be a page of
+         answers with the questions underneath. */
+      const sum = subject() === "maths";
       return '<li><span>' +
-          '<span class="en">' + esc(word.en[0]) + '</span>' +
-          '<span class="fr">' + esc(word.fr) + '</span>' +
+          '<span class="en">' + esc(sum ? word.fr : word.en[0]) + '</span>' +
+          '<span class="fr">' + esc(sum ? word.en[0] : word.fr) + '</span>' +
           '<span class="meta">' + meta + '</span>' +
         '</span><span class="dots">' + levelDots(record.level) + '</span></li>';
     }).join("");
@@ -1466,9 +1476,10 @@ function renderReport() {
 
   screen.innerHTML =
     '<section class="card">' +
-      '<button class="link" id="back">← Retour</button>' +
+      '<button class="text quiet" id="back">← Retour</button>' +
       '<p class="label" style="margin:14px 0 0">Chaque ' + thing(1) +
-        ' monte d\'un niveau par bonne réponse. Cinq points remplis, il est acquis.</p>' +
+        ' se retient un peu mieux à chaque bonne réponse. Cinq points remplis, ' +
+        'il est acquis.</p>' +
     '</section>' + rankBanner() + sections;
 
   document.getElementById("back").addEventListener("click", renderMenu);
@@ -1545,12 +1556,10 @@ function buildReverse(word, pool) {
 
 // ---- Quiz shell, shared by both modes ----
 function renderShell() {
-  showing = "round";
+  nowShowing("round");
   screen.innerHTML =
     '<section class="card">' +
       '<div class="topbar">' +
-        '<button class="link" id="back">← ' +
-          (subject() === "maths" ? "Changer d\'exercice" : "Changer de liste") + '</button>' +
         '<span class="counter" id="counter"></span>' +
       '</div>' +
       '<div class="track" id="track" aria-hidden="true"></div>' +
@@ -1559,7 +1568,6 @@ function renderShell() {
     '</section>';
   document.getElementById("track").innerHTML =
     state.round.map(() => '<span class="tick"></span>').join("");
-  document.getElementById("back").addEventListener("click", renderMenu);
 }
 
 function markTrack(result) {
@@ -1772,7 +1780,7 @@ const spell = {
       input.focus();
       document.getElementById("check").textContent = "Recopier";
       const pass = document.createElement("button");
-      pass.className = "link";
+      pass.className = "text quiet";
       pass.type = "button";
       pass.id = "pass";
       pass.textContent = "passer";
@@ -1875,7 +1883,7 @@ const maths = {
       input.focus();
       document.getElementById("check").textContent = "Recopier";
       const pass = document.createElement("button");
-      pass.className = "link";
+      pass.className = "text quiet";
       pass.type = "button";
       pass.id = "pass";
       pass.textContent = "passer";
@@ -2099,7 +2107,7 @@ function stopListening() {
 
 // ---- Score ----
 function showScore() {
-  showing = "score";
+  nowShowing("score");
   const total = state.round.length;
   const comment =
     state.score === total ? "Sans faute." :
@@ -2243,10 +2251,13 @@ function demoProgress(rank) {
   }
   keyLessons();
 
-  /* The way out to somebody else lives above the screens rather than in
-     one of them, so it is hung once and never again. */
-  document.getElementById("switch-who")
-    .addEventListener("click", () => renderProfiles());
+  /* The way out lives above the screens rather than in one of them, so
+     it is hung once and never again. Where it leads depends on where
+     the pupil is: out of an exercise first, out of the profile after. */
+  document.getElementById("wayout").addEventListener("click", () => {
+    if (showing === "round") renderMenu();
+    else renderProfiles();
+  });
 
   /* Who is holding the telephone comes before anything else: the
      progress, the property and the daily goal all belong to a profile,

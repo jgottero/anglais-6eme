@@ -62,7 +62,7 @@ const order = () => page.evaluate(() => state.round.map(q => q.word.n).join(' ')
 await page.click('[data-lesson="doubles"]');
 await page.waitForTimeout(500);
 const first = await order();
-await page.click('#back');
+await page.click('#wayout');
 await page.waitForTimeout(300);
 await page.click('[data-lesson="doubles"]');
 await page.waitForTimeout(500);

@@ -80,7 +80,7 @@ for (let n = 0; n < 3; n++) {
 await page.screenshot({ path: SHOTS + 'v43-ce2-round.png' });
 
 // ---- and the sixième, whose words are answered by choosing ----
-await page.click('#back');
+await page.click('#wayout');
 await page.waitForTimeout(300);
 await page.click('[data-switch]');
 await page.waitForTimeout(300);
@@ -107,7 +107,7 @@ for (let n = 0; n < 3; n++) {
 // ---- the menu still hears the purse ----
 /* The whole point of the redraw: the coins earned in the property show
    on the menu without the pupil having to do anything. */
-await page.click('#back');
+await page.click('#wayout');
 await page.waitForTimeout(400);
 console.log('the purse on the menu:', JSON.stringify(await page.evaluate(async () => {
   const read = () => {
