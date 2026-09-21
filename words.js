@@ -106,6 +106,33 @@ const VOCABULARY = {
         { fr: "Vous êtes", en: ["You are"] },
         { fr: "Ils/Elles sont", en: ["They are"] }
       ]
+    },
+    {
+      id: "days",
+      title: "The days",
+      subtitle: "Les jours de la semaine",
+      words: [
+        { fr: "Lundi", en: ["Monday"], heard: ["munday", "mundy"] },
+        { fr: "Mardi", en: ["Tuesday"], heard: ["tuesdays", "chewsday", "tiuesday"] },
+        { fr: "Mercredi", en: ["Wednesday"], heard: ["wensday", "wendsday", "wednsday"] },
+        { fr: "Jeudi", en: ["Thursday"], heard: ["thirsday", "thursdays", "thersday"] },
+        { fr: "Vendredi", en: ["Friday"], heard: ["fry day", "fridays"] },
+        { fr: "Samedi", en: ["Saturday"], heard: ["saturdays", "satur day", "saterday"] },
+        { fr: "Dimanche", en: ["Sunday"], heard: ["sundae", "sundays", "sun day"] }
+      ]
+    },
+    {
+      id: "colours",
+      title: "The colours",
+      subtitle: "Les couleurs",
+      words: [
+        { fr: "Rouge", en: ["red"], heard: ["read", "rad"] },
+        { fr: "Jaune", en: ["yellow"], heard: ["yello", "jello"] },
+        { fr: "Vert", en: ["green"], heard: ["grin", "greene"] },
+        { fr: "Bleu", en: ["blue"], heard: ["blew", "bloo"] },
+        { fr: "Rose", en: ["pink"], heard: ["pinc", "ping"] },
+        { fr: "Violet", en: ["purple"], heard: ["purpel", "people", "perple"] }
+      ]
     }
   ]
 };
