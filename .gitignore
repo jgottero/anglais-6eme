@@ -1,4 +1,7 @@
+# Playwright and its browser. The second line is for a link to a copy
+# kept elsewhere, which the first, ending in a slash, would not catch.
 node_modules/
+node_modules
 package-lock.json
 # Screenshots a test run leaves behind: tests/shots/ is where they are
 # meant to go, the loose ones are a suite that forgot to say so.
