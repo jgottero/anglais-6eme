@@ -22,7 +22,8 @@ for (const id of sample) {
   const indoor = ['chair', 'table', 'bed'].includes(id);
   await page.evaluate(({ id, indoor }) => {
     PropertyState.enter(indoor ? 'house' : 'outside');
-    const bought = PropertyState.buyAt(id, indoor ? 4 : 32, indoor ? 4 : 26, 0);
+    // Indoors, the corner of the first room: room enough for a bed of four.
+    const bought = PropertyState.buyAt(id, indoor ? 2 : 32, indoor ? 2 : 26, 0);
     World.select({ kind: 'object', uid: bought.uid });
   }, { id, indoor });
   await page.waitForTimeout(150);

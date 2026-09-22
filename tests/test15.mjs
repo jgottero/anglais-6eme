@@ -77,7 +77,9 @@ await page.waitForTimeout(250);
 await page.click('#turn-held');
 await page.click('#mirror-held');
 await page.waitForTimeout(200);
-spot = await tile(9, 4);
+// The doorway through the partition of the house, which a turned door
+// fills exactly: two tiles tall, one wide.
+spot = await tile(9, 3);
 await page.mouse.click(spot.x, spot.y);
 await page.waitForTimeout(250);
 await page.click('#cancel-placing');
