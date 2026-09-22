@@ -133,6 +133,35 @@ const VOCABULARY = {
         { fr: "Rose", en: ["pink"], heard: ["pinc", "ping"] },
         { fr: "Violet", en: ["purple"], heard: ["purpel", "people", "perple"] }
       ]
+    },
+    {
+      id: "seasons",
+      title: "The seasons and months",
+      subtitle: "Les saisons et les mois",
+      words: [
+        /* Grouped by season, as the notebook has them. The months keep
+           their capital letter and the seasons do not: that is the rule
+           written in the margin of the lesson. */
+        { fr: "L'hiver", en: ["winter"], heard: ["winther", "winner"] },
+        { fr: "Décembre", en: ["December"], heard: ["desember", "dicember"] },
+        { fr: "Janvier", en: ["January"], heard: ["janury", "janiary", "januray"] },
+        { fr: "Février", en: ["February"], heard: ["febuary", "febury", "febyuary"] },
+
+        { fr: "Le printemps", en: ["spring"], heard: ["sprint", "springs"] },
+        { fr: "Mars", en: ["March"], heard: ["marsh", "mark"] },
+        { fr: "Avril", en: ["April"], heard: ["apryl", "a pril"] },
+        { fr: "Mai", en: ["May"], heard: ["mae"] },
+
+        { fr: "L'été", en: ["summer"], heard: ["sumer", "some more"] },
+        { fr: "Juin", en: ["June"], heard: ["joon", "jun"] },
+        { fr: "Juillet", en: ["July"], heard: ["julie", "jully"] },
+        { fr: "Août", en: ["August"], heard: ["augest", "agust", "a gust"] },
+
+        { fr: "L'automne", en: ["autumn", "fall"], heard: ["autum", "otum", "ortum"] },
+        { fr: "Septembre", en: ["September"], heard: ["septemba", "sep tember"] },
+        { fr: "Octobre", en: ["October"], heard: ["octoba", "oc tober"] },
+        { fr: "Novembre", en: ["November"], heard: ["novemba", "no vember"] }
+      ]
     }
   ]
 };
