@@ -544,8 +544,8 @@ const PropertyState = (function () {
   /* ---- Going from one scene to another ---- */
 
   /* The way out of a room: its door, and the scene that door opens on.
-     A floor above the ground has no door of its own, only stairs, so
-     the way out is the door of the floor its stairs lead down to, as
+     A floor above the ground has no door of its own, only the way
+     down, so the way out is the door of the floor that leads to, as
      far down as it takes. Outside, there is nothing to leave. */
   function wayOut(id) {
     const seen = {};
@@ -554,7 +554,7 @@ const PropertyState = (function () {
       seen[place.id] = true;
       const door = place.blocks.find(block => block.kind === "door" && block.to);
       if (door) return door.to;
-      const down = place.blocks.find(block => block.kind === "stairs_down" && block.to);
+      const down = place.blocks.find(block => SCENES.climbs(block.kind) === "down" && block.to);
       if (!down) return null;
       place = built[down.to];
     }
@@ -562,7 +562,7 @@ const PropertyState = (function () {
   }
 
   /* The floors of the building one is standing in, from the street up.
-     Found by following the stairs down as far as they go and then back
+     Found by going down as far as the building goes and then back
      up: the plans are what say how a building is stacked, and nothing
      has to be written down twice. A building of one floor answers with
      nothing — there is no floor to choose. */
@@ -574,7 +574,7 @@ const PropertyState = (function () {
     let bottom = start;
     while (!climbed[bottom]) {
       climbed[bottom] = true;
-      const down = built[bottom].blocks.find(one => one.kind === "stairs_down" && one.to);
+      const down = built[bottom].blocks.find(one => SCENES.climbs(one.kind) === "down" && one.to);
       if (!down || !built[down.to]) break;
       bottom = down.to;
     }
@@ -585,7 +585,7 @@ const PropertyState = (function () {
     while (at && built[at] && !walked[at]) {
       walked[at] = true;
       stack.push({ id: at, name: built[at].name, here: at === start });
-      const up = built[at].blocks.find(one => one.kind === "stairs_up" && one.to);
+      const up = built[at].blocks.find(one => SCENES.climbs(one.kind) === "up" && one.to);
       at = up && built[up.to] ? up.to : null;
     }
     return stack.length > 1 ? stack : [];

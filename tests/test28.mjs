@@ -77,15 +77,15 @@ console.log('dehors:', JSON.stringify(await page.evaluate(() => ({
   backShown: !document.getElementById('back').hidden
 }))));
 
-// The stairs still work on their own.
+// The way up still works on its own.
 await page.evaluate(() => PropertyState.enter('tower_a1'));
 await page.waitForTimeout(200);
 const up = await page.evaluate(() => {
   const place = PropertyState.scene();
-  const i = place.blocks.findIndex(b => b.kind === 'stairs_up');
+  const i = place.blocks.findIndex(b => SCENES.climbs(b.kind) === 'up');
   World.selectBlock ? World.selectBlock(i) : null;
   return place.blocks[i].to;
 });
-console.log('the stairs of the first floor lead to:', up);
+console.log('the way up from the ground floor leads to:', up);
 console.log(errors.length ? errors.join('\n') : 'no errors, nothing missing');
 await browser.close();

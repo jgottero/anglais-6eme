@@ -96,274 +96,321 @@ const SCENES = (function () {
     shed:        { fr: "Le hangar",   en: "the harbour shed", sprite: "assets/warehouse.svg", action: "Entrer" },
     tree:        { fr: "Un grand sapin", en: "a tall pine", sprite: "assets/items/pine-tree.svg" },
     apple:       { fr: "Un pommier",  en: "an apple tree", sprite: "assets/items/apple-tree.svg" },
-    stairs_up:   { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-up.svg",    action: "Monter" },
-    stairs_down: { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-down.svg",  action: "Descendre" }
+    /* The ways from one floor to the next. `climb` is what the module
+       reads — which way this one goes — so that a building can change
+       its stairs for a lift without anything having to be told twice.
+       A house climbs by its stairs, a block of flats by its lift; it
+       is the building's style that says which (see STYLES). */
+    stairs_up:   { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-up.svg",    action: "Monter", climb: "up" },
+    stairs_down: { fr: "L'escalier",  en: "the stairs",  sprite: "assets/stairs-down.svg",  action: "Descendre", climb: "down" },
+    lift_up:     { fr: "L'ascenseur", en: "the lift",    sprite: "assets/lift-up.svg",      action: "Monter", climb: "up" },
+    lift_down:   { fr: "L'ascenseur", en: "the lift",    sprite: "assets/lift-down.svg",    action: "Descendre", climb: "down" }
   };
 
   /* ---- Indoor plans ----
      # a wall, O a window, I a window in a side wall, D the door out,
-     U stairs up, W stairs down, . free floor.
-     Walls are one tile thick and every room is an even number of tiles
-     across, so a floor can be covered edge to edge with ground tiles,
-     which take two tiles each. */
+     U the way up, W the way down, . free floor. What the way up looks
+     like is the building's business: stairs in a house, a lift in a
+     block of flats (see STYLES).
+
+     Walls are one tile thick, and every room is an even number of
+     tiles both ways, so a floor can be covered edge to edge with
+     ground tiles, which take two tiles each. What is built inside a
+     room — the lifts of the entrance — stands on that same grid of
+     two, so nothing is left half covered.
+
+     A building that has floors has an entrance: a lobby just wide
+     enough for the two lifts side by side, with the door out below
+     them on the ground floor. It is the smallest room that can hold
+     them, so the space they used to eat out of the middle of a room
+     is given back to the one next door. */
 
   const HOUSE_PLAN = [
-    "###OO########OO######",
+    "####OO########OO#####",
+    "#........#..........#",
+    "I........#..........I",
+    "I...................I",
+    "I...................I",
+    "I........#..........I",
+    "#........#..........#",
+    "##############..#####",
     "#........#..........#",
     "#........#..........#",
     "I........#..........I",
     "I...................I",
-    "#...................#",
-    "#........#..........#",
-    "#........#..........#",
-    "#........#..........#",
-    "####..########..#####",
-    "#........#..........#",
-    "#........#..........#",
-    "I........#..........I",
+    "I...................I",
     "I........#..........I",
     "#........#..........#",
     "#........#..........#",
-    "####DD######OO#######"
+    "####DD########OO#####"
   ];
 
   const CABIN_PLAN = [
-    "####OO##OO##",
-    "#..........#",
+    "#####OO#####",
     "#..........#",
     "#..........#",
     "I..........I",
     "I..........I",
-    "#..........#",
+    "I..........I",
+    "I..........I",
     "#..........#",
     "#..........#",
     "#####DD#####"
   ];
 
   const COTTAGE_PLAN = [
-    "###OO########OO####",
+    "####OO#######OO####",
     "#........#........#",
     "#........#........#",
     "#........#........#",
     "#........#........#",
-    "#........#........#",
+    "I........#........I",
     "I.................I",
     "I.................I",
+    "I........#........I",
     "#........#........#",
     "#........#........#",
     "#........#........#",
     "#........#........#",
-    "#........#........#",
-    "####DD######OO#####"
+    "####DD#######OO####"
   ];
 
-  // Each floor of the block of flats, with its own way up and down.
-  /* The block of flats, three floors: two large rooms with a corridor
-     across the middle, and a balcony on the floors above the street. */
+  /* The block of flats, three floors: two rooms the width of the
+     building, and along the front the entrance — a lobby just big
+     enough for the lifts — with the hall beside it. */
   const FLOOR_PLANS = {
     ground: [
-      "###OO########OO####OO#####",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#..........#.............#",
-      "I..........#........UU...I",
-      "I..........#........UU...I",
-      "I..........#.............I",
-      "#........................#",
-      "#........................#",
-      "I..........#.............I",
-      "I..........#.............I",
-      "I..........#.............I",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#........................#",
-      "#........................#",
-      "#..........#.............#",
-      "#..........#.............#",
-      "###########DD#############"
+      "####OO########OO########OO####",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "I........#..........#........I",
+      "I............................I",
+      "I............................I",
+      "I........#..........#........I",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#############..###############",
+      "#UU..#............#..........#",
+      "#UU..#............#..........I",
+      "#............................I",
+      "#............................#",
+      "##DD####OO####OO#######OO#####"
     ],
     middle: [
-      "###OO########OO####OO#####",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#..........#.............#",
-      "I..........#........UU...I",
-      "I..........#........UU...I",
-      "I..........#.............I",
-      "#........................#",
-      "#........................#",
-      "I..........#........WW...I",
-      "I..........#........WW...I",
-      "I..........#.............I",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#........................#",
-      "###OO#######OO######OO####",
-      "LBBBBBBBBBBBBBBBBBBBBBBBBL",
-      "LBBBBBBBBBBBBBBBBBBBBBBBBL",
-      "RRRRRRRRRRRRRRRRRRRRRRRRRR"
+      "####OO########OO########OO####",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "I........#..........#........I",
+      "I............................I",
+      "I............................I",
+      "I........#..........#........I",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#############..###############",
+      "#UUWW#............#..........#",
+      "#UUWW#............#..........I",
+      "#............................I",
+      "#............................#",
+      "##OO####OO####OO#######OO#####",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
     ],
     top: [
-      "###OO########OO####OO#####",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#..........#.............#",
-      "I..........#.............I",
-      "I..........#.............I",
-      "I..........#.............I",
-      "#........................#",
-      "#........................#",
-      "I..........#........WW...I",
-      "I..........#........WW...I",
-      "I..........#.............I",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#..........#.............#",
-      "#........................#",
-      "###OO#######OO######OO####",
-      "LBBBBBBBBBBBBBBBBBBBBBBBBL",
-      "LBBBBBBBBBBBBBBBBBBBBBBBBL",
-      "RRRRRRRRRRRRRRRRRRRRRRRRRR"
+      "####OO########OO########OO####",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "I........#..........#........I",
+      "I............................I",
+      "I............................I",
+      "I........#..........#........I",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#........#..........#........#",
+      "#############..###############",
+      "#..WW#............#..........#",
+      "#..WW#............#..........I",
+      "#............................I",
+      "#............................#",
+      "##OO####OO####OO#######OO#####",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
     ]
   };
 
-  /* The tall towers of the town: a narrow flat on every floor, two
-     rooms and a landing. */
-  /* The two towers of the town, four floors each: a landing, two rooms
-     and, above the ground floor, a balcony over the street. They are
-     late rewards, so there is room to spread out. */
+  /* The two towers of the town, four floors each: two rooms, the
+     entrance with its lifts and the hall beside it, and above the
+     ground floor a balcony over the street. They are late rewards, so
+     there is room to spread out. */
   const FLAT_PLANS = {
     ground: [
-      "##OO######OO####OO##",
-      "#........#.........#",
-      "#........#.........#",
-      "I........#.........I",
-      "I........#....UU...I",
-      "#........#....UU...#",
-      "#........#.........#",
-      "#..................#",
-      "#..................#",
-      "I........#.........I",
-      "I........#.........I",
-      "#........#.........#",
-      "#........#.........#",
-      "I........#.........I",
-      "I........#.........I",
-      "#........#.........#",
-      "#..................#",
-      "#..................#",
-      "#..................#",
-      "########DD##########"
+      "###OO######OO######OO###",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "I......#........#......I",
+      "I......................I",
+      "I......................I",
+      "I......#........#......I",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "###########..###########",
+      "#UU..#..........#......#",
+      "#UU..#..........#......I",
+      "#......................I",
+      "#......................#",
+      "##DD######OO#######OO###"
     ],
     middle: [
-      "##OO######OO####OO##",
-      "#........#.........#",
-      "#........#.........#",
-      "I........#.........I",
-      "I........#....UU...I",
-      "#........#....UU...#",
-      "#........#.........#",
-      "#..................#",
-      "#..................#",
-      "I........#....WW...I",
-      "I........#....WW...I",
-      "#........#.........#",
-      "#........#.........#",
-      "I........#.........I",
-      "I........#.........I",
-      "#........#.........#",
-      "###OO######OO####OO#",
-      "LBBBBBBBBBBBBBBBBBBL",
-      "LBBBBBBBBBBBBBBBBBBL",
-      "RRRRRRRRRRRRRRRRRRRR"
+      "###OO######OO######OO###",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "I......#........#......I",
+      "I......................I",
+      "I......................I",
+      "I......#........#......I",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "###########..###########",
+      "#UUWW#..........#......#",
+      "#UUWW#..........#......I",
+      "#......................I",
+      "#......................#",
+      "##OO######OO#######OO###",
+      "LBBBBBBBBBBBBBBBBBBBBBBL",
+      "LBBBBBBBBBBBBBBBBBBBBBBL",
+      "RRRRRRRRRRRRRRRRRRRRRRRR"
     ],
     top: [
-      "##OO######OO####OO##",
-      "#........#.........#",
-      "#........#.........#",
-      "I........#.........I",
-      "I........#.........I",
-      "#........#.........#",
-      "#........#.........#",
-      "#..................#",
-      "#..................#",
-      "I........#....WW...I",
-      "I........#....WW...I",
-      "#........#.........#",
-      "#........#.........#",
-      "I........#.........I",
-      "I........#.........I",
-      "#........#.........#",
-      "###OO######OO####OO#",
-      "LBBBBBBBBBBBBBBBBBBL",
-      "LBBBBBBBBBBBBBBBBBBL",
-      "RRRRRRRRRRRRRRRRRRRR"
+      "###OO######OO######OO###",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "I......#........#......I",
+      "I......................I",
+      "I......................I",
+      "I......#........#......I",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "#......#........#......#",
+      "###########..###########",
+      "#..WW#..........#......#",
+      "#..WW#..........#......I",
+      "#......................I",
+      "#......................#",
+      "##OO######OO#######OO###",
+      "LBBBBBBBBBBBBBBBBBBBBBBL",
+      "LBBBBBBBBBBBBBBBBBBBBBBL",
+      "RRRRRRRRRRRRRRRRRRRRRRRR"
     ]
   };
 
-  /* The long block: three rooms side by side and a corridor across the
-     middle, on both of its floors. */
-  /* The long block, three floors: three rooms side by side and a
-     corridor across, with a balcony along the front upstairs. */
+  /* The long block, three floors: three rooms side by side, and
+     along the front the entrance with, beside it, the two rooms its
+     corner leaves. */
   const LOFT_PLANS = {
     ground: [
-      "####OO#########OO#########OO####",
-      "#.........#..........#.........#",
-      "#.........#..........#.........#",
-      "I.........#..........#...UU....I",
-      "I.........#..........#...UU....I",
-      "I.........#..........#.........I",
-      "#..............................#",
-      "#..............................#",
-      "I.........#..........#.........I",
-      "I.........#..........#.........I",
-      "I.........#..........#.........I",
-      "#.........#..........#.........#",
-      "#.........#..........#.........#",
-      "#.........#..........#.........#",
-      "##############DD################"
+      "#####OO#########OO#########OO#####",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "I..........#..........#..........I",
+      "I................................I",
+      "I................................I",
+      "I..........#..........#..........I",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "###########################..#####",
+      "#UU..#............#..............#",
+      "#UU..#............#..............I",
+      "#................................I",
+      "#................................#",
+      "##DD####OO####OO######OO#####OO###"
     ],
     middle: [
-      "####OO#########OO#########OO####",
-      "#.........#..........#.........#",
-      "#.........#..........#.........#",
-      "I.........#..........#...UU....I",
-      "I.........#..........#...UU....I",
-      "I.........#..........#.........I",
-      "#..............................#",
-      "#..............................#",
-      "I.........#..........#...WW....I",
-      "I.........#..........#...WW....I",
-      "I.........#..........#.........I",
-      "#.........#..........#.........#",
-      "###OO########OO########OO#######",
-      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
-      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+      "#####OO#########OO#########OO#####",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "I..........#..........#..........I",
+      "I................................I",
+      "I................................I",
+      "I..........#..........#..........I",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "###########################..#####",
+      "#UUWW#............#..............#",
+      "#UUWW#............#..............I",
+      "#................................I",
+      "#................................#",
+      "##OO####OO####OO######OO#####OO###",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
     ],
     top: [
-      "####OO#########OO#########OO####",
-      "#.........#..........#.........#",
-      "#.........#..........#.........#",
-      "I.........#..........#.........I",
-      "I.........#..........#.........I",
-      "I.........#..........#.........I",
-      "#..............................#",
-      "#..............................#",
-      "I.........#..........#...WW....I",
-      "I.........#..........#...WW....I",
-      "I.........#..........#.........I",
-      "#.........#..........#.........#",
-      "###OO########OO########OO#######",
-      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
-      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+      "#####OO#########OO#########OO#####",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "I..........#..........#..........I",
+      "I................................I",
+      "I................................I",
+      "I..........#..........#..........I",
+      "#..........#..........#..........#",
+      "#..........#..........#..........#",
+      "###########################..#####",
+      "#..WW#............#..............#",
+      "#..WW#............#..............I",
+      "#................................I",
+      "#................................#",
+      "##OO####OO####OO######OO#####OO###",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "LBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBL",
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
     ]
   };
 
   // The harbour shed: one hall, nothing in the way.
   const SHED_PLAN = [
-    "####OO########OO########",
+    "####OO#####OO#####OO####",
+    "#......................#",
     "#......................#",
     "#......................#",
     "I......................I",
@@ -373,8 +420,7 @@ const SCENES = (function () {
     "#......................#",
     "#......................#",
     "#......................#",
-    "#......................#",
-    "##########DD############"
+    "###########DD###########"
   ];
 
   /* ---- What each building is made of ----
@@ -387,10 +433,14 @@ const SCENES = (function () {
     cabin:   { floor: "logs",       wall: "log_wall",      window: "log_window",     side: "log_window_side" },
     west:    { floor: "terracotta", wall: "plaster_wall",  window: "shutter_window", side: "shutter_window_side" },
     east:    { floor: "stone",      wall: "panel_wall",    window: "panel_window",   side: "panel_window_side" },
-    flat:    { floor: "lino",       wall: "concrete_wall", window: "bay_window",     side: "bay_window_side" },
-    tower:   { floor: "polished",   wall: "white_wall",    window: "tall_window",    side: "tall_window_side" },
-    newtown: { floor: "carpet",     wall: "raw_wall",      window: "raw_window",     side: "raw_window_side" },
-    loft:    { floor: "concrete",   wall: "brick_wall",    window: "brick_window",   side: "brick_window_side" },
+    flat:    { floor: "lino",       wall: "concrete_wall", window: "bay_window",     side: "bay_window_side",
+               up: "lift_up", down: "lift_down" },
+    tower:   { floor: "polished",   wall: "white_wall",    window: "tall_window",    side: "tall_window_side",
+               up: "lift_up", down: "lift_down" },
+    newtown: { floor: "carpet",     wall: "raw_wall",      window: "raw_window",     side: "raw_window_side",
+               up: "lift_up", down: "lift_down" },
+    loft:    { floor: "concrete",   wall: "brick_wall",    window: "brick_window",   side: "brick_window_side",
+               up: "lift_up", down: "lift_down" },
     shed:    { floor: "planks",     wall: "metal_wall",    window: "metal_window",   side: "metal_window_side" }
   };
 
@@ -400,7 +450,7 @@ const SCENES = (function () {
   function blocksFromPlan(plan, ways, style) {
     const signs = {
       "#": style.wall, O: style.window, I: style.side,
-      D: "door", U: "stairs_up", W: "stairs_down",
+      D: "door", U: style.up || "stairs_up", W: style.down || "stairs_down",
       R: "rail", L: "rail_side"   // the balustrade, across and down
     };
     const blocks = [];
@@ -704,6 +754,9 @@ const SCENES = (function () {
     BLOCKS, PLOTS, FIRST_PLOT,
     build, plot, plotsForSale,
     kind(name) { return BLOCKS[name] || null; },
+    // Which way a block leads, if it leads anywhere: "up", "down" or
+    // nothing at all. Stairs and lift answer the same.
+    climbs(name) { return (BLOCKS[name] || {}).climb || null; },
     first: "outside"
   };
 })();

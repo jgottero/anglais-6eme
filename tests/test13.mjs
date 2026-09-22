@@ -48,12 +48,12 @@ await enterVia('.blk-tower', 'immeuble');
 await page.evaluate(() => PropertyState.enter('flat_1'));
 await page.waitForTimeout(400);
 const up = await page.evaluate(() => {
-  const r = document.querySelector('.blk-stairs_up').getBoundingClientRect();
+  const r = document.querySelector('.blk-lift_up').getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 });
 await page.mouse.click(up.x, up.y);
 await page.waitForTimeout(250);
-console.log('stairs bar:', await page.evaluate(() => document.getElementById('action-bar').textContent.trim()));
+console.log('lift bar:', await page.evaluate(() => document.getElementById('action-bar').textContent.trim()));
 await page.click('#action-bar .enter-btn');
 await page.waitForTimeout(400);
 console.log('after climbing:', await page.evaluate(() => PropertyState.scene().name));

@@ -55,14 +55,14 @@ console.log('the facades tell the truth:', JSON.stringify(await page.evaluate(()
   all.outside.blocks.forEach(block => {
     const kind = SCENES.kind(block.kind);
     if (!kind || !kind.floors || !block.to) return;
-    // Count the floors by walking the stairs, the way the module does.
+    // Count the floors by going up, the way the module does.
     const stack = [];
     let at = block.to;
     const seen = {};
     while (at && all[at] && !seen[at]) {
       seen[at] = true;
       stack.push(at);
-      const up = all[at].blocks.find(b => b.kind === 'stairs_up' && b.to);
+      const up = all[at].blocks.find(b => SCENES.climbs(b.kind) === 'up' && b.to);
       at = up ? up.to : null;
     }
     told[block.kind] = { drawn: kind.floors, walked: stack.length, agree: kind.floors === stack.length };

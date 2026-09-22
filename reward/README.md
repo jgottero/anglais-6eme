@@ -38,8 +38,10 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   en occupent 2 × 2 ; un cheval ou un tracteur 6 × 3 ; le moulin 6 × 9 et
   la grande roue 8 × 8. C'est cette différence d'échelle qui fait qu'une
   propriété ressemble à quelque chose. Les murs des intérieurs font une
-  case, et chaque pièce compte un nombre pair de cases dans les deux
-  sens, pour qu'un sol puisse la couvrir entièrement.
+  case, et **chaque pièce compte un nombre pair de cases dans les deux
+  sens** — ce qui est bâti dedans, les ascenseurs de l'entrée, tient sur
+  cette même grille de deux — pour qu'un sol de 2 × 2 puisse la couvrir
+  entièrement, sans bande nue le long d'un mur.
 * **Caméra** : glisser n'importe où sur le terrain la déplace (sauf sur
   l'objet sélectionné, qui suit alors le doigt), deux doigts (ou la
   molette) zooment. On ne peut pas dézoomer au-delà du terrain entier ;
@@ -59,11 +61,11 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   autre objet remplace celui qui est en main.
 * **Des lieux, pas un seul** : la propriété dehors, et l'intérieur de
   chaque bâtiment. Toucher un bâtiment propose **Entrer** ; la porte (ou
-  le bouton **Sortir**) ramène dehors, et un escalier mène à l'étage.
+  le bouton **Sortir**) ramène dehors, et l'ascenseur mène à l'étage.
   Le bouton **Sortir** cherche vraiment la porte : depuis un étage, qui
-  n'a que des escaliers, il redescend jusqu'à l'étage qui en a une et
+  n'a pas la sienne, il redescend jusqu'à l'étage qui en a une et
   ressort par là, d'un seul appui.
-  **Deux appuis d'affilée** sur une maison, une porte ou un escalier
+  **Deux appuis d'affilée** sur une maison, une porte ou un ascenseur
   passent directement, sans le détour par la barre du bas. Le premier
   appui sélectionne toujours : la barre dit où cela mène et prononce le
   nom anglais, le second est la réponse. Les deux doivent se suivre de
@@ -73,16 +75,27 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 * **Un bouton par étage** : dans un bâtiment qui en a plusieurs, une
   rangée **RDC · 1er · 2e · 3e** s'affiche sous le bouton Sortir, celui
   où l'on se trouve marqué. Un appui y va directement — chercher
-  l'escalier pour monter d'un étage puis redescendre n'a rien
+  l'ascenseur pour monter d'un étage puis redescendre n'a rien
   d'amusant, et un enfant sait très bien à quel étage il veut aller. La
-  rangée se construit **en suivant les escaliers** du plan : rien n'est
+  rangée se construit **en suivant les montées** du plan : rien n'est
   écrit deux fois, et un bâtiment d'un seul niveau n'affiche rien.
+* **Un immeuble a une entrée.** Les ascenseurs sont bâtis : là où ils
+  se trouvent, on ne pose rien. Plutôt que de les laisser manger le
+  milieu d'une pièce, chaque étage commence par une **entrée** — le plus
+  petit local qui les tienne, les deux **côte à côte**, la montée puis la
+  descente, toujours au même coin quel que soit l'étage. Au
+  rez-de-chaussée, la porte est juste en dessous. L'espace que l'entrée
+  laisse le long de la façade n'est pas perdu pour autant : c'est le
+  **hall**, une pièce comme une autre, où l'on meuble.
 * **Le centre-ville se mérite, et se voit** : les bâtiments du centre et du
   quartier neuf sont des récompenses tardives, donc les plus vastes du
-  jeu — l'immeuble fait 520 cases, le long immeuble 480, chaque tour
-  400, quand la maison de départ en fait 357. Les étages du dessus ont
-  un **balcon** sur la rue : une avancée pavée, bordée d'un
-  garde-corps, où l'on pose ce qu'on veut comme à l'intérieur.
+  jeu — l'immeuble fait 690 cases, le long immeuble 646, chaque tour
+  600, quand la maison de départ en fait 357. Ils ont grandi le jour où
+  l'entrée est apparue : une cage d'ascenseur prend de la place, autant
+  la rendre ailleurs. Les étages du dessus ont
+  un **balcon** sur la rue : une avancée pavée de deux cases de
+  profondeur, bordée d'un garde-corps, où l'on pose ce qu'on veut comme
+  à l'intérieur.
 * **Une façade ne ment pas sur ses étages** : l'immeuble en a trois
   dedans et trois rangées de fenêtres dehors, les tours quatre, le long
   immeuble trois. Le compte est écrit dans `BLOCKS` (`floors`), à côté
@@ -101,11 +114,15 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   ce que valent les signes de son plan.
 
   Les signes d'un plan : `#` mur, `O` fenêtre dans un mur horizontal,
-  `I` fenêtre dans un mur latéral, `D` porte, `U` escalier qui monte,
-  `W` escalier qui descend, `.` sol — et pour un balcon, `B` son
+  `I` fenêtre dans un mur latéral, `D` porte, `U` ce qui monte,
+  `W` ce qui descend, `.` sol — et pour un balcon, `B` son
   dallage, `R` le garde-corps qui court, `L` celui qui descend. La
-  porte, les escaliers et le garde-corps sont les mêmes partout ; le
-  reste appartient au style du bâtiment. Monter de la
+  porte et le garde-corps sont les mêmes partout ; le reste appartient
+  au style du bâtiment — y compris **ce qui monte** : une maison a son
+  escalier, un immeuble son **ascenseur** (`up` et `down` dans
+  `STYLES`). Le module, lui, ne lit pas le nom du bloc mais son champ
+  `climb` (`"up"` ou `"down"`), si bien qu'échanger l'escalier contre
+  une cabine ne change qu'un dessin. Monter de la
   cabane à la tour doit se voir sous les pieds.
   Chaque intérieur est un monde indépendant, avec ses pièces séparées par
   des murs : ses objets lui appartiennent, seules les pièces de monnaie
@@ -125,7 +142,7 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
 
   | Parcelle | Où | Prix | Ce qu'elle apporte |
   | --- | --- | --- | --- |
-  | Ton terrain | centre | — | la maison de départ (3 pièces) |
+  | Ton terrain | centre | — | la maison de départ (4 pièces) |
   | Le pré | nord | 296–300 | de la place, tout simplement |
   | Le bosquet | nord-ouest | 696–700 | sol de forêt, grands sapins, une **cabane** |
   | Le verger | est | 1396–1400 | une grande parcelle, des pommiers, un bois |
@@ -141,7 +158,7 @@ La propriété occupe tout l'écran ; le reste flotte par-dessus.
   mer ; et on n'entre pas dans une cabane qu'on ne possède pas. Les
   bâtiments ont des formes différentes — l'immeuble large, la tour étroite
   et haute, le long immeuble bas, le hangar du port — et chacun a son
-  plan : on retrouve le quai en sortant, l'escalier mène à l'étage.
+  plan : on retrouve le quai en sortant, l'ascenseur mène à l'étage.
 * **Dehors la limite serpente, dedans elle est droite** : la ligne qui
   sépare deux sols est lue un peu à côté, ce qui donne au sable et à
   l'eau des bords vivants. Cette dérive s'arrête à la porte : à
@@ -592,7 +609,7 @@ reward/
   css/style.css       toute la mise en forme
   js/catalog.js       la liste des objets (données seules)
   js/share.js         un monde écrit dans un lien, et relu
-  js/scenes.js        les parcelles et les lieux : plans, murs, portes, escaliers
+  js/scenes.js        les parcelles et les lieux : plans, murs, portes, ascenseurs
   js/ground.js        la peinture du sol, case par case, et la limite des biomes
   js/state.js         pièces, objets posés par lieu, sauvegarde, règles
   js/world.js         dessin du terrain, caméra, gestes, glisser-déposer
@@ -606,7 +623,7 @@ reward/
     ground/           (les sols, plusieurs variantes par biome)
     cabin.svg cottage.svg apartment.svg           (les bâtiments à visiter)
     tower-tall.svg block-long.svg warehouse.svg   (la ville et le port)
-    stairs-up.svg stairs-down.svg
+    stairs-up.svg stairs-down.svg lift-up.svg lift-down.svg
     items/            un fichier par objet du magasin,
                       plus un par couleur (bed-blue.svg…)
 ```
@@ -694,8 +711,10 @@ aussi ce qui est écrit dans la sauvegarde, et le nom du fichier.
 
 ## Prévu pour plus tard
 
-* **Agrandir la maison de départ** (étages) comme l'immeuble : un escalier
-  et une scène de plus dans `js/scenes.js`.
+* **Agrandir la maison de départ** (étages) comme l'immeuble : une
+  entrée avec son escalier et une scène de plus dans `js/scenes.js` —
+  les blocs `stairs_up` et `stairs_down` attendent là, c'est par eux
+  qu'une maison monte.
 * **De nouvelles parcelles** : ajouter une entrée à `PLOTS` dans
   `js/scenes.js` suffit — position, sol, prix, décors, et les intérieurs
   qu'elle amène. Rien d'autre à toucher, et les propriétés déjà

@@ -65,8 +65,8 @@ const door = await middleOf('door');
 await twoTaps(door, 100);
 console.log('two taps on the door   ->', await scene());
 
-// ---- the stairs, in a house that has any ----
-console.log('two taps on the stairs:', JSON.stringify(await (async () => {
+// ---- the lift, in a building that has one ----
+console.log('two taps on the lift:', JSON.stringify(await (async () => {
   await page.evaluate(() => {
     // The block of flats is the tallest thing to own: four floors of it.
     let again = true;
@@ -75,12 +75,12 @@ console.log('two taps on the stairs:', JSON.stringify(await (async () => {
   });
   await page.waitForTimeout(500);
   const from = await scene();
-  const up = await middleOf('stairs_up');
-  if (!up) return { from, stairs: 'none found' };
+  const up = await middleOf('lift_up');
+  if (!up) return { from, lift: 'none found' };
   await twoTaps(up, 100);
   const after = await scene();
   // And back down again.
-  const down = await middleOf('stairs_down');
+  const down = await middleOf('lift_down');
   if (down) await twoTaps(down, 100);
   return { from, upstairs: after, backDown: await scene() };
 })()));
