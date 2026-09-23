@@ -98,8 +98,15 @@
     if (await openSharedWorld()) return;
     if (Share.inAddress(location.href)) return;
 
-    /* What the save could not keep came back as coins; saying so is
-       better than letting the child hunt for a missing bench. */
+    /* The news, if there is any. Prices halved is the good kind and
+       comes first; what the save could not keep is the other kind, and
+       saying so is better than letting the child hunt for a missing
+       bench. */
+    const cheaper = PropertyState.paidBackCoins();
+    if (cheaper) {
+      toast("Tout est deux fois moins cher ! +" + cheaper + " pièces rendues.");
+      return;
+    }
     const paid = PropertyState.mendedCoins();
     if (paid) {
       toast("Quelques objets ne tenaient plus ici : +" + paid + " pièces rendues.");

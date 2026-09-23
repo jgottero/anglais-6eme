@@ -516,8 +516,19 @@ c'est lui qui décide de ce que le magasin propose.
 Le barème est dans `js/app.js` (`rewardForTier`) : **100 + 10 × niveau**,
 plus 250 tous les cinq niveaux et 500 tous les dix. Cela fait 110 pièces
 au niveau 1, 1850 au niveau 100, et **70 500 pièces** sur la partie
-entière — de quoi acheter les onze parcelles (46 800) et beaucoup de
-choses à poser dessus, sans pouvoir tout prendre : il faut choisir.
+entière — contre 46 800 pour les onze parcelles et **26 355 pour un
+exemplaire de chaque objet du magasin**. La ville entière vaut donc un
+peu plus que ce que les niveaux paient (104 %), et ce sont les tampons
+des journées de travail qui comblent la différence : on peut finir par
+tout avoir, mais pas tout de suite, et jamais sans choisir l'ordre.
+
+Les prix ont été **divisés par deux** le jour où les enfants ont trouvé
+leur ville trop vide : un trimestre de travail ne remplissait pas un
+coin de terrain. Ils sont tous des multiples de cinq, arrondis vers le
+bas, et le moins cher vaut 5 pièces. Une sauvegarde d'avant se fait
+rendre la différence sur ce qu'elle avait déjà acheté (`STEPS[10]`,
+`js/state.js`) : avoir économisé d'abord ne doit pas coûter plus cher
+qu'avoir attendu.
 
 Un tampon vaut moins (`rewardForStamp`) : **30 + 2 × niveau**, soit 32
 pièces au début et 230 à la fin. Une année de travail régulier (autour

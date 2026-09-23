@@ -34,7 +34,7 @@ const PropertyState = (function () {
       return PLAIN;
     }
   })();
-  const VERSION = 10;  // the shape of the save
+  const VERSION = 11;  // the shape of the save
   const START_COINS = 150;
 
   function blank() {
@@ -79,7 +79,28 @@ const PropertyState = (function () {
        it, and nothing has to be paid back. A trimmed drawing can end up
        half a tile to one side of where it was, because a three-tile
        foot cannot be centred on four tiles; nothing else moves. */
-    9: saved => Object.assign({}, saved, { version: 10, placed: onTheirFeet(saved.placed) })
+    9: saved => Object.assign({}, saved, { version: 10, placed: onTheirFeet(saved.placed) }),
+
+    /* 11 halves every price in the shop: a town was too slow to fill,
+       and an empty town is not much of a reward. Nothing moves and
+       nothing is sold — but everything already bought was paid for at
+       the old price, which was a little more than twice today's, so the
+       difference comes back to the purse. Saving up first must not cost
+       more than waiting. */
+    10: saved => {
+      let back = 0;
+      Object.keys(saved.placed || {}).forEach(id => {
+        (saved.placed[id] || []).forEach(entry => {
+          const item = CATALOG.item(entry && entry.id);
+          if (item) back += item.price;
+        });
+      });
+      paidBack += back;
+      return Object.assign({}, saved, {
+        version: 11,
+        coins: Math.max(0, Math.round(Number(saved.coins) || 0)) + back
+      });
+    }
   };
 
   // The drawings trimmed in version 10, and the width they had before.
@@ -119,6 +140,7 @@ const PropertyState = (function () {
   }
 
   let carried = 0;    // coins handed back while reading an older save
+  let paidBack = 0;   // and what a fall in prices gave back, once
   /* While a world someone else sent is on show, the child's own
      property is kept here untouched and nothing at all is written to
      storage. Everything that would change a property asks this first. */
@@ -633,6 +655,9 @@ const PropertyState = (function () {
 
   // What the last load had to pay back, so the child can be told.
   function mendedCoins() { return mended; }
+  /* What the day prices were halved gave back to a property built at
+     the old ones. Said once, on the way in, and then forgotten. */
+  function paidBackCoins() { return paidBack; }
 
   // Days of practice already paid for.
   function stamps() { return data.stamps; }
@@ -650,7 +675,7 @@ const PropertyState = (function () {
     scene, sceneId, enter, wayOut, floors,
     plotsForSale, buyPlot,
     canPlace, buildable, blockAt,
-    addCoins, grantTier, grantUpTo, grantStamps, level, stamps, mendedCoins,
+    addCoins, grantTier, grantUpTo, grantStamps, level, stamps, mendedCoins, paidBackCoins,
     buyAt, move, turn, mirror, paint, sell, reset,
     visit, goHome, visiting
   };
