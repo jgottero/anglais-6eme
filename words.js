@@ -162,6 +162,46 @@ const VOCABULARY = {
         { fr: "Octobre", en: ["October"], heard: ["octoba", "oc tober"] },
         { fr: "Novembre", en: ["November"], heard: ["novemba", "no vember"] }
       ]
+    },
+    {
+      id: "numbers",
+      title: "The numbers",
+      subtitle: "Les nombres de 1 à 100",
+      words: [
+        /* Written as figures, because that is what a number is to a
+           child before it is a word. The way one says it out loud is
+           what the list teaches. */
+        { fr: "1", en: ["one"], heard: ["1", "won"] },
+        { fr: "2", en: ["two"], heard: ["2", "too", "to"] },
+        { fr: "3", en: ["three"], heard: ["3", "tree"] },
+        { fr: "4", en: ["four"], heard: ["4", "for", "fore"] },
+        { fr: "5", en: ["five"], heard: ["5", "fife"] },
+        { fr: "6", en: ["six"], heard: ["6", "sicks"] },
+        { fr: "7", en: ["seven"], heard: ["7", "sevin"] },
+        { fr: "8", en: ["eight"], heard: ["8", "ate"] },
+        { fr: "9", en: ["nine"], heard: ["9", "nein"] },
+        { fr: "10", en: ["ten"], heard: ["10", "tenn"] },
+        { fr: "11", en: ["eleven"], heard: ["11", "elevin"] },
+        { fr: "12", en: ["twelve"], heard: ["12", "twelf"] },
+        { fr: "13", en: ["thirteen"], heard: ["13", "thurteen"] },
+        { fr: "14", en: ["fourteen"], heard: ["14", "forteen"] },
+        { fr: "15", en: ["fifteen"], heard: ["15", "fifeteen"] },
+        { fr: "16", en: ["sixteen"], heard: ["16", "sixten"] },
+        { fr: "17", en: ["seventeen"], heard: ["17", "seventen"] },
+        { fr: "18", en: ["eighteen"], heard: ["18", "ateteen"] },
+        { fr: "19", en: ["nineteen"], heard: ["19", "ninteen"] },
+        { fr: "20", en: ["twenty"], heard: ["20", "twenny"] },
+
+        // And then ten at a time, to a hundred.
+        { fr: "30", en: ["thirty"], heard: ["30", "thurty"] },
+        { fr: "40", en: ["forty"], heard: ["40", "fourty"] },
+        { fr: "50", en: ["fifty"], heard: ["50", "fivety"] },
+        { fr: "60", en: ["sixty"], heard: ["60", "sixtee"] },
+        { fr: "70", en: ["seventy"], heard: ["70", "seventee"] },
+        { fr: "80", en: ["eighty"], heard: ["80", "ateee"] },
+        { fr: "90", en: ["ninety"], heard: ["90", "ninty"] },
+        { fr: "100", en: ["one hundred", "a hundred"], heard: ["100", "hundred"] }
+      ]
     }
   ]
 };

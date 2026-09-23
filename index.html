@@ -459,15 +459,19 @@ function esc(text) {
   return div.innerHTML;
 }
 
-// Strips accents, punctuation and doubled spaces before comparing answers.
-// Apostrophes are removed rather than turned into spaces, so a transcription
-// like "dont run" still matches "don't run".
+/* Strips accents, punctuation and doubled spaces before comparing answers.
+   Apostrophes are removed rather than turned into spaces, so a transcription
+   like "dont run" still matches "don't run".
+
+   Figures are kept: a recogniser asked for "seventeen" hands back "17",
+   and the numbers list says so in its `heard`. Nothing else in the
+   lists is written with a figure, so nothing else changes. */
 function normalise(text) {
   return text
     .toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/['\u2019\u02bc]/g, "")
-    .replace(/[^a-z ]/g, " ")
+    .replace(/[^a-z0-9 ]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
