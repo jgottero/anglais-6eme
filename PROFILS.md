@@ -122,7 +122,11 @@ part de zéro.
 Le niveau **choisit ce qui est révisé** : anglais pour la sixième,
 mathématiques pour le CE2 (`maths.js`) — et `subjectOf(niveau)` répond à
 la question pour n'importe quel profil, ce dont un parent a besoin pour
-lire le carnet d'un enfant qui n'est pas de son année à lui. Tout ce qui entoure un exercice
+lire le carnet d'un enfant qui n'est pas de son année à lui. Une matière
+n'est pas enfermée pour autant : une liste de mots qui dit
+`grade: "ce2"` (`words.js`) passe du menu du grand à celui du petit,
+c'est ainsi que le CE2 a ses nombres en anglais à côté de ses tables.
+Tout ce qui entoure un exercice
 — les niveaux, les points, l'objectif du jour, la révision espacée, la
 ville — ne sait rien de ce qui est révisé et sert les deux sans rien
 changer.
@@ -132,8 +136,13 @@ Trois fonctions portent la bascule, dans `index.html` :
 | | |
 | --- | --- |
 | `subject()` | `"maths"` pour le CE2, `"english"` sinon |
-| `lists()` | les listes de la matière, toutes de la même forme : `id`, `title`, `items` |
+| `lists()` | les listes de la matière, toutes de la même forme : `id`, `title`, `items`, et `of` — `"sums"` ou `"words"`, ce dont elle est faite |
 | `modesFor()` | les façons de réviser ; une matière qui n'en a qu'une n'en propose aucune |
+
+Une liste peut aussi porter ses propres modes (`ask`), et alors chaque
+question en tire un au hasard : c'est ce qui fait que les nombres en
+anglais du CE2 sont tantôt écoutés, tantôt choisis parmi quatre, sans
+rien demander à l'enfant.
 
 `allWords()` passe par `lists()`, donc l'objectif du jour, le bilan et la
 révision espacée suivent d'eux-mêmes. Le seul endroit qui demande

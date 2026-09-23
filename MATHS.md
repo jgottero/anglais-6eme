@@ -1,8 +1,9 @@
-# Les mathématiques (CE2)
+# Les exercices du CE2
 
 L'application a commencé par l'anglais ; le CE2 commence par les
-mathématiques. Un enfant en CE2 ouvre la même application, gagne les
-mêmes niveaux et aménage la même ville — seuls les exercices changent.
+mathématiques, et depuis peu apprend aussi ses nombres en anglais. Un
+enfant en CE2 ouvre la même application, gagne les mêmes niveaux et
+aménage la même ville — seuls les exercices changent.
 
 ## Ce qu'il y a pour l'instant
 
@@ -17,10 +18,28 @@ parce qu'on apprend une table à la fois et qu'on veut savoir laquelle est
 sue. Chacune se récite d'**une fois à dix fois**, la forme apprise en
 classe : l'enfant lit « 4 × 7 » et écrit le produit.
 
-À cinq exercices, le menu propose en plus **« Tout mélangé »** — les
-cinquante-neuf calculs tirés ensemble.
+**Les nombres en anglais, de un à quinze.** Le même apprentissage que
+son frère en 6ème, en plus simple : deux façons de poser la question, et
+**laquelle est tirée au sort à chaque fois**.
 
-Dans les cinq, le clavier s'ouvre en chiffres sur un téléphone
+* **À l'oreille** — un nombre est prononcé en anglais et l'enfant écrit
+  **le chiffre**. Rien n'est écrit à l'écran, un bouton **Réécouter le
+  nombre** le redit autant de fois qu'il faut. Écrire *seven* n'est pas
+  demandé : à cet âge, l'oreille et la main suffisent.
+* **Parmi quatre** — le nombre est écrit **en français** (« douze ») et
+  l'enfant choisit la bonne traduction parmi quatre mots anglais, qui
+  sont lus à voix haute quand on les touche.
+
+Sur un téléphone **sans voix anglaise**, la question à l'oreille n'est
+jamais tirée : elle serait muette. Tout est alors demandé parmi quatre.
+
+À six exercices, le menu propose en plus **« Tout mélangé »** — les
+soixante-quatorze questions tirées ensemble. Le mot compte : un CE2 a
+maintenant des calculs **et** des mots, alors ce qui les mélange parle
+de questions, et chaque liste se compte dans sa propre monnaie — « 10
+calculs » pour une table, « 15 mots » pour les nombres en anglais.
+
+Dans les cinq calculs, le clavier s'ouvre en chiffres sur un téléphone
 (`inputmode="numeric"`). Les espaces et un point égaré sont pardonnés ;
 « quatorze » écrit en lettres ne l'est pas — c'est un nombre qui est
 demandé.
@@ -86,6 +105,23 @@ Le compte et la date sont gardés dans le bilan que lit **un parent**
 (voir `PROFILS.md`). Un calcul juste n'y figure pas, même
 s'il vient d'être vu pour la première fois. Une série sans faute le dit
 et n'énumère rien.
+
+## Où vivent les nombres en anglais
+
+Ce sont des mots, donc ils sont dans `words.js` avec les autres, et non
+dans `maths.js` : une liste y dit `grade: "ce2"` pour passer du menu du
+grand à celui du petit. Elle dit aussi `ask: ["count", "mcq"]` — les
+modes dans lesquels ses questions sont posées, un tiré au hasard pour
+chacune — et `noun`, comment ses items se comptent. Chaque item porte
+son `answer`, le chiffre que vaut le nombre :
+
+```js
+{ fr: "douze", en: ["twelve"], answer: 12 }
+```
+
+Le mode `count` (« écoute et écris le chiffre ») est dans `index.html`,
+à côté de `maths` dont il est le jumeau : même clavier, même correction,
+même recopie — seule la question change, lue au lieu d'être écrite.
 
 ## Ajouter un exercice
 

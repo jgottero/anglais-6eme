@@ -17,6 +17,19 @@
      avoid: answers that must never be offered as a wrong choice
             here, because they would in fact be correct too.
             Applies to both quiz directions.
+     answer: the figure a number is worth, for the list that is
+            answered by writing one.
+
+   Optional keys on a list:
+     grade: who it is for. A list says nothing and it is the
+            sixième's; "ce2" puts it among the younger one's
+            exercises instead.
+     ask:   the modes its questions are asked in, one drawn at
+            random for each. A list says nothing and the pupil
+            chooses in the menu, as they always have.
+     noun:  what its items are called, when the subject's own word
+            would be wrong — a CE2 works on calculs, but a list of
+            English numbers is made of mots.
    ===================================================================== */
 const VOCABULARY = {
   version: 1,
@@ -201,6 +214,37 @@ const VOCABULARY = {
         { fr: "80", en: ["eighty"], heard: ["80", "ateee"] },
         { fr: "90", en: ["ninety"], heard: ["90", "ninty"] },
         { fr: "100", en: ["one hundred", "a hundred"], heard: ["100", "hundred"] }
+      ]
+    },
+    {
+      /* ---- The younger one's English ----
+         The CE2 learns the same numbers as their brother, but only to
+         fifteen and only two ways: hear one and write the figure, or
+         read the French and pick the English out of four. Nothing to
+         spell, nothing to pronounce — the reading and the writing are
+         hard enough at that age without them. */
+      id: "numbers_ce2",
+      grade: "ce2",
+      title: "Les nombres en anglais",
+      subtitle: "De un à quinze",
+      ask: ["count", "mcq"],
+      noun: { one: "mot", many: "mots" },
+      words: [
+        { fr: "un",        en: ["one"],        answer: 1 },
+        { fr: "deux",      en: ["two"],        answer: 2 },
+        { fr: "trois",     en: ["three"],      answer: 3 },
+        { fr: "quatre",    en: ["four"],       answer: 4 },
+        { fr: "cinq",      en: ["five"],       answer: 5 },
+        { fr: "six",       en: ["six"],        answer: 6 },
+        { fr: "sept",      en: ["seven"],      answer: 7 },
+        { fr: "huit",      en: ["eight"],      answer: 8 },
+        { fr: "neuf",      en: ["nine"],       answer: 9 },
+        { fr: "dix",       en: ["ten"],        answer: 10 },
+        { fr: "onze",      en: ["eleven"],     answer: 11 },
+        { fr: "douze",     en: ["twelve"],     answer: 12 },
+        { fr: "treize",    en: ["thirteen"],   answer: 13 },
+        { fr: "quatorze",  en: ["fourteen"],   answer: 14 },
+        { fr: "quinze",    en: ["fifteen"],    answer: 15 }
       ]
     }
   ]

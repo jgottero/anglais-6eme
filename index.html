@@ -617,7 +617,14 @@ let progress = emptyProgress();
 // its progress over, which is the intended behaviour: it is a new word.
 function keyLessons() {
   LESSONS.forEach(lesson => {
-    lesson.words.forEach(word => { word.key = lesson.id + ":" + word.fr; });
+    lesson.words.forEach(word => {
+      word.key = lesson.id + ":" + word.fr;
+      /* A list that names the modes it is asked in hands them to each of
+         its words, so that a question carries its own way of being
+         asked wherever it turns up — in its list, or in the middle of
+         the day's revision. */
+      if (lesson.ask) word.ask = lesson.ask;
+    });
   });
 }
 
@@ -648,23 +655,52 @@ function isParent() {
   return !!PROFILE && PROFILES.grown(PROFILE.grade);
 }
 
-function listsFor(which) {
-  if (which === "maths") return MATHS.EXERCISES;
-  return LESSONS.map(lesson => ({
+/* The lists a subject offers, each saying what it is made of: `of` is
+   "sums" or "words", because a page of sums and a list of words are not
+   counted, reported or asked in the same way. The CE2 works on sums and
+   on one list of English words; the sixième on words alone. */
+function wordList(lesson) {
+  return {
     id: lesson.id,
     title: lesson.title,
     subtitle: lesson.subtitle,
-    items: lesson.words
-  }));
+    items: lesson.words,
+    noun: lesson.noun,
+    of: "words"
+  };
+}
+
+function listsFor(which) {
+  const mine = LESSONS.filter(lesson =>
+    which === "maths" ? lesson.grade === "ce2" : lesson.grade !== "ce2");
+  if (which !== "maths") return mine.map(wordList);
+  return MATHS.EXERCISES.map(one => Object.assign({ of: "sums" }, one))
+    .concat(mine.map(wordList));
 }
 
 function lists() { return listsFor(subject()); }
 
 /* What one of them is called, for a sentence that counts them. The
-   English lists are made of words; a page of sums is not. */
+   English lists are made of words; a page of sums is not. And where a
+   pupil has both — the CE2, who learns their tables and their English
+   numbers — neither word is true of the whole, so they are questions. */
 function thing(many) {
-  if (subject() === "maths") return many > 1 ? "calculs" : "calcul";
-  return many > 1 ? "mots" : "mot";
+  if (subject() !== "maths") return many > 1 ? "mots" : "mot";
+  const kinds = listsFor("maths").map(list => list.of);
+  if (kinds.indexOf("words") !== -1) return many > 1 ? "questions" : "question";
+  return many > 1 ? "calculs" : "calcul";
+}
+
+/* What one list's items are called, which is not always the subject's
+   word: a CE2 works on calculs, but their list of English numbers is
+   made of mots and the menu should say so. */
+function nounOf(list, many) {
+  const said = list && list.noun;
+  if (said) return many > 1 ? said.many : said.one;
+  if (list && list.of) return list.of === "sums"
+    ? (many > 1 ? "calculs" : "calcul")
+    : (many > 1 ? "mots" : "mot");
+  return thing(many);
 }
 
 /* And what the whole set of them is called, when they are offered
@@ -884,7 +920,8 @@ function recordResult(word, success) {
   const note = noteReview(word);
   let gained = note.first
     ? POINTS.word + (success ? POINTS.correct : 0) +
-      (state.asking === "say" || state.asking === "spell" ? POINTS.speaking : 0)
+      (state.asking === "say" || state.asking === "spell" ||
+       state.asking === "count" ? POINTS.speaking : 0)
     : (success ? POINTS.again : 0);
   if (note.completed) {
     gained += POINTS.goal;
@@ -990,7 +1027,9 @@ function levelNote(change) {
   const gained = change.gained
     ? '<span class="also gain">+' + change.gained + ' point' + (change.gained > 1 ? 's' : '') + '</span>'
     : '';
-  const one = thing(1);
+  // What was just answered, not what the pupil mostly works on: a CE2
+  // who has heard an English number has not been handed a sum.
+  const one = state.asking === "maths" ? "calcul" : "mot";
   const text =
     change.after.level === MAX_LEVEL ? (one === "calcul" ? "Calcul acquis." : "Mot acquis.") :
     change.after.level > change.before.level ? "Tu connais mieux ce " + one + "." :
@@ -1405,13 +1444,13 @@ function renderMenu() {
 
   // Progress line shown under each list. Nothing is displayed before the
   // first round, so an untouched list does not look like a failure.
-  function progressLine(pool) {
+  function progressLine(pool, list) {
     const stats = progressOf(pool);
     if (!stats.started) return "";
     return '<span class="bar"><span style="width:' +
       Math.max(3, Math.round(stats.ratio * 100)) + '%"></span></span>' +
       '<span class="done">' + (stats.mastered
-        ? stats.mastered + " " + thing(stats.mastered) + " acquis"
+        ? stats.mastered + " " + nounOf(list, stats.mastered) + " acquis"
         : "révision en cours") + '</span>';
   }
 
@@ -1420,8 +1459,8 @@ function renderMenu() {
     '<button class="choice" data-lesson="' + esc(list.id) + '">' +
       esc(list.title) +
       '<span class="sub">' + esc(list.subtitle || "") +
-      (list.subtitle ? " — " : "") + list.items.length + ' ' + thing(list.items.length) + '</span>' +
-      progressLine(list.items) +
+      (list.subtitle ? " — " : "") + list.items.length + ' ' + nounOf(list, list.items.length) + '</span>' +
+      progressLine(list.items, list) +
     '</button>'
   ).join("");
 
@@ -1459,13 +1498,15 @@ function renderMenu() {
             Math.min(100, Math.round(goal.done / goal.goal * 100)) + '%"></span></span>' +
           '<span class="done">' + (goal.complete
             ? 'Objectif atteint, tampon gagné.'
-            : 'Un ' + thing(1) + ' compte même quand la réponse est fausse.') + '</span>' +
+            : (thing(1) === "question" ? 'Une' : 'Un') + ' ' + thing(1) +
+              ' compte même quand la réponse est fausse.') + '</span>' +
         '</span>' +
         (goal.complete ? stampSvg(goal.stamp, 64) : '') +
       '</div>' +
       '<div class="actions"><button class="text primary" id="daily">' +
         (goal.complete ? 'Continuer à réviser'
-          : subject() === "maths" ? 'Les calculs du jour' : 'Réviser les mots du jour') +
+          : subject() !== "maths" ? 'Réviser les mots du jour'
+          : 'Les ' + thing(2) + ' du jour') +
       '</button></div>' +
     '</section>';
 
@@ -1486,7 +1527,8 @@ function renderMenu() {
           '<div class="modes">' + modes + '</div>'
         : "") +
       '<p class="label"' + (modes ? ' style="margin-top:22px"' : '') + '>' +
-        (subject() === "maths" ? "Choisis le calcul" : "Choisis la liste") + '</p>' +
+        (subject() !== "maths" ? "Choisis la liste"
+          : thing(1) === "question" ? "Choisis l'exercice" : "Choisis le calcul") + '</p>' +
       '<div class="stack">' + lessons +
         // Mixing one list with itself is no choice at all.
         (here.length > 1
@@ -1646,7 +1688,7 @@ function renderReport(who) {
       /* The question, and only the question: an English word is what is
          being learnt, a sum is what is being asked. The answer on the
          page would make the report a page of answers. */
-      const asked = of === "maths" ? word.fr : word.en[0];
+      const asked = lesson.of === "sums" ? word.fr : word.en[0];
       const meta = !child ? "" :
         '<span class="meta">' + (seen.seen
           ? seen.ok + " bonne" + (seen.ok > 1 ? "s" : "") + " réponse" +
@@ -1659,7 +1701,7 @@ function renderReport(who) {
     return '<section class="card">' +
         '<p class="label" style="margin-bottom:0"><b>' + esc(lesson.title) + '</b></p>' +
         '<span class="bar"><span style="width:' + Math.round(ratio * 100) + '%"></span></span>' +
-        '<span class="done">' + mastered + ' ' + noun(mastered) +
+        '<span class="done">' + mastered + ' ' + nounOf(lesson, mastered) +
           ' acquis sur ' + lesson.items.length + '</span>' +
         '<ul class="report' + (child ? '' : ' plain') + '">' + rows + '</ul>' +
       '</section>';
@@ -1712,13 +1754,18 @@ function startRound(lessonId) {
   const asked = lessonId === "!due" ? turnAbout() : null;
 
   state.round = picked.map((word, at) => {
-    const mode = asked ? asked[at % asked.length] : state.mode;
+    /* A word whose list named its modes draws one of them, fresh for
+       every question. Otherwise it is the mode the menu chose, or, in
+       the day's revision, the one whose turn it is. */
+    const mode = word.ask ? shuffle(askable(word.ask))[0]
+      : asked ? asked[at % asked.length]
+      : state.mode;
     const question =
       mode === "mcq" ? buildForward(word, pool) :
       mode === "mcqfr" ? buildReverse(word, pool) :
       // Writing what is heard means writing it from the sound alone: the
       // French word would hand the answer over before the first letter.
-      mode === "spell" ? { word, prompt: "" } :
+      mode === "spell" || mode === "count" ? { word, prompt: "" } :
       // Spoken aloud, and a sum, are both asked in writing.
       { word, prompt: word.fr };
     question.mode = mode;
@@ -1728,6 +1775,17 @@ function startRound(lessonId) {
   state.score = 0;
   renderShell();
   showQuestion();
+}
+
+/* Of the modes a list names, the ones this telephone can actually ask.
+   Listening needs an English voice; where there is none, what is left
+   is asked instead — a question nobody can hear is a question nobody
+   can answer. */
+function askable(modes) {
+  if (!englishVoice) pickVoice();
+  if (englishVoice) return modes;
+  const left = modes.filter(one => one !== "count" && one !== "spell");
+  return left.length ? left : ["mcq"];
 }
 
 /* The modes the day's revision turns between, in order. Nothing to turn
@@ -1806,6 +1864,7 @@ function showQuestion() {
   state.asking = state.round[state.index].mode || state.mode;
   if (state.asking === "say") say.render();
   else if (state.asking === "spell") spell.render();
+  else if (state.asking === "count") count.render();
   else if (state.asking === "maths") maths.render();
   else mcq.render();
 }
@@ -1846,7 +1905,9 @@ function settled(success) {
 
 function nextLabel() {
   if (state.index === state.round.length - 1) return "Voir le score";
-  return subject() === "maths" ? "Calcul suivant" : "Mot suivant";
+  // What comes next is what this question was: a CE2 who has just heard
+  // an English number is not being handed another sum.
+  return state.asking === "maths" ? "Calcul suivant" : "Mot suivant";
 }
 
 function goNext() {
@@ -2138,6 +2199,111 @@ const maths = {
   checkCopy(attempt) {
     const word = state.round[state.index].word;
     if (maths.matches(word, attempt)) {
+      document.getElementById("typed").disabled = true;
+      document.getElementById("check").disabled = true;
+      const pass = document.getElementById("pass");
+      if (pass) pass.remove();
+      settled(true);
+    } else {
+      document.getElementById("typed").value = "";
+      document.getElementById("typed").focus();
+    }
+  },
+
+};
+
+/* ---- Hear a number, write the figure ----
+   The CE2's English: a number is read out, and the answer is the
+   figure. Nothing to spell and nothing to pronounce — at that age the
+   ear and the hand are enough to be going on with, and a figure is
+   something a child of eight can write without hesitating.
+
+   It is the arithmetic above with its question read aloud instead of
+   written, so a wrong answer is corrected the same way: the figure is
+   shown and copied out before the next one comes. */
+const count = {
+  matches(word, attempt) { return maths.matches(word, attempt); },
+
+  // What is read out: the number in English, which is the whole lesson.
+  said(word) { return word.en[0]; },
+
+  render() {
+    const word = state.round[state.index].word;
+    document.getElementById("body").innerHTML =
+      '<div class="actions" style="margin-top:0">' +
+        '<button class="text" id="hear">Réécouter le nombre</button>' +
+      '</div>' +
+      '<form id="countForm" class="spell">' +
+        '<input id="typed" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+               'autocomplete="off" autocorrect="off" spellcheck="false" ' +
+               // Short enough to be read whole in the box it sits in.
+               'placeholder="En chiffres" ' +
+               'aria-label="Écris le nombre en chiffres">' +
+        '<button class="text primary" type="submit" id="check">Valider</button>' +
+      '</form>' +
+      '<p class="verdict" id="verdict"></p>' +
+      '<div class="actions">' +
+        '<button class="text primary" id="next" hidden></button>' +
+        '<button class="text" id="skip">Voir la réponse</button>' +
+      '</div>';
+
+    const input = document.getElementById("typed");
+    document.getElementById("hear").addEventListener("click", () => speak(count.said(word)));
+    document.getElementById("skip").addEventListener("click", () => count.settle(false, ""));
+    document.getElementById("next").addEventListener("click", goNext);
+    document.getElementById("countForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const attempt = input.value.trim();
+      if (!attempt) return;
+      if (state.locked) count.checkCopy(attempt);
+      else count.settle(count.matches(word, attempt), attempt);
+    });
+
+    input.focus();
+    // The number is read on arrival: there is nothing else to go on.
+    speak(count.said(word));
+  },
+
+  settle(success, attempt) {
+    if (state.locked) return;
+    state.locked = true;
+    const word = state.round[state.index].word;
+    const change = recordResult(word, success);
+    const verdict = document.getElementById("verdict");
+    const input = document.getElementById("typed");
+
+    if (success) {
+      verdict.innerHTML = "<b>C'est juste.</b> " + esc(count.said(word)) + ", c'est " +
+        word.answer + "." + levelNote(change);
+      input.disabled = true;
+      document.getElementById("check").disabled = true;
+      document.getElementById("skip").hidden = true;
+      settled(true);
+    } else {
+      verdict.innerHTML =
+        (attempt ? "<b>Pas tout à fait.</b> Tu as écrit " + esc(attempt) + "." : "<b>La réponse :</b>") +
+        '<span class="also">' + esc(count.said(word)) + ", c'est <b>" + word.answer +
+        "</b> — " + esc(word.fr) + ".</span>" + levelNote(change);
+      document.getElementById("skip").hidden = true;
+      // Writing it out is what unlocks the next one.
+      input.value = "";
+      input.placeholder = "Recopie : " + word.answer;
+      input.focus();
+      document.getElementById("check").textContent = "Recopier";
+      const pass = document.createElement("button");
+      pass.className = "text quiet";
+      pass.type = "button";
+      pass.id = "pass";
+      pass.textContent = "passer";
+      pass.addEventListener("click", offerNext);
+      document.querySelector(".actions").appendChild(pass);
+    }
+    markTrack(success ? "right" : "wrong");
+  },
+
+  checkCopy(attempt) {
+    const word = state.round[state.index].word;
+    if (count.matches(word, attempt)) {
       document.getElementById("typed").disabled = true;
       document.getElementById("check").disabled = true;
       const pass = document.getElementById("pass");
