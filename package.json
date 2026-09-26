@@ -1,5 +1,5 @@
 {
-  "name": "revisons",
+  "name": "revisions",
   "private": true,
   "description": "Exercices d'anglais et module de récompense — aucune dépendance pour jouer, Playwright seulement pour les tests.",
   "scripts": {

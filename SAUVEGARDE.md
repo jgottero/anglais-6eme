@@ -66,7 +66,7 @@ qu'il n'a pas lue. Quand les deux ont avancé :
 1. **SQL Editor → New query** : coller `supabase/schema.sql`, *Run*.
    Le fichier peut être relancé sans risque.
 2. **Authentication → URL Configuration** : *Site URL*
-   `https://jgottero.github.io/revisons/`, et la même adresse
+   `https://jgottero.github.io/revisions/`, et la même adresse
    suivie de `**` dans *Redirect URLs*. C'est là que ramènent les liens
    des emails de confirmation et de mot de passe oublié.
 3. **Authentication → Sign In / Providers → Email** : activé.
