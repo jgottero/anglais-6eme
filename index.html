@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Anglais — révisions</title>
+<title>Révisions</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -416,7 +416,7 @@
 <main class="sheet">
   <!-- Who is holding the telephone, said once and only here. -->
   <div class="topline">
-    <h1 id="heading">My English</h1>
+    <h1 id="heading">Profils</h1>
     <button class="text quiet" id="wayout" hidden></button>
   </div>
   <div id="screen"></div>
@@ -1206,14 +1206,14 @@ function wayOutOf(where) {
    pressing them asks who is working now. The school year is not written
    here — it says nothing a child needs twenty times a day, and it is
    asked for and shown where profiles are chosen. Before anyone has been
-   chosen there is nobody to name, so the title is the app's own. */
+   chosen there is nobody to name, so the title says where we are. */
 function renderWho() {
   const out = document.getElementById("wayout");
   const way = PROFILE ? wayOutOf(showing) : null;
   out.textContent = way ? way.says : "";
   out.hidden = !way;
 
-  if (!PROFILE) { headingEl.textContent = "My English"; return; }
+  if (!PROFILE) { headingEl.textContent = "Profils"; return; }
   headingEl.innerHTML =
     '<button class="who" type="button" data-switch title="Changer de profil"' +
       ' aria-label="' + esc(PROFILE.name) + ' — changer de profil">' +
