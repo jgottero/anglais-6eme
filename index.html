@@ -1194,7 +1194,7 @@ function wayOutOf(where) {
   if (where === "round") {
     return { says: subject() === "maths" ? "Changer d'exercice" : "Changer de liste" };
   }
-  if (where === "report" || where === "stamps") return { says: "Retour" };
+  if (where === "report" || where === "stamps" || where === "tweak") return { says: "Retour" };
   return null;
 }
 
@@ -1236,6 +1236,7 @@ const UNDER = {
   score: "menu",
   report: "menu",
   stamps: "menu",
+  tweak: "menu",
   newProfile: "profiles",
   account: "profiles",
   menu: "profiles",
@@ -1306,6 +1307,8 @@ function renderProfiles(options) {
      back to the name of the app, rather than keeping whoever it was
      that just put it down. */
   PROFILE = null;
+  // The parent's word is asked again of whoever picks the telephone up next.
+  tweakOpen = false;
   nowShowing("profiles");
 
   if (asking || !people.length) { renderNewProfile(trouble, people.length); return; }
@@ -1688,12 +1691,167 @@ function renderParentMenu() {
             '</button>';
           }).join("") + '</div>'
         : '<p class="label">Crée le profil d\'un enfant, puis reviens ici.</p>') +
+      (children.length
+        ? '<div class="actions"><button class="text quiet" id="tweak">' +
+            'Modifier un niveau ou des pièces</button></div>'
+        : '') +
     '</section>';
 
   screen.querySelectorAll("[data-book]").forEach(button => {
     button.addEventListener("click", () => renderReport(button.dataset.book));
   });
+  const tweak = document.getElementById("tweak");
+  if (tweak) tweak.addEventListener("click", () => renderTweak());
   window.scrollTo(0, 0);
+}
+
+/* ---- The grown-up's hand on a child's level and purse ----
+   A level up, or a hundred coins, given by a parent rather than earned.
+   The screen is behind a word written right here in the source: it
+   keeps a child who wandered onto the parent's profile out, and it
+   protects nothing more than that.
+
+   A level is a number of points (ranks.js), so a level up is the
+   points of the next one. The coins are the town's, in its own save:
+   the hundred go straight into its purse. Whatever the level up is
+   worth in coins is paid by the town itself, the next time it wakes,
+   exactly as for a level earned — it never pays a level twice. */
+const TWEAK_WORD = "girafe";
+const TWEAK_COINS = 100;
+const TOWN_PLAIN = "reward-property-v1";
+// What a town holds before its first visit: START_COINS in reward/js/state.js.
+const TOWN_START = 150;
+
+// The word is asked once, and again whenever the telephone changes hands.
+let tweakOpen = false;
+let tweaking = null;
+
+function townOf(id) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILES.keyFor(TOWN_PLAIN, id)));
+    return saved && typeof saved === "object" ? saved : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function coinsOf(id) {
+  const town = townOf(id);
+  return town ? Math.max(0, Math.round(Number(town.coins) || 0)) : TOWN_START;
+}
+
+function writeBook(id, book) {
+  const key = PROFILES.keyFor(STORE_PLAIN, id);
+  localStorage.setItem(key, JSON.stringify(book));
+  CLOUD.touched(key);
+}
+
+/* The points of the next level. The family account merges two books by
+   keeping the larger total, so the level holds on every telephone. */
+function giveLevel(id) {
+  const book = bookOf(id);
+  const rank = RANKS.of(book.points || 0);
+  if (rank.last) return null;
+  book.points = rank.next;
+  writeBook(id, book);
+  return rank.index + 1;
+}
+
+/* Straight into the town's purse. A town never visited has no save yet:
+   it gets one holding only its purse, which the module reads like any
+   save it has no step for — the coins are kept, the rest starts blank.
+   The book keeps its copy of the purse in step, for the child's menu. */
+function giveCoins(id, amount) {
+  const key = PROFILES.keyFor(TOWN_PLAIN, id);
+  const town = townOf(id) || { coins: TOWN_START };
+  town.coins = coinsOf(id) + amount;
+  localStorage.setItem(key, JSON.stringify(town));
+  CLOUD.touched(key);
+  const book = bookOf(id);
+  book.reward.coins = town.coins;
+  writeBook(id, book);
+  return town.coins;
+}
+
+function renderTweak(said) {
+  nowShowing("tweak");
+  if (!tweakOpen) {
+    screen.innerHTML =
+      '<section class="card">' +
+        '<p class="label"><b>Modifier un profil</b></p>' +
+        '<p class="label">Mot de passe</p>' +
+        '<p class="spell"><input id="tweak-word" type="password" autocomplete="off"' +
+          ' autocapitalize="off" spellcheck="false" aria-label="Mot de passe"></p>' +
+        (said ? '<p class="notice">' + esc(said) + '</p>' : '') +
+        '<p class="actions"><button class="text primary" data-tweak-enter>Entrer</button></p>' +
+      '</section>';
+    const field = document.getElementById("tweak-word");
+    const enter = () => {
+      if (field.value.trim().toLowerCase() !== TWEAK_WORD) {
+        renderTweak("Ce n'est pas le bon mot de passe.");
+        return;
+      }
+      tweakOpen = true;
+      renderTweak();
+    };
+    screen.querySelector("[data-tweak-enter]").addEventListener("click", enter);
+    field.addEventListener("keydown", event => { if (event.key === "Enter") enter(); });
+    field.focus();
+    window.scrollTo(0, 0);
+    return;
+  }
+
+  const children = PROFILES.all().filter(one => !PROFILES.grown(one.grade));
+  if (!children.some(one => one.id === tweaking)) tweaking = children.length ? children[0].id : null;
+  const chosen = children.find(one => one.id === tweaking);
+  const rank = chosen ? RANKS.of(bookOf(chosen.id).points || 0) : null;
+
+  screen.innerHTML =
+    '<section class="card">' +
+      '<p class="label"><b>Modifier un profil</b></p>' +
+      (children.length
+        ? '<div class="stack">' + children.map(one =>
+            '<button class="choice is-who" data-tweak-who="' + esc(one.id) + '"' +
+              ' aria-pressed="' + (one.id === tweaking) + '">' +
+              faceOf(one) + '<span class="who-name">' + esc(one.name) + '</span>' +
+              gradeBadge(one.grade) +
+            '</button>').join("") + '</div>'
+        : '<p class="label">Aucun enfant sur ce téléphone pour l\'instant.</p>') +
+    '</section>' +
+    (chosen
+      ? '<section class="card rank">' +
+          '<p class="label" style="margin-bottom:2px"><b>' + esc(chosen.name) + '</b> — Niveau ' +
+            rank.index + ' sur ' + RANKS.COUNT + '</p>' +
+          '<p class="purse"><img src="reward/assets/coin.svg" alt="pièces">' +
+            coinsOf(chosen.id) + ' pièces</p>' +
+          (said ? '<p class="notice fine" data-tweak-said>' + esc(said) + '</p>' : '') +
+          '<div class="actions">' +
+            '<button class="text primary" data-level-up' + (rank.last ? ' disabled' : '') + '>' +
+              (rank.last ? 'Dernier niveau atteint' : 'Passer au niveau ' + (rank.index + 1)) +
+            '</button>' +
+            '<button class="text" data-coins>+' + TWEAK_COINS + ' pièces</button>' +
+          '</div>' +
+        '</section>'
+      : '');
+
+  screen.querySelectorAll("[data-tweak-who]").forEach(button => {
+    button.addEventListener("click", () => {
+      tweaking = button.dataset.tweakWho;
+      renderTweak();
+    });
+  });
+  const up = screen.querySelector("[data-level-up]");
+  if (up) up.addEventListener("click", () => {
+    if (DEMO_RANK) { renderTweak("Démonstration : rien n'est enregistré."); return; }
+    const reached = giveLevel(chosen.id);
+    renderTweak(reached ? chosen.name + " passe au niveau " + reached + "." : "");
+  });
+  const coins = screen.querySelector("[data-coins]");
+  if (coins) coins.addEventListener("click", () => {
+    if (DEMO_RANK) { renderTweak("Démonstration : rien n'est enregistré."); return; }
+    const purse = giveCoins(chosen.id, TWEAK_COINS);
+    renderTweak("+" + TWEAK_COINS + " pièces : " + chosen.name + " en a " + purse + ".");
+  });
 }
 
 function renderMenu() {

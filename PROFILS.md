@@ -24,6 +24,21 @@ d'un enfant. Lire le carnet d'un enfant **ne prend pas sa place** : sa
 sauvegarde est ouverte en lecture, rien n'y est écrit, et le parent
 reste le parent.
 
+Sous la liste, **« Modifier un niveau ou des pièces »** mène à un écran
+fermé par un mot de passe — un simple mot, `TWEAK_WORD` dans
+`index.html` : il empêche un enfant tombé sur le profil parent d'entrer,
+et rien de plus. On y choisit un enfant, puis :
+
+- **Passer au niveau suivant** : l'enfant reçoit exactement les points
+  du niveau d'après. La ville paie ce niveau à sa prochaine ouverture,
+  comme un niveau gagné — jamais deux fois.
+- **+100 pièces** : elles vont directement dans la sauvegarde de sa
+  ville, même une ville jamais ouverte (elle démarre alors avec ses 150
+  pièces de départ, plus celles-ci).
+
+Le mot n'est demandé qu'une fois, puis de nouveau dès que le téléphone
+change de mains.
+
 `PROFILES.grown(niveau)` est ce qui répond « celui-là est un
 grand ». Un niveau inconnu — une sauvegarde d'avant les parents — est
 toujours un élève, jamais un grand.
@@ -67,7 +82,7 @@ sortir de l'application. Il est branché sur les écrans : un appui fait
 | dans la ville : magasin ouvert | referme le magasin |
 | dans la ville : dans une pièce | ressort du bâtiment |
 | la ville | la referme, retour au menu |
-| une série, un bilan, le carnet | le menu |
+| une série, un bilan, le carnet, l'écran « Modifier un profil » | le menu |
 | le menu | « Qui travaille aujourd'hui ? » |
 | un nouveau profil | la liste des profils |
 | la liste des profils | quitte l'application, comme avant |
