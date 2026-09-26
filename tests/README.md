@@ -58,5 +58,5 @@ fichiers que le navigateur ouvre directement.
 
 Pour que cela démarre, il faut activer Pages **une fois** dans les
 réglages du dépôt : *Settings → Pages → Source : GitHub Actions*. Le
-site apparaît alors à `https://jgottero.github.io/revisons/`, et
+site apparaît alors à `https://jgottero.github.io/revisions/`, et
 c'est cette adresse-là que les liens de partage porteront.
