@@ -27,6 +27,10 @@
      ask:   the modes its questions are asked in, one drawn at
             random for each. A list says nothing and the pupil
             chooses in the menu, as they always have.
+     forms: every word gives its answers in the same forms and
+            the same order — "first", then "1st". A question draws
+            one of them at random, and its wrong choices come in that
+            same form, so the look of an answer never gives it away.
      noun:  what its items are called, when the subject's own word
             would be wrong — a CE2 works on calculs, but a list of
             English numbers is made of mots.
@@ -214,6 +218,38 @@ const VOCABULARY = {
         { fr: "80", en: ["eighty"], heard: ["80", "ateee"] },
         { fr: "90", en: ["ninety"], heard: ["90", "ninty"] },
         { fr: "100", en: ["one hundred", "a hundred"], heard: ["100", "hundred"] }
+      ]
+    },
+    {
+      /* Each rank is written two ways, and both are right: in letters
+         and in figures. The letters come first, since they are what a
+         dictation reads out and what has to be spelt; `forms` keeps the
+         wrong choices of a question in the form of the right one. */
+      id: "ordinals",
+      title: "Ordinal numbers",
+      subtitle: "1st, 2nd, 3rd… : premier, deuxième, troisième",
+      forms: true,
+      words: [
+        { fr: "premier",         en: ["first", "1st"],   heard: ["fist"] },
+        { fr: "deuxième",        en: ["second", "2nd"] },
+        { fr: "troisième",       en: ["third", "3rd"] },
+        { fr: "quatrième",       en: ["fourth", "4th"],  heard: ["forth"] },
+        { fr: "cinquième",       en: ["fifth", "5th"],   heard: ["fifths"] },
+        { fr: "sixième",         en: ["sixth", "6th"],   heard: ["sixths"] },
+        { fr: "septième",        en: ["seventh", "7th"] },
+        { fr: "huitième",        en: ["eighth", "8th"],  heard: ["eights"] },
+        { fr: "neuvième",        en: ["ninth", "9th"] },
+        { fr: "dixième",         en: ["tenth", "10th"] },
+        { fr: "onzième",         en: ["eleventh", "11th"] },
+        { fr: "douzième",        en: ["twelfth", "12th"] },
+
+        // Then the tens, and what comes just after them.
+        { fr: "vingtième",       en: ["twentieth", "20th"] },
+        { fr: "vingt et unième", en: ["twenty-first", "21st"] },
+        { fr: "vingt-deuxième",  en: ["twenty-second", "22nd"] },
+        { fr: "vingt-troisième", en: ["twenty-third", "23rd"] },
+        { fr: "trentième",       en: ["thirtieth", "30th"] },
+        { fr: "trente et unième", en: ["thirty-first", "31st"] }
       ]
     },
     {
