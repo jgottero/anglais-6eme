@@ -365,6 +365,10 @@
   .fallback input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
 
   .notice { margin-top: 14px; font-size: 0.9rem; color: var(--wrong); }
+  .notice.fine { color: var(--right); }
+  /* A row of buttons that may not fit on one line: it wraps with room. */
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 0; }
+  .actions.after { margin-top: 14px; }
 
   /* ---- Dictation ---- */
   .spell { display: flex; gap: 8px; margin-top: 4px; }
@@ -402,6 +406,7 @@
 <body>
 <script src="words.js"></script>
 <script src="ranks.js"></script>
+<script src="cloud.js"></script>
 <script src="profiles.js"></script>
 <script src="maths.js"></script>
 
@@ -487,9 +492,9 @@ function isAccepted(word, attempt) {
    PROGRESS STORAGE — the only place that knows where the data lives.
 
    The whole app goes through Store.load / Store.save / Store.merge and
-   through the helpers below. To move the progress to a server later,
-   rewrite those three functions to call the API and leave the rest of the
-   file untouched. They are already asynchronous for that reason.
+   through the helpers below. The save stays on the telephone; when a
+   family account is signed in, cloud.js keeps a copy of it on the
+   server, and uses Store.merge when two devices have both moved on.
 
    Stored shape:
      {
@@ -563,6 +568,7 @@ const Store = {
     if (DEMO_RANK) return false;
     try {
       localStorage.setItem(storeKey(), JSON.stringify(data));
+      CLOUD.touched(storeKey());
       return true;
     } catch (error) {
       return false;
@@ -601,8 +607,13 @@ const Store = {
       if (!mine || (day.n || 0) > (mine.n || 0)) merged.days[key] = day;
     }
     // The total is rebuilt from the days rather than added up, so that
-    // syncing twice cannot inflate it.
-    merged.points = Object.values(merged.days).reduce((sum, day) => sum + (day.p || 0), 0);
+    // syncing twice cannot inflate it. Days saved before they kept their
+    // points count for nothing there, so the total never falls below
+    // what either side already had.
+    merged.points = Math.max(
+      Object.values(merged.days).reduce((sum, day) => sum + (day.p || 0), 0),
+      (local && local.points) || 0,
+      (remote && remote.points) || 0);
     const theirs = (remote && remote.reward) || {};
     merged.reward.coins = Math.max(merged.reward.coins, theirs.coins || 0);
     merged.reward.level = Math.max(merged.reward.level, theirs.level || 0);
@@ -612,6 +623,14 @@ const Store = {
 };
 
 let progress = emptyProgress();
+
+/* What travels to the family account besides the list of profiles:
+   each profile's progress, merged word by word when two devices have
+   both moved on, and its property, which cannot be merged and goes to
+   whichever was written last. */
+CLOUD.track(key => key.indexOf(STORE_PLAIN + ":") === 0,
+  (local, remote) => Store.merge(local, remote));
+CLOUD.track(key => key.indexOf("reward-property-v1:") === 0);
 
 // Every word gets a stable key. Renaming the French side of a word starts
 // its progress over, which is the intended behaviour: it is a new word.
@@ -847,6 +866,15 @@ function dropProperty() {
   panel.innerHTML = "";
   propertyFrame = null;
   document.body.classList.remove("is-away");
+}
+
+/* The property came down from the family account: a town already loaded
+   holds the old one. Out of sight it is simply thrown away; on screen it
+   is opened again, on the new one. */
+function reloadProperty() {
+  if (!propertyFrame) return;
+  if (document.getElementById("property").hidden) { dropProperty(); return; }
+  propertyFrame.src = "reward/index.html?p=" + encodeURIComponent(PROFILE.id);
 }
 
 function closeProperty() {
@@ -1209,6 +1237,7 @@ const UNDER = {
   report: "menu",
   stamps: "menu",
   newProfile: "profiles",
+  account: "profiles",
   menu: "profiles",
   profiles: null
 };
@@ -1295,13 +1324,15 @@ function renderProfiles(options) {
       '<p style="margin:22px 0 0">' +
         '<button class="text" data-new-profile>Nouveau profil</button>' +
       '</p>' +
-    '</section>';
+    '</section>' +
+    cloudCard();
 
   screen.querySelectorAll("[data-profile]").forEach(button => {
     button.addEventListener("click", () => startAs(button.dataset.profile));
   });
   screen.querySelector("[data-new-profile]")
     .addEventListener("click", () => renderProfiles({ asking: true }));
+  hangAccount();
 }
 
 function renderNewProfile(trouble, howMany) {
@@ -1346,7 +1377,11 @@ function renderNewProfile(trouble, howMany) {
         '<button class="text primary" data-make>C\'est parti</button>' +
         (howMany ? ' <button class="text" data-cancel>Annuler</button>' : '') +
       '</p>' +
-    '</section>';
+    '</section>' +
+    /* A second telephone in the house opens here too: its family is
+       already on the account, and is found by signing in rather than
+       by making everybody again. */
+    (!howMany && !CLOUD.status().signedIn ? cloudCard(true) : '');
 
   /* One of a row is chosen at a time: pressing one lets the others go.
      The same for the drawings and for the school years. */
@@ -1382,6 +1417,7 @@ function renderNewProfile(trouble, howMany) {
   field.addEventListener("keydown", event => { if (event.key === "Enter") make(); });
   const cancel = screen.querySelector("[data-cancel]");
   if (cancel) cancel.addEventListener("click", () => renderProfiles());
+  hangAccount();
   field.focus();
 }
 
@@ -1397,6 +1433,230 @@ async function startAs(id) {
   dropProperty();
   renderMenu();
 }
+
+/* =====================================================================
+   THE FAMILY ACCOUNT — a copy of everything on a server.
+
+   Everything is saved on the telephone first, account or not. Signed
+   in, cloud.js keeps a copy on the family account as well, so the work
+   survives a lost telephone and follows the children from one device
+   to another. A parent sets it up once per telephone; the children
+   never see more of it than a line under their names.
+   ===================================================================== */
+
+/* How the copy stands, in a sentence. */
+function cloudSays(now) {
+  if (!now.signedIn) return now.trouble || "Tout est enregistré sur ce téléphone seulement.";
+  if (now.busy) return "Synchronisation en cours…";
+  if (now.trouble) return now.trouble;
+  if (now.pending) {
+    return now.pending + (now.pending > 1 ? " changements attendent" : " changement attend") +
+      " d'être envoyés : ils partiront dès que possible.";
+  }
+  if (!now.synced) return "Connecté, pas encore synchronisé.";
+  return "Tout est sauvegardé en ligne.";
+}
+
+/* The line under the profiles, and the way to the account. On the very
+   first screen of a telephone, it is the way in for a family that is
+   already on the account. */
+function cloudCard(welcome) {
+  const now = CLOUD.status();
+  return '<section class="card" style="margin-top:16px">' +
+      (welcome
+        ? '<p class="label">Déjà un compte famille ? Connecte-toi, et tous les profils ' +
+            'reviennent sur ce téléphone.</p>'
+        : '<p class="label" data-cloud-line>' + esc(cloudSays(now)) + '</p>') +
+      '<p style="margin:0">' +
+        '<button class="text quiet" data-account>' +
+          (welcome ? "Se connecter" : now.signedIn ? "Compte famille" : "Sauvegarder en ligne") +
+        '</button>' +
+      '</p>' +
+    '</section>';
+}
+
+function hangAccount() {
+  const button = screen.querySelector("[data-account]");
+  if (button) button.addEventListener("click", () => renderAccount());
+}
+
+/* The account screen. Signed out, it signs in or makes the account;
+   signed in, it says how the copy stands. Arriving from a "forgotten
+   password" email, it asks for the new one. `options.fine` and
+   `options.trouble` are a message to show, good or bad. */
+function renderAccount(options) {
+  const opts = options || {};
+  nowShowing("account");
+  const now = CLOUD.status();
+  const message = opts.trouble
+    ? '<p class="notice" data-cloud-message>' + esc(opts.trouble) + '</p>'
+    : opts.fine
+      ? '<p class="notice fine" data-cloud-message>' + esc(opts.fine) + '</p>'
+      : '<p class="notice" data-cloud-message hidden></p>';
+  const field = (id, type, complete, label) =>
+    '<p class="label">' + label + '</p>' +
+    '<p class="spell"><input id="' + id + '" type="' + type + '" autocomplete="' + complete + '"' +
+      (type === "email" ? ' inputmode="email" autocapitalize="off" spellcheck="false"' : '') +
+      ' aria-label="' + label + '"></p>';
+  const back = '<p class="actions after"><button class="text quiet" data-back>Retour</button></p>';
+
+  if (now.signedIn && opts.recovery) {
+    screen.innerHTML =
+      '<section class="card">' +
+        '<p class="label"><b>Nouveau mot de passe</b></p>' +
+        '<p class="label">Pour le compte ' + esc(now.email) + '.</p>' +
+        field("cloud-password", "password", "new-password", "Mot de passe (6 caractères au moins)") +
+        message +
+        '<p class="actions"><button class="text primary" data-new-password>Enregistrer</button></p>' +
+        back +
+      '</section>';
+  } else if (now.signedIn) {
+    screen.innerHTML =
+      '<section class="card">' +
+        '<p class="label"><b>Compte famille</b></p>' +
+        '<p class="label">Connecté avec <b>' + esc(now.email) + '</b>. Le travail de chacun ' +
+          'est sauvegardé en ligne, et se retrouve sur chaque téléphone connecté à ce compte.</p>' +
+        '<p class="label" data-cloud-line>' + esc(cloudSays(now)) + '</p>' +
+        message +
+        '<p class="actions">' +
+          '<button class="text primary" data-sync>Synchroniser maintenant</button>' +
+          '<button class="text" data-sign-out>Se déconnecter</button>' +
+        '</p>' +
+        back +
+      '</section>';
+  } else {
+    screen.innerHTML =
+      '<section class="card">' +
+        '<p class="label"><b>Compte famille</b></p>' +
+        '<p class="label">Avec un compte, le travail de chacun est sauvegardé en ligne : il ne se ' +
+          'perd pas avec le téléphone, et se retrouve sur tous les téléphones de la maison.</p>' +
+        field("cloud-email", "email", "username", "Adresse email") +
+        field("cloud-password", "password", "current-password", "Mot de passe") +
+        message +
+        '<p class="actions">' +
+          '<button class="text primary" data-sign-in>Se connecter</button>' +
+          '<button class="text" data-sign-up>Créer le compte</button>' +
+        '</p>' +
+        '<p class="actions after">' +
+          '<button class="text quiet" data-forgot>Mot de passe oublié</button>' +
+          '<button class="text quiet" data-back>Retour</button>' +
+        '</p>' +
+      '</section>';
+  }
+
+  const find = selector => screen.querySelector(selector);
+  const value = id => (find("#" + id) || {}).value || "";
+  const say = (text, fine) => {
+    const box = find("[data-cloud-message]");
+    box.textContent = text;
+    box.className = "notice" + (fine ? " fine" : "");
+    box.hidden = !text;
+  };
+  /* One request at a time: the buttons wait with it, and whatever it
+     answers is said under the fields. */
+  const act = (selector, work) => {
+    const button = find(selector);
+    if (!button) return;
+    button.addEventListener("click", async () => {
+      const buttons = screen.querySelectorAll("button");
+      buttons.forEach(one => { one.disabled = true; });
+      say("");
+      try {
+        await work();
+      } catch (error) {
+        if (showing === "account") say(error.message || "Ça n'a pas marché.");
+      } finally {
+        buttons.forEach(one => { one.disabled = false; });
+      }
+    });
+  };
+  const needs = (email, password) => {
+    if (email !== undefined && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+      throw new Error("Il manque l'adresse email.");
+    }
+    if (password !== undefined && password.length < 6) {
+      throw new Error("Le mot de passe doit faire 6 caractères au moins.");
+    }
+  };
+
+  act("[data-sign-in]", async () => {
+    needs(value("cloud-email"), value("cloud-password"));
+    await CLOUD.signIn(value("cloud-email"), value("cloud-password"));
+    // Whoever is on the account is now on this telephone as well.
+    if (showing === "account") renderProfiles();
+  });
+  act("[data-sign-up]", async () => {
+    needs(value("cloud-email"), value("cloud-password"));
+    const made = await CLOUD.signUp(value("cloud-email"), value("cloud-password"));
+    if (made.confirm) {
+      say("Un email vient d'être envoyé à " + value("cloud-email").trim() + ". Ouvre le lien " +
+        "qu'il contient sur ce téléphone : tu reviendras ici, connecté.", true);
+    } else if (showing === "account") {
+      renderAccount({ fine: "Le compte famille est prêt : tout ce qui est sur ce téléphone y est sauvegardé." });
+    }
+  });
+  act("[data-forgot]", async () => {
+    needs(value("cloud-email"));
+    await CLOUD.recover(value("cloud-email"));
+    say("Si un compte existe pour cette adresse, un email vient d'y être envoyé : " +
+      "ouvre le lien qu'il contient sur ce téléphone pour choisir un nouveau mot de passe.", true);
+  });
+  act("[data-new-password]", async () => {
+    needs(undefined, value("cloud-password"));
+    await CLOUD.setPassword(value("cloud-password"));
+    renderAccount({ fine: "Le nouveau mot de passe est enregistré." });
+  });
+  act("[data-sync]", async () => {
+    await CLOUD.sync();
+    const after = CLOUD.status();
+    if (after.trouble) throw new Error(after.trouble);
+  });
+  act("[data-sign-out]", async () => {
+    await CLOUD.signOut();
+    renderAccount({ fine: "Déconnecté. Tout ce qui est sur ce téléphone y reste." });
+  });
+  const leave = find("[data-back]");
+  if (leave) leave.addEventListener("click", () => renderProfiles());
+
+  const first = find("#cloud-email") || find("#cloud-password");
+  if (first) first.focus();
+  window.scrollTo(0, 0);
+}
+
+/* Whatever says how the copy stands follows it as it changes, without
+   redrawing the screen under somebody's fingers. */
+CLOUD.onStatus(now => {
+  document.querySelectorAll("[data-cloud-line]").forEach(line => {
+    line.textContent = cloudSays(now);
+  });
+});
+
+/* Saves that came down from the family account. The profile being used
+   may have been given a new id, or its progress or its property may
+   have moved on on another telephone: what is held in memory is read
+   again, and the screen redrawn where that is safe to do. */
+CLOUD.onChange(change => {
+  if (PROFILE) {
+    const id = change.renamed[PROFILE.id] || PROFILE.id;
+    const moved = id !== PROFILE.id;
+    PROFILE = PROFILES.one(id) || PROFILE;
+    if (!DEMO_RANK && (moved || change.keys.includes(storeKey()))) {
+      try {
+        const raw = localStorage.getItem(storeKey());
+        progress = Store.adopt(raw ? JSON.parse(raw) : null);
+      } catch (error) {
+        /* The one in memory stays: it is newer than nothing. */
+      }
+    }
+    if (moved || change.keys.includes(PROFILES.keyFor("reward-property-v1", PROFILE.id))) {
+      reloadProperty();
+    }
+    renderWho();
+  }
+  // A form being filled in is never redrawn from under the pupil.
+  if (showing === "profiles" && !document.getElementById("profile-name")) renderProfiles();
+  else if (showing === "menu" && document.getElementById("property").hidden) renderMenu();
+});
 
 /* Which of the screens is up. The property answers with the purse
    whenever anything is sent to it, and the menu has to be redrawn to
@@ -2667,8 +2927,16 @@ function demoProgress(rank) {
      and none of them is read until one is chosen. The one who
      practised last is offered first, but never taken for granted — a
      brother picking up his sister's telephone should not find himself
-     answering in her place. */
-  renderProfiles();
+     answering in her place.
+
+     Unless the page was opened from a link in an email from the family
+     account: then it is the account screen that has something to say. */
+  const came = CLOUD.start();
+  if (came && came.type === "recovery") renderAccount({ recovery: true });
+  else if (came && came.type === "error") renderAccount({ trouble: came.message });
+  else if (came && came.type === "signup") {
+    renderAccount({ fine: "L'adresse est confirmée : le compte famille est prêt." });
+  } else renderProfiles();
 })();
 </script>
 </body>
