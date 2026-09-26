@@ -646,6 +646,8 @@ function keyLessons() {
          asked wherever it turns up — in its list, or in the middle of
          the day's revision. */
       if (lesson.ask) word.ask = lesson.ask;
+      // Likewise a list whose answers come in forms, for its wrong choices.
+      if (lesson.forms) word.forms = true;
     });
   });
 }
@@ -2222,11 +2224,17 @@ function turnAbout() {
 function buildForward(word, pool) {
   const answer = shuffle(word.en)[0];
   const banned = new Set([...word.en, ...(word.avoid || [])]);
-  let others = pool.flatMap(w => w.en).filter(a => !banned.has(a));
+  /* A word whose answers come in forms ("first" and "1st") is offered
+     wrong choices in the form drawn for the right one: three words and
+     a figure would hand the answer over. */
+  const form = word.forms ? word.en.indexOf(answer) : -1;
+  const answersOf = words => (form === -1
+    ? words.flatMap(w => w.en)
+    : words.filter(w => w.forms).map(w => w.en[form])
+  ).filter(a => a && !banned.has(a));
+  let others = answersOf(pool);
   // A very short list would not offer enough wrong answers on its own.
-  if (others.length < 3) {
-    others = LESSONS.flatMap(l => l.words).flatMap(w => w.en).filter(a => !banned.has(a));
-  }
+  if (others.length < 3) others = answersOf(LESSONS.flatMap(l => l.words));
   const distractors = shuffle([...new Set(others)]).slice(0, 3);
   return { word, prompt: word.fr, answer, options: shuffle([answer, ...distractors]) };
 }
